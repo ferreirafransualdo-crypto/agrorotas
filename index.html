@@ -695,6 +695,7 @@ return String(str).replace(/[&<>"]/g, function(m) {
     }
 
     // Função para gerar o relatório para o gestor
+ // Função para gerar o relatório para o gestor
     function gerarRelatorioGestor() {
       const nome = document.getElementById('nomeOperador') ? document.getElementById('nomeOperador').value : 'Não informado';
       const matricula = document.getElementById('matricula') ? document.getElementById('matricula').value : 'Não informada';
@@ -704,8 +705,7 @@ return String(str).replace(/[&<>"]/g, function(m) {
       
       const totalKm = (Number(kmFinal) - Number(kmInicial)) || 0;
       
-      const textoRelatorio = 
-`📊 *RELATÓRIO DE ROTAS E FROTA - AGRO*
+      const textoRelatorio = `📊 *RELATÓRIO DE ROTAS E FROTA - AGRO*
 ----------------------------------------
 👤 *Operador:* ${nome} (Matrícula: ${matricula})
 🚗 *Veículo/Frota:* ${frota}
@@ -718,6 +718,14 @@ return String(str).replace(/[&<>"]/g, function(m) {
 
 ----------------------------------------
 Enviado via AgroRotas PWA`;
+
+      const urlWhatsapp = `https://api.whatsapp.com/send?text=${encodeURIComponent(textoRelatorio)}`;
+      window.open(urlWhatsapp, '_blank');
+    }
+</script>
+
+</body>
+</html>
 
       const urlWhatsapp = `https://api.whatsapp.com/send?text=${encodeURIComponent(textoRelatorio)}`;
       window.open(urlWhatsapp, '_blank');
