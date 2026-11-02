@@ -686,6 +686,43 @@
                 return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m];
             });
         }
+        return String(str).replace(/[&<>"]/g, function(m) {
+            return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m];
+        });
+    }
+
+    // ADICIONE AQUI O NOVO CÓDIGO DO RELATÓRIO:
+    function gerarRelatorioGestor() {
+      const nome = document.getElementById('nomeOperador') ? document.getElementById('nomeOperador').value : 'Não informado';
+      const matricula = document.getElementById('matricula') ? document.getElementById('matricula').value : 'Não informada';
+      const frota = document.getElementById('frota') ? document.getElementById('frota').value : 'Fiorino';
+      const kmInicial = document.getElementById('kmInicial') ? document.getElementById('kmInicial').value : '0';
+      const kmFinal = document.getElementById('kmFinal') ? document.getElementById('kmFinal').value : '0';
+      
+      const totalKm = (Number(kmFinal) - Number(kmInicial)) || 0;
+      
+      const textoRelatorio = 
+`📊 *RELATÓRIO DE ROTAS E FROTA - AGRO*
+----------------------------------------
+👤 *Operador:* ${nome} (Matrícula: ${matricula})
+🚗 *Veículo/Frota:* ${frota}
+📅 *Data:* ${new Date().toLocaleDateString('pt-BR')}
+
+📍 *RESUMO DA OPERAÇÃO:*
+• Km Inicial: ${kmInicial} km
+• Km Final: ${kmFinal} km
+• Total Percorrido: ${totalKm} km
+
+----------------------------------------
+Enviado via AgroRotas PWA`;
+
+      const urlWhatsapp = `https://api.whatsapp.com/send?text=${encodeURIComponent(textoRelatorio)}`;
+      window.open(urlWhatsapp, '_blank');
+    }
+</script> <!-- Linha 689 original -->
+
+</body> <!-- Linha 690 -->
+</html> <!-- Linha 691 -->
     </script>
 </body>
 </html>
