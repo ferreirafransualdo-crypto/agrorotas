@@ -690,6 +690,10 @@
             return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m];
         });
     }
+return String(str).replace(/[&<>"]/g, function(m) {
+            return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m];
+        });
+    }
 
     // ADICIONE AQUI O NOVO CÓDIGO DO RELATÓRIO:
     function gerarRelatorioGestor() {
@@ -719,6 +723,7 @@ Enviado via AgroRotas PWA`;
       const urlWhatsapp = `https://api.whatsapp.com/send?text=${encodeURIComponent(textoRelatorio)}`;
       window.open(urlWhatsapp, '_blank');
     }
+</script>
 </script> <!-- Linha 689 original -->
 
 </body> <!-- Linha 690 -->
