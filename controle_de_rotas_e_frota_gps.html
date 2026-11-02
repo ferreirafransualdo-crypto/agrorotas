@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rotas Agro & Logística - Rastreamento GPS</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        agro: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                            800: '#166534',
+                            900: '#14532d',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .pulse-ring {
+            box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+            animation: pulse 1.8s infinite;
+        }
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+            }
+            70% {
+                box-shadow: 0 0 0 12px rgba(34, 197, 94, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
+            }
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 font-sans min-h-screen flex flex-col justify-between pb-8">
+
+    <!-- Top Header -->
+    <header class="bg-slate-800 border-b border-slate-700 px-4 py-3 sticky top-0 z-50">
+        <div class="max-w-3xl mx-auto flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-agro-600 flex items-center justify-center text-white font-bold text-xl shadow-lg">
+                    <i class="fa-solid fa-truck-ramp-box"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg leading-tight text-white">AgroRota GPS</h1>
+                    <p class="text-xs text-slate-400">Controle de Frota & Logística</p>
+                </div>
+            </div>
+            <div id="gpsStatusBadge" class="flex items-center gap-2 px-3 py-1 rounded-full bg-slate-700 text-slate-300 text-xs font-medium">
+                <span class="w-2 h-2 rounded-full bg-slate-400"></span>
+                <span>GPS Desconectado</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-3xl mx-auto w-full px-4 pt-4 flex-1 space-y-4">
+
+        <!-- Banner de Alerta / Permissões -->
+        <div id="alertBox" class="hidden p-4 rounded-xl border flex items-start gap-3 transition-all">
+            <i id="alertIcon" class="fa-solid fa-circle-info mt-0.5 text-lg"></i>
+            <div class="flex-1 text-sm" id="alertMessage"></div>
+            <button onclick="hideAlert()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+
+        <!-- CARD 1: Formulário de Início (Aparece quando Inativo) -->
+        <section id="formSection" class="bg-slate-800 border border-slate-700 rounded-2xl p-5 shadow-xl">
+            <h2 class="text-lg font-bold text-slate-200 mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-play text-agro-500"></i> Iniciar Nova Rota
+            </h2>
+
+            <form id="startRouteForm" class="space-y-4" onsubmit="event.preventDefault(); startTracking();">
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Veículo / Frota *</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-truck absolute left-3 top-3.5 text-slate-500"></i>
+                        <input type="text" id="inputFleet" required placeholder="Ex: Caminhão 04 / Placa ABC-1234" 
+                            class="w-full bg-slate-900 border border-slate-700 rounded-xl py-3 pl-10 pr-3 text-white placeholder-slate-500 focus:outline-none focus:border-agro-500 focus:ring-1 focus:ring-agro-500 font-medium">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">KM Inicial *</label>
+                        <div class="relative">
+                            <i class="fa-solid fa-gauge-high absolute left-3 top-3.5 text-slate-500"></i>
+                            <input type="number" step="0.1" id="inputKmStart" required placeholder="Ex: 124500" 
+                                class="w-full bg-slate-900 border border-slate-700 rounded-xl py-3 pl-10 pr-3 text-white placeholder-slate-500 focus:outline-none focus:border-agro-500 focus:ring-1 focus:ring-agro-500 font-semibold text-lg">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Destino / Cliente *</label>
+                        <div class="relative">
+                            <i class="fa-solid fa-location-dot absolute left-3 top-3.5 text-slate-500"></i>
+                            <input type="text" id="inputDestination" required placeholder="Ex: Fazenda Santa Maria" list="destinationList"
+                                class="w-full bg-slate-900 border border-slate-700 rounded-xl py-3 pl-10 pr-3 text-white placeholder-slate-500 focus:outline-none focus:border-agro-500 focus:ring-1 focus:ring-agro-500 font-medium">
+                            <datalist id="destinationList">
+                                <option value="Fazenda Esperança"></option>
+                                <option value="Fazenda Boa Vista"></option>
+                                <option value="Fornecedor Adubos Brasil"></option>
+                                <option value="Usina Central"></option>
+                                <option value="Garagem Matriz"></option>
+                            </datalist>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Observações (Opcional)</label>
+                    <input type="text" id="inputNotes" placeholder="Ex: Carga de adubo, motorista João" 
+                        class="w-full bg-slate-900 border border-slate-700 rounded-xl py-2.5 px-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-agro-500">
+                </div>
+
+                <button type="submit" 
+                    class="w-full py-4 bg-agro-600 hover:bg-agro-500 text-white font-bold rounded-xl shadow-lg transition-all flex items-center justify-center gap-3 text-lg">
+                    <i class="fa-solid fa-location-arrow"></i>
+                    INICIAR RASTREAMENTO GPS
+                </button>
+            </form>
+        </section>
+
+        <!-- CARD 2: Painel de Controle ao Vivo (Ativo durante a Rota) -->
+        <section id="activeSection" class="hidden space-y-4">
+            
+            <!-- Header do Status da Rota -->
+            <div class="bg-slate-800 border border-agro-500/30 rounded-2xl p-4 shadow-xl flex items-center justify-between">
+                <div>
+                    <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Destino em Andamento</div>
+                    <div id="liveDestination" class="text-xl font-bold text-agro-500">---</div>
+                    <div id="liveFleet" class="text-xs text-slate-300 mt-0.5"><i class="fa-solid fa-truck mr-1"></i>---</div>
+                </div>
+                <div class="text-right">
+                    <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Tempo Decorrido</div>
+                    <div id="liveTimer" class="text-2xl font-mono font-bold text-white">00:00:00</div>
+                </div>
+            </div>
+
+            <!-- Dashboard principal de Quilometragem -->
+            <div class="grid grid-cols-2 gap-3">
+                <div class="bg-slate-800 border border-slate-700 rounded-2xl p-4 text-center">
+                    <span class="text-xs font-semibold text-slate-400 uppercase">KM Inicial</span>
+                    <div id="liveKmStart" class="text-xl font-bold text-slate-200 mt-1">0.0</div>
+                    <span class="text-[10px] text-slate-500">Registrado no início</span>
+                </div>
+
+                <div class="bg-slate-800 border border-slate-700 rounded-2xl p-4 text-center">
+                    <span class="text-xs font-semibold text-slate-400 uppercase">Velocidade Atual</span>
+                    <div id="liveSpeed" class="text-xl font-bold text-blue-400 mt-1">0 km/h</div>
+                    <span class="text-[10px] text-slate-500" id="liveGpsAccuracy">Precisão: --</span>
+                </div>
+
+                <div class="bg-slate-800 border border-agro-500/50 rounded-2xl p-4 text-center bg-gradient-to-b from-slate-800 to-agro-950/30 col-span-1">
+                    <span class="text-xs font-semibold text-agro-400 uppercase">Distância Percorrida</span>
+                    <div id="liveDistance" class="text-3xl font-black text-agro-500 mt-1">0.00</div>
+                    <span class="text-xs font-bold text-agro-400">KM</span>
+                </div>
+
+                <div class="bg-slate-800 border border-slate-700 rounded-2xl p-4 text-center col-span-1">
+                    <span class="text-xs font-semibold text-slate-300 uppercase">KM Atual Estimado</span>
+                    <div id="liveKmCurrent" class="text-3xl font-black text-amber-400 mt-1">0.0</div>
+                    <span class="text-xs font-bold text-amber-400">KM Total</span>
+                </div>
+            </div>
+
+            <!-- Detalhes do GPS -->
+            <div class="bg-slate-800/60 border border-slate-700/60 rounded-xl p-3 flex justify-between items-center text-xs text-slate-400">
+                <div class="flex items-center gap-2">
+                    <span class="relative flex h-3 w-3">
+                      <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-agro-400 opacity-75"></span>
+                      <span class="relative inline-flex rounded-full h-3 w-3 bg-agro-500"></span>
+                    </span>
+                    <span>Pontos GPS coletados: <strong id="gpsPointsCount" class="text-slate-200">0</strong></span>
+                </div>
+                <button id="simMotionBtn" onclick="toggleSimulatedMotion()" class="text-xs bg-slate-700 hover:bg-slate-600 text-slate-200 px-2.5 py-1 rounded-lg transition">
+                    <i class="fa-solid fa-gamepad mr-1"></i> Simular Movimento
+                </button>
+            </div>
+
+            <!-- Botão Encerrar -->
+            <button onclick="stopTracking()" 
+                class="w-full py-4 bg-red-600 hover:bg-red-500 text-white font-bold rounded-xl shadow-lg transition-all flex items-center justify-center gap-3 text-lg">
+                <i class="fa-solid fa-square"></i>
+                ENCERRAR ROTA & SALVAR
+            </button>
+        </section>
+
+        <!-- CARD 3: Histórico de Rotas Salvas -->
+        <section class="bg-slate-800 border border-slate-700 rounded-2xl p-5 shadow-xl space-y-4">
+            <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-700 pb-3">
+                <h3 class="text-lg font-bold text-slate-200 flex items-center gap-2">
+                    <i class="fa-solid fa-clock-rotate-left text-blue-400"></i> Histórico de Rotas
+                </h3>
+                <div class="flex gap-2">
+                    <button onclick="exportToCSV()" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-xs font-semibold rounded-lg text-slate-200 transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-file-excel text-green-400"></i> Exportar CSV
+                    </button>
+                    <button onclick="clearHistory()" class="px-3 py-1.5 bg-slate-700/60 hover:bg-red-900/40 text-xs font-semibold rounded-lg text-slate-400 hover:text-red-300 transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-trash-can"></i> Limpar
+                    </button>
+                </div>
+            </div>
+
+            <div id="historyList" class="space-y-3">
+                <!-- Preenchido via JavaScript -->
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer Footer -->
+    <footer class="max-w-3xl mx-auto w-full px-4 text-center text-xs text-slate-500 mt-6">
+        <p>AgroRota GPS v1.2 &bull; Os dados do GPS são calculados continuamente no dispositivo.</p>
+    </footer>
+
+    <!-- SCRIPT DA APLICAÇÃO -->
+    <script>
+        // --- ESTADO DA APLICAÇÃO ---
+        let watchId = null;
+        let timerInterval = null;
+        let simInterval = null;
+        let isSimulating = false;
+
+        let activeRoute = {
+            fleet: '',
+            kmStart: 0,
+            destination: '',
+            notes: '',
+            startTime: null,
+            elapsedSeconds: 0,
+            distanceKm: 0,
+            lastCoords: null, // {lat, lng}
+            gpsPoints: 0
+        };
+
+        // --- INICIALIZAÇÃO ---
+        window.onload = function() {
+            loadHistory();
+            checkSavedActiveRoute();
+        };
+
+        // --- CÁLCULO DE DISTÂNCIA (FÓRMULA DE HAVERSINE) ---
+        function calculateHaversineDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371; // Raio da Terra em KM
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = 
+                Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+                Math.sin(dLon/2) * Math.sin(dLon/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            return R * c; // Distância em KM
+        }
+
+        // --- INICIAR RASTREAMENTO ---
+        function startTracking() {
+            const fleet = document.getElementById('inputFleet').value.trim();
+            const kmStart = parseFloat(document.getElementById('inputKmStart').value);
+            const destination = document.getElementById('inputDestination').value.trim();
+            const notes = document.getElementById('inputNotes').value.trim();
+
+            if (!fleet || isNaN(kmStart) || !destination) {
+                showAlert('Por favor, preencha todos os campos obrigatórios (*).', 'error');
+                return;
+            }
+
+            // Testar se o navegador suporta geolocalização
+            if (!navigator.geolocation) {
+                showAlert('Seu navegador não suporta geolocalização por GPS.', 'error');
+                return;
+            }
+
+            // Configurar objeto de rota ativa
+            activeRoute = {
+                fleet: fleet,
+                kmStart: kmStart,
+                destination: destination,
+                notes: notes,
+                startTime: new Date().toISOString(),
+                elapsedSeconds: 0,
+                distanceKm: 0,
+                lastCoords: null,
+                gpsPoints: 0
+            };
+
+            // Iniciar UI Ativa
+            document.getElementById('formSection').classList.add('hidden');
+            document.getElementById('activeSection').classList.remove('hidden');
+
+            document.getElementById('liveDestination').innerText = activeRoute.destination;
+            document.getElementById('liveFleet').innerHTML = `<i class="fa-solid fa-truck mr-1"></i>${activeRoute.fleet}`;
+            document.getElementById('liveKmStart').innerText = activeRoute.kmStart.toFixed(1);
+            updateLiveUi();
+
+            // Iniciar Cronômetro
+            startTimer();
+
+            // Iniciar Monitoramento GPS em Tempo Real
+            const options = {
+                enableHighAccuracy: true,
+                timeout: 15000,
+                maximumAge: 0
+            };
+
+            updateGpsStatus(true, "Buscando Sinal...");
+
+            watchId = navigator.geolocation.watchPosition(
+                handleGpsSuccess,
+                handleGpsError,
+                options
+            );
+
+            // Salvar estado para evitar perda por recarga
+            saveActiveState();
+            showAlert('Rastreamento ativado! Desloque-se com o veículo para atualizar a quilometragem.', 'success');
+        }
+
+        // --- PROCESSAR PONTO DE GPS CAPTURADO ---
+        function handleGpsSuccess(position) {
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+            const speed = position.coords.speed; // em m/s
+            const accuracy = position.coords.accuracy; // em metros
+
+            updateGpsStatus(true, "GPS Ativo (Sinal Forte)");
+
+            // Atualizar Velocidade (m/s -> km/h)
+            if (speed !== null && !isNaN(speed) && speed >= 0) {
+                const speedKmh = Math.round(speed * 3.6);
+                document.getElementById('liveSpeed').innerText = `${speedKmh} km/h`;
+            } else {
+                document.getElementById('liveSpeed').innerText = `0 km/h`;
+            }
+
+            document.getElementById('liveGpsAccuracy').innerText = `Precisão: ±${Math.round(accuracy)}m`;
+
+            // Filtrar ruídos de precisão fraca (> 50 metros ignorado para acúmulo de distância)
+            if (accuracy > 60) {
+                return; 
+            }
+
+            if (activeRoute.lastCoords) {
+                // Calcular distância incremental entre a coordenada anterior e a atual
+                const incrementalKm = calculateHaversineDistance(
+                    activeRoute.lastCoords.lat,
+                    activeRoute.lastCoords.lng,
+                    lat,
+                    lng
+                );
+
+                // Evitar picos de GPS Falso (Movimentos maiores que 150km/h entre updates)
+                if (incrementalKm > 0.003) { // Mínimo de 3 metros para somar
+                    activeRoute.distanceKm += incrementalKm;
+                    activeRoute.lastCoords = { lat, lng };
+                    activeRoute.gpsPoints++;
+                }
+            } else {
+                // Primeiro ponto capturado
+                activeRoute.lastCoords = { lat, lng };
+                activeRoute.gpsPoints++;
+            }
+
+            updateLiveUi();
+            saveActiveState();
+        }
+
+        // --- TRATAMENTO DE ERROS DE GPS ---
+        function handleGpsError(error) {
+            let msg = "Erro ao acessar o GPS.";
+            switch(error.code) {
+                case error.PERMISSION_DENIED:
+                    msg = "Permissão de localização negada pelo usuário. Ative o GPS nas configurações do seu celular.";
+                    break;
+                case error.POSITION_UNAVAILABLE:
+                    msg = "Sinal de GPS indisponível no momento.";
+                    break;
+                case error.TIMEOUT:
+                    msg = "Tempo limite esgotado ao buscar GPS.";
+                    break;
+            }
+            updateGpsStatus(false, "Sinal Indisponível");
+            showAlert(msg, 'error');
+        }
+
+        // --- ATUALIZAR ELEMENTOS DA TELA AO VIVO ---
+        function updateLiveUi() {
+            const currentKmTotal = activeRoute.kmStart + activeRoute.distanceKm;
+            document.getElementById('liveDistance').innerText = activeRoute.distanceKm.toFixed(2);
+            document.getElementById('liveKmCurrent').innerText = currentKmTotal.toFixed(1);
+            document.getElementById('gpsPointsCount').innerText = activeRoute.gpsPoints;
+        }
+
+        // --- CRONÔMETRO DE TEMPO ---
+        function startTimer() {
+            clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                activeRoute.elapsedSeconds++;
+                document.getElementById('liveTimer').innerText = formatSeconds(activeRoute.elapsedSeconds);
+            }, 1000);
+        }
+
+        function formatSeconds(sec) {
+            const hrs = Math.floor(sec / 3600);
+            const mins = Math.floor((sec % 3600) / 60);
+            const secs = sec % 60;
+            return [hrs, mins, secs].map(v => v < 10 ? "0" + v : v).join(":");
+        }
+
+        // --- STATUS VISUAL DO GPS ---
+        function updateGpsStatus(active, text) {
+            const badge = document.getElementById('gpsStatusBadge');
+            if (active) {
+                badge.className = "flex items-center gap-2 px-3 py-1 rounded-full bg-agro-900/80 border border-agro-500/50 text-agro-300 text-xs font-semibold pulse-ring";
+                badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-agro-400"></span><span>${text}</span>`;
+            } else {
+                badge.className = "flex items-center gap-2 px-3 py-1 rounded-full bg-slate-700 text-slate-300 text-xs font-medium";
+                badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-red-400"></span><span>${text}</span>`;
+            }
+        }
+
+        // --- ENCERRAR ROTA ---
+        function stopTracking() {
+            if (watchId !== null) {
+                navigator.geolocation.clearWatch(watchId);
+                watchId = null;
+            }
+            clearInterval(timerInterval);
+            if (isSimulating) toggleSimulatedMotion();
+
+            const endTime = new Date().toISOString();
+            const kmFinal = activeRoute.kmStart + activeRoute.distanceKm;
+
+            // Criar registro da rota
+            const routeRecord = {
+                id: Date.now(),
+                fleet: activeRoute.fleet,
+                kmStart: activeRoute.kmStart,
+                kmEnd: kmFinal,
+                distanceKm: activeRoute.distanceKm,
+                destination: activeRoute.destination,
+                notes: activeRoute.notes,
+                startTime: activeRoute.startTime,
+                endTime: endTime,
+                durationSeconds: activeRoute.elapsedSeconds,
+                gpsPoints: activeRoute.gpsPoints
+            };
+
+            // Salvar no Histórico Local
+            const history = getSavedHistory();
+            history.unshift(routeRecord);
+            localStorage.setItem('agro_routes_history', JSON.stringify(history));
+
+            // Limpar Estado Ativo
+            localStorage.removeItem('agro_active_route');
+            activeRoute = null;
+
+            // Resetar UI
+            document.getElementById('activeSection').classList.add('hidden');
+            document.getElementById('formSection').classList.remove('hidden');
+            document.getElementById('startRouteForm').reset();
+            updateGpsStatus(false, "GPS Desconectado");
+
+            // Recarregar histórico impresso
+            loadHistory();
+            showAlert(`Rota encerrada com sucesso! Distância total: ${routeRecord.distanceKm.toFixed(2)} KM.`, 'success');
+        }
+
+        // --- SALVAR / RESTAURAR ESTADO SE PÁGINA RECARREGAR ---
+        function saveActiveState() {
+            if (activeRoute) {
+                localStorage.setItem('agro_active_route', JSON.stringify(activeRoute));
+            }
+        }
+
+        function checkSavedActiveRoute() {
+            const saved = localStorage.getItem('agro_active_route');
+            if (saved) {
+                try {
+                    activeRoute = JSON.parse(saved);
+                    
+                    // Restaurar UI
+                    document.getElementById('formSection').classList.add('hidden');
+                    document.getElementById('activeSection').classList.remove('hidden');
+                    document.getElementById('liveDestination').innerText = activeRoute.destination;
+                    document.getElementById('liveFleet').innerHTML = `<i class="fa-solid fa-truck mr-1"></i>${activeRoute.fleet}`;
+                    document.getElementById('liveKmStart').innerText = activeRoute.kmStart.toFixed(1);
+                    
+                    updateLiveUi();
+                    startTimer();
+
+                    // Re-conectar GPS
+                    if (navigator.geolocation) {
+                        watchId = navigator.geolocation.watchPosition(
+                            handleGpsSuccess,
+                            handleGpsError,
+                            { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+                        );
+                    }
+                    showAlert('Rota anterior restaurada em andamento.', 'info');
+                } catch(e) {
+                    localStorage.removeItem('agro_active_route');
+                }
+            }
+        }
+
+        // --- HISTÓRICO E ARMAZENAMENTO ---
+        function getSavedHistory() {
+            const data = localStorage.getItem('agro_routes_history');
+            return data ? JSON.parse(data) : [];
+        }
+
+        function loadHistory() {
+            const history = getSavedHistory();
+            const listEl = document.getElementById('historyList');
+
+            if (history.length === 0) {
+                listEl.innerHTML = `
+                    <div class="text-center py-8 text-slate-500">
+                        <i class="fa-solid fa-route text-3xl mb-2 block opacity-50"></i>
+                        <p class="text-sm">Nenhuma rota registrada até o momento.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            listEl.innerHTML = history.map(item => {
+                const startDt = new Date(item.startTime);
+                const dateStr = startDt.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                const timeStr = startDt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+
+                return `
+                    <div class="bg-slate-900 border border-slate-700/80 rounded-xl p-4 space-y-2 hover:border-slate-600 transition">
+                        <div class="flex items-start justify-between gap-2">
+                            <div>
+                                <span class="inline-block px-2 py-0.5 rounded bg-agro-950 text-agro-400 font-semibold text-xs border border-agro-800">
+                                    <i class="fa-solid fa-truck mr-1"></i>${escapeHtml(item.fleet)}
+                                </span>
+                                <h4 class="font-bold text-white text-base mt-1 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-location-dot text-red-400 text-xs"></i> ${escapeHtml(item.destination)}
+                                </h4>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-xs text-slate-400">${dateStr} às ${timeStr}</span>
+                                <div class="text-xs font-mono text-slate-300 mt-0.5"><i class="fa-regular fa-clock mr-1"></i>${formatSeconds(item.durationSeconds || 0)}</div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-3 gap-2 bg-slate-800/60 rounded-lg p-2.5 text-center text-xs">
+                            <div>
+                                <span class="text-slate-400 block text-[10px] uppercase">KM Inicial</span>
+                                <strong class="text-slate-200">${item.kmStart.toFixed(1)}</strong>
+                            </div>
+                            <div>
+                                <span class="text-slate-400 block text-[10px] uppercase">KM Final</span>
+                                <strong class="text-slate-200">${item.kmEnd.toFixed(1)}</strong>
+                            </div>
+                            <div>
+                                <span class="text-agro-400 block text-[10px] uppercase font-bold">Percorrido</span>
+                                <strong class="text-agro-400 font-bold">${item.distanceKm.toFixed(2)} KM</strong>
+                            </div>
+                        </div>
+
+                        ${item.notes ? `<p class="text-xs text-slate-400 italic">" ${escapeHtml(item.notes)} "</p>` : ''}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function clearHistory() {
+            if (confirm("Deseja realmente apagar todo o histórico de rotas salvas?")) {
+                localStorage.removeItem('agro_routes_history');
+                loadHistory();
+                showAlert('Histórico de rotas limpo.', 'info');
+            }
+        }
+
+        // --- EXPORTAR PARA EXCEL / CSV ---
+        function exportToCSV() {
+            const history = getSavedHistory();
+            if (history.length === 0) {
+                showAlert('Não há dados para exportar.', 'error');
+                return;
+            }
+
+            let csv = 'Data;Hora Inicio;Frota;Destino;KM Inicial;KM Final;Distancia Percorrida (KM);Duracao;Observacoes\n';
+
+            history.forEach(r => {
+                const dt = new Date(r.startTime);
+                const dateStr = dt.toLocaleDateString('pt-BR');
+                const timeStr = dt.toLocaleTimeString('pt-BR');
+                const duration = formatSeconds(r.durationSeconds || 0);
+
+                csv += `"${dateStr}";"${timeStr}";"${r.fleet}";"${r.destination}";"${r.kmStart.toFixed(1)}";"${r.kmEnd.toFixed(1)}";"${r.distanceKm.toFixed(2)}";"${duration}";"${r.notes || ''}"\n`;
+            });
+
+            const blob = new Blob(["\ufeff" + csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `historico_rotas_${new Date().toISOString().slice(0,10)}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        // --- SIMULADOR DE MOVIMENTO GPS (Para Testes Desktop) ---
+        function toggleSimulatedMotion() {
+            if (!activeRoute) return;
+
+            isSimulating = !isSimulating;
+            const btn = document.getElementById('simMotionBtn');
+
+            if (isSimulating) {
+                btn.className = "text-xs bg-amber-600 hover:bg-amber-500 text-white px-2.5 py-1 rounded-lg font-bold transition";
+                btn.innerHTML = `<i class="fa-solid fa-pause mr-1"></i> Parar Simulação`;
+
+                // Simular atualizações GPS a cada 2 segundos
+                simInterval = setInterval(() => {
+                    // Adiciona ~0.05 KM por pulso
+                    const simDistance = 0.04 + (Math.random() * 0.02);
+                    activeRoute.distanceKm += simDistance;
+                    activeRoute.gpsPoints++;
+                    
+                    document.getElementById('liveSpeed').innerText = `${Math.floor(45 + Math.random() * 20)} km/h`;
+                    document.getElementById('liveGpsAccuracy').innerText = `Precisão: (Simulada)`;
+
+                    updateLiveUi();
+                    saveActiveState();
+                }, 2000);
+
+                showAlert('Modo de Simulação ativado! KM acumulando automaticamente.', 'info');
+            } else {
+                clearInterval(simInterval);
+                btn.className = "text-xs bg-slate-700 hover:bg-slate-600 text-slate-200 px-2.5 py-1 rounded-lg transition";
+                btn.innerHTML = `<i class="fa-solid fa-gamepad mr-1"></i> Simular Movimento`;
+                showAlert('Simulação desativada.', 'info');
+            }
+        }
+
+        // --- UTILITÁRIOS DE MENSAGENS / UI ---
+        function showAlert(msg, type = 'info') {
+            const box = document.getElementById('alertBox');
+            const msgEl = document.getElementById('alertMessage');
+            const iconEl = document.getElementById('alertIcon');
+
+            box.classList.remove('hidden', 'bg-red-950/80', 'border-red-600', 'text-red-200', 'bg-agro-950/80', 'border-agro-600', 'text-agro-200', 'bg-blue-950/80', 'border-blue-600', 'text-blue-200');
+
+            if (type === 'error') {
+                box.classList.add('bg-red-950/80', 'border-red-600', 'text-red-200');
+                iconEl.className = "fa-solid fa-triangle-exclamation text-red-400 mt-0.5 text-lg";
+            } else if (type === 'success') {
+                box.classList.add('bg-agro-950/80', 'border-agro-600', 'text-agro-200');
+                iconEl.className = "fa-solid fa-circle-check text-agro-400 mt-0.5 text-lg";
+            } else {
+                box.classList.add('bg-blue-950/80', 'border-blue-600', 'text-blue-200');
+                iconEl.className = "fa-solid fa-circle-info text-blue-400 mt-0.5 text-lg";
+            }
+
+            msgEl.innerText = msg;
+        }
+
+        function hideAlert() {
+            document.getElementById('alertBox').classList.add('hidden');
+        }
+
+        function escapeHtml(str) {
+            return String(str).replace(/[&<>"']/g, function(m) {
+                return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m];
+            });
+        }
+    </script>
+</body>
+</html>
