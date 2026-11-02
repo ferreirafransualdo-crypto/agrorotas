@@ -694,7 +694,7 @@ return String(str).replace(/[&<>"]/g, function(m) {
         });
     }
 
-    // ADICIONE AQUI O NOVO CÓDIGO DO RELATÓRIO:
+    // Função para gerar o relatório para o gestor
     function gerarRelatorioGestor() {
       const nome = document.getElementById('nomeOperador') ? document.getElementById('nomeOperador').value : 'Não informado';
       const matricula = document.getElementById('matricula') ? document.getElementById('matricula').value : 'Não informada';
@@ -722,7 +722,6 @@ Enviado via AgroRotas PWA`;
       const urlWhatsapp = `https://api.whatsapp.com/send?text=${encodeURIComponent(textoRelatorio)}`;
       window.open(urlWhatsapp, '_blank');
     }
-</script>
 </script> <!-- Linha 689 original -->
 
 </body> <!-- Linha 690 -->
