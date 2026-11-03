@@ -677,16 +677,28 @@
             const fleetEl = document.getElementById('inputFleet');
             const kmStartEl = document.getElementById('inputKmStart');
 
-            const nome = (colabEl && colabEl.value) ? colabEl.value : 'Não informado';
-            const frota = (fleetEl && fleetEl.value) ? fleetEl.value : (activeRoute ? activeRoute.fleet : 'Não informado');
-            const kmInicial = (kmStartEl && kmStartEl.value) ? Number(kmStartEl.value) : (activeRoute ? activeRoute.kmStart : 0);
-            
-            let kmFinal = kmInicial;
-            if (activeRoute) {
-                kmFinal = kmInicial + activeRoute.distanceKm;
+            let nome = 'Não informado';
+            if (colabEl && colabEl.value) {
+                nome = colabEl.value;
             }
 
-            const totalKm = activeRoute ? activeRoute.distanceKm : 0;
+            let frota = 'Não informado';
+            if (fleetEl && fleetEl.value) {
+                frota = fleetEl.value;
+            } else if (activeRoute && activeRoute.fleet) {
+                frota = activeRoute.fleet;
+            }
+
+            let kmInicial = 0;
+            if (kmStartEl && kmStartEl.value) {
+                kmInicial = Number(kmStartEl.value);
+            } else if (activeRoute && activeRoute.kmStart) {
+                kmInicial = activeRoute.kmStart;
+            }
+            
+            let distancia = (activeRoute && activeRoute.distanceKm) ? activeRoute.distanceKm : 0;
+            let kmFinal = kmInicial + distancia;
+
             const dataHoje = new Date().toLocaleDateString('pt-BR');
 
             let textoRelatorio = "📊 *RELATÓRIO DE ROTAS E FROTA - AGRO*\n";
@@ -697,7 +709,7 @@
             textoRelatorio += "📍 *RESUMO DA OPERAÇÃO:*\n";
             textoRelatorio += "• Km Inicial: " + kmInicial.toFixed(1) + " km\n";
             textoRelatorio += "• Km Final: " + kmFinal.toFixed(1) + " km\n";
-            textoRelatorio += "• Total Percorrido: " + totalKm.toFixed(2) + " km\n";
+            textoRelatorio += "• Total Percorrido: " + distancia.toFixed(2) + " km\n";
             textoRelatorio += "----------------------------------------\n";
             textoRelatorio += "Enviado via AgroRotas PWA";
 
