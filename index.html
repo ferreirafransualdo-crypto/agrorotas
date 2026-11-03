@@ -205,21 +205,53 @@
             </div>
         </section>
 
-        <!-- CARD 3: Pastas de Histórico por Data -->
+        <!-- CARD 3: Histórico Direto (Modelo Antigo) -->
         <section class="card-agro space-y-4">
             <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-700 pb-3">
                 <h3 class="text-lg font-bold text-slate-200 flex items-center gap-2">
-                    <i class="fa-solid fa-folder-open text-amber-400"></i> Pastas de Manobras Realizadas
+                    <i class="fa-solid fa-clock-rotate-left text-blue-400"></i> Histórico de Rotas
                 </h3>
                 <div class="flex gap-2">
                     <button type="button" onclick="exportToCSV()" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-xs font-semibold rounded-lg text-slate-200 transition cursor-pointer">Exportar CSV</button>
-                    <button type="button" onclick="clearHistory()" class="px-3 py-1.5 bg-slate-700/60 hover:bg-red-900/40 text-xs font-semibold rounded-lg text-slate-400 hover:text-red-300 transition cursor-pointer">Limpar Tudo</button>
+                    <button type="button" onclick="clearHistory()" class="px-3 py-1.5 bg-slate-700/60 hover:bg-red-900/40 text-xs font-semibold rounded-lg text-slate-400 hover:text-red-300 transition cursor-pointer">Limpar</button>
                 </div>
             </div>
+            
+            <!-- Lista simples de rotas -->
             <div id="historyList" class="space-y-3"></div>
+
+            <!-- Botão para abrir a pasta de manobras agrupadas por data -->
+            <button type="button" onclick="toggleModalPastas(true)" class="w-full py-3 bg-slate-800 hover:bg-slate-700 text-amber-400 font-semibold rounded-xl border border-slate-700 transition flex items-center justify-center gap-2 text-sm cursor-pointer mt-2">
+                <i class="fa-solid fa-folder-open"></i> Abrir Pastas de Manobras Realizadas (Por Data)
+            </button>
         </section>
 
     </main>
+
+    <!-- MODAL / GAVETA: Pastas de Manobras por Data -->
+    <div id="modalPastas" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-lg w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
+            <!-- Cabeçalho do Modal -->
+            <div class="p-4 bg-slate-800 border-b border-slate-700 flex justify-between items-center">
+                <h3 class="font-bold text-base text-white flex items-center gap-2">
+                    <i class="fa-solid fa-folder-open text-amber-400"></i> Pastas de Manobras por Data
+                </h3>
+                <button type="button" onclick="toggleModalPastas(false)" class="text-slate-400 hover:text-white text-lg p-1 cursor-pointer">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <!-- Corpo com as Pastas -->
+            <div id="modalPastasContent" class="p-4 overflow-y-auto space-y-3 flex-1">
+                <!-- Preenchido via JavaScript -->
+            </div>
+            <!-- Rodapé do Modal -->
+            <div class="p-3 bg-slate-800/80 border-t border-slate-700 text-center">
+                <button type="button" onclick="toggleModalPastas(false)" class="px-5 py-2 bg-slate-700 hover:bg-slate-600 text-white text-xs font-bold rounded-xl cursor-pointer">
+                    Fechar Janela
+                </button>
+            </div>
+        </div>
+    </div>
 
     <!-- Botão de Relatório WhatsApp -->
     <div class="max-w-3xl mx-auto w-full px-4 mt-4">
@@ -229,7 +261,7 @@
     </div>
 
     <footer class="max-w-3xl mx-auto w-full px-4 text-center text-xs text-slate-500 mt-6">
-        <p>AgroRota GPS v3.2</p>
+        <p>AgroRota GPS v3.3</p>
     </footer>
 
     <!-- SCRIPT DA APLICAÇÃO -->
@@ -239,9 +271,7 @@
         let simInterval = null;
         let isSimulating = false;
         let isPaused = false;
-
-        // Armazena quais pastas (datas) estão abertas no momento
-        let pastasAbertas = {};
+        let pastasAbertasModal = {};
 
         let activeRoute = {
             colaborador: '',
@@ -261,6 +291,16 @@
             carregarDadosSalvosSessao();
             verificarRotaEmAndamentoSalva();
         };
+
+        function toggleModalPastas(abrir) {
+            const modal = document.getElementById('modalPastas');
+            if (abrir) {
+                renderizarPastasModal();
+                modal.classList.remove('hidden');
+            } else {
+                modal.classList.add('hidden');
+            }
+        }
 
         function forcarDestraveGeral() {
             if (confirm("Deseja destravar o aplicativo e limpar qualquer travamento ativo?")) {
@@ -408,13 +448,16 @@
                 rota.destination = novoDestino.trim();
                 localStorage.setItem('agro_routes_history', JSON.stringify(history));
                 loadHistory();
-                showAlert('Destino do histórico atualizado com sucesso!', 'success');
+                if(!document.getElementById('modalPastas').classList.contains('hidden')) {
+                    renderizarPastasModal();
+                }
+                showAlert('Destino atualizado com sucesso!', 'success');
             }
         }
 
-        function togglePasta(dataStr) {
-            pastasAbertas[dataStr] = !pastasAbertas[dataStr];
-            loadHistory();
+        function togglePastaModal(dataStr) {
+            pastasAbertasModal[dataStr] = !pastasAbertasModal[dataStr];
+            renderizarPastasModal();
         }
 
         function togglePauseTracking() {
@@ -634,7 +677,7 @@
             }
         }
 
-        // Agrupa as rotas em "Pastas" organizadas por Data
+        // Histórico padrão limpo embaixo
         function loadHistory() {
             try {
                 const history = getSavedHistory();
@@ -642,87 +685,102 @@
                 if (!listEl) return;
                 
                 if (history.length === 0) {
-                    listEl.innerHTML = `<div class="text-center py-6 text-slate-500 text-sm">Nenhuma rota registrada.</div>`;
+                    listEl.innerHTML = `<div class="text-center py-4 text-slate-500 text-xs">Nenhuma rota registrada.</div>`;
                     return;
                 }
 
-                // Agrupa por data (DD/MM/AAAA)
-                let gruposPorData = {};
-                history.forEach(item => {
-                    const dataObj = item.startTime ? new Date(item.startTime) : new Date();
-                    const dataStr = dataObj.toLocaleDateString('pt-BR');
-                    if (!gruposPorData[dataStr]) {
-                        gruposPorData[dataStr] = [];
-                    }
-                    gruposPorData[dataStr].push(item);
-                });
-
-                let htmlFinal = "";
-
-                // Percorre cada data para montar a "pasta"
-                for (const [dataStr, rotasDoDia] of Object.entries(gruposPorData)) {
-                    // Ordena as rotas do dia por horário
-                    rotasDoDia.sort((a, b) => new Date(a.startTime) - new Date(b.startTime));
-                    
-                    const isOpen = pastasAbertas[dataStr] !== undefined ? pastasAbertas[dataStr] : true; // Aberto por padrão
-                    const totalKmDia = rotasDoDia.reduce((acc, r) => acc + (r.distanceKm || 0), 0);
-
-                    htmlFinal += `
-                        <div class="bg-slate-900 border border-slate-700 rounded-xl overflow-hidden mb-3">
-                            <!-- Cabeçalho da Pasta (Abrir / Fechar) -->
-                            <div onclick="togglePasta('${dataStr}')" class="bg-slate-800/90 p-3.5 flex justify-between items-center cursor-pointer hover:bg-slate-800 transition">
-                                <div class="flex items-center gap-2 font-bold text-white text-sm">
-                                    <i class="fa-solid ${isOpen ? 'fa-folder-open text-amber-400' : 'fa-folder text-amber-500'}"></i>
-                                    <span>Data: ${dataStr}</span>
-                                    <span class="text-xs bg-slate-700 text-slate-300 px-2 py-0.5 rounded-full">${rotasDoDia.length} rota(s)</span>
-                                </div>
-                                <div class="flex items-center gap-3">
-                                    <span class="text-xs font-bold text-agro-400">${totalKmDia.toFixed(2)} KM total</span>
-                                    <i class="fa-solid fa-chevron-${isOpen ? 'up' : 'down'} text-slate-400 text-xs"></i>
-                                </div>
-                            </div>
-
-                            <!-- Conteúdo da Pasta (Lista de Rotas do Dia) -->
-                            <div class="${isOpen ? 'block' : 'hidden'} p-3 space-y-2 border-t border-slate-800">
-                    `;
-
-                    rotasDoDia.forEach((item, index) => {
-                        const dtInicio = item.startTime ? new Date(item.startTime).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '--:--';
-                        const dtFim = item.endTime ? new Date(item.endTime).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '--:--';
-
-                        htmlFinal += `
-                            <div class="bg-slate-950/60 border border-slate-800 rounded-lg p-2.5 text-xs space-y-1">
-                                <div class="flex justify-between items-center font-bold text-white">
-                                    <span>🚗 Rota #${index + 1} (${escapeHtml(item.fleet)}) - ${escapeHtml(item.destination)}</span>
-                                    <div class="flex items-center gap-2">
-                                        <button type="button" onclick="editarDestinoHistorico(${item.id})" class="text-xs bg-slate-800 hover:bg-slate-700 text-agro-400 px-2 py-1 rounded border border-slate-700 cursor-pointer" title="Editar Destino">
-                                            <i class="fa-solid fa-pen"></i> Editar
-                                        </button>
-                                        <span class="text-agro-400">${(item.distanceKm || 0).toFixed(2)} KM</span>
-                                    </div>
-                                </div>
-                                <div class="text-slate-400 flex justify-between">
-                                    <span>Colaborador: ${escapeHtml(item.colaborador)}</span>
-                                    <span>🕒 ${dtInicio} às ${dtFim} | KM Final: ${(item.kmEnd || 0).toFixed(1)}</span>
-                                </div>
-                            </div>
-                        `;
-                    });
-
-                    htmlFinal += `</div></div>`;
-                }
-
-                listEl.innerHTML = htmlFinal;
+                listEl.innerHTML = history.slice(0, 5).map(item => `
+                    <div class="bg-slate-900 border border-slate-700/80 rounded-xl p-3 text-xs space-y-1">
+                        <div class="flex justify-between font-bold text-white">
+                            <span>🚗 ${escapeHtml(item.fleet)} - ${escapeHtml(item.destination)}</span>
+                            <span class="text-agro-400">${(item.distanceKm || 0).toFixed(2)} KM</span>
+                        </div>
+                        <div class="text-slate-400">Colaborador: ${escapeHtml(item.colaborador)} | KM Final: ${(item.kmEnd || 0).toFixed(1)}</div>
+                    </div>
+                `).join('');
 
                 const colabSel = document.getElementById('inputColaborador').value;
                 if (colabSel) atualizarDatalistManobras(colabSel);
             } catch (e) {}
         }
 
+        // Renderiza o conteúdo das pastas dentro do Modal
+        function renderizarPastasModal() {
+            const contentEl = document.getElementById('modalPastasContent');
+            if (!contentEl) return;
+
+            const history = getSavedHistory();
+            if (history.length === 0) {
+                contentEl.innerHTML = `<div class="text-center py-8 text-slate-500 text-sm">Nenhuma manobra registrada.</div>`;
+                return;
+            }
+
+            let gruposPorData = {};
+            history.forEach(item => {
+                const dataObj = item.startTime ? new Date(item.startTime) : new Date();
+                const dataStr = dataObj.toLocaleDateString('pt-BR');
+                if (!gruposPorData[dataStr]) gruposPorData[dataStr] = [];
+                gruposPorData[dataStr].push(item);
+            });
+
+            let htmlFinal = "";
+            for (const [dataStr, rotasDoDia] of Object.entries(gruposPorData)) {
+                rotasDoDia.sort((a, b) => new Date(a.startTime) - new Date(b.startTime));
+                const isOpen = pastasAbertasModal[dataStr] !== undefined ? pastasAbertasModal[dataStr] : true;
+                const totalKmDia = rotasDoDia.reduce((acc, r) => acc + (r.distanceKm || 0), 0);
+
+                htmlFinal += `
+                    <div class="bg-slate-950 border border-slate-800 rounded-xl overflow-hidden">
+                        <div onclick="togglePastaModal('${dataStr}')" class="bg-slate-800/90 p-3 flex justify-between items-center cursor-pointer hover:bg-slate-800 transition">
+                            <div class="flex items-center gap-2 font-bold text-white text-xs">
+                                <i class="fa-solid ${isOpen ? 'fa-folder-open text-amber-400' : 'fa-folder text-amber-500'}"></i>
+                                <span>Data: ${dataStr}</span>
+                                <span class="text-[10px] bg-slate-700 text-slate-300 px-2 py-0.5 rounded-full">${rotasDoDia.length} rota(s)</span>
+                            </div>
+                            <div class="flex items-center gap-2 text-xs">
+                                <span class="font-bold text-agro-400">${totalKmDia.toFixed(2)} KM</span>
+                                <i class="fa-solid fa-chevron-${isOpen ? 'up' : 'down'} text-slate-400 text-[10px]"></i>
+                            </div>
+                        </div>
+                        <div class="${isOpen ? 'block' : 'hidden'} p-2.5 space-y-2 border-t border-slate-900">
+                `;
+
+                rotasDoDia.forEach((item, index) => {
+                    const dtInicio = item.startTime ? new Date(item.startTime).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '--:--';
+                    const dtFim = item.endTime ? new Date(item.endTime).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '--:--';
+
+                    htmlFinal += `
+                        <div class="bg-slate-900 border border-slate-800 rounded-lg p-2.5 text-xs space-y-1">
+                            <div class="flex justify-between items-center font-bold text-white">
+                                <span>🚗 Rota #${index + 1} (${escapeHtml(item.fleet)}) - ${escapeHtml(item.destination)}</span>
+                                <div class="flex items-center gap-2">
+                                    <button type="button" onclick="editarDestinoHistorico(${item.id})" class="text-[10px] bg-slate-800 hover:bg-slate-700 text-agro-400 px-2 py-1 rounded border border-slate-700 cursor-pointer" title="Editar Destino">
+                                        <i class="fa-solid fa-pen"></i> Editar
+                                    </button>
+                                    <span class="text-agro-400">${(item.distanceKm || 0).toFixed(2)} KM</span>
+                                </div>
+                            </div>
+                            <div class="text-slate-400 flex justify-between text-[11px]">
+                                <span>Colab: ${escapeHtml(item.colaborador)}</span>
+                                <span>🕒 ${dtInicio} às ${dtFim} | KM Final: ${(item.kmEnd || 0).toFixed(1)}</span>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                htmlFinal += `</div></div>`;
+            }
+
+            contentEl.innerHTML = htmlFinal;
+        }
+
         function clearHistory() {
             if (confirm("Apagar todo o histórico?")) {
                 localStorage.removeItem('agro_routes_history');
                 loadHistory();
+                if(!document.getElementById('modalPastas').classList.contains('hidden')) {
+                    renderizarPastasModal();
+                }
             }
         }
 
@@ -784,7 +842,7 @@
             if (box) box.classList.add('hidden');
         }
 
-        // --- RELATÓRIO DO GESTOR APENAS COM AS ROTAS DO DIA ATUAL OU DA DATA MAIS RECENTE ---
+        // --- RELATÓRIO DO GESTOR APENAS COM AS ROTAS DO DIA ATUAL ---
         function gerarRelatorioGestor() {
             try {
                 const history = getSavedHistory();
@@ -796,14 +854,12 @@
 
                 const dataHojeStr = new Date().toLocaleDateString('pt-BR');
 
-                // Filtra rotas do dia de hoje (ou pega todas se preferir)
                 const rotasDoDia = history.filter(r => {
                     const d = r.startTime ? new Date(r.startTime).toLocaleDateString('pt-BR') : '';
                     return d === dataHojeStr;
                 });
 
                 const rotasParaRelatorio = rotasDoDia.length > 0 ? rotasDoDia : history;
-
                 const historyOrdenado = [...rotasParaRelatorio].sort((a, b) => new Date(a.startTime) - new Date(b.startTime));
 
                 let texto = "📊 *RELATÓRIO DE ROTAS E FROTA - AGRO*\n";
