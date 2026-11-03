@@ -685,26 +685,34 @@ function escapeHtml(str) {
             return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m];
         });
     }
-  // Função inteligente que puxa os dados automaticamente do formulário preenchido
-   function gerarRelatorioGestor() {
-      // Procura pelos campos usando vários nomes possíveis de IDs para garantir que encontra
-      const nomeEl = document.getElementById('nomeOperador') || document.getElementById('nome') || document.getElementById('operador');
-      const matriculaEl = document.getElementById('matricula') || document.getElementById('mat') || document.getElementById('codigo');
-      const frotaEl = document.getElementById('frota') || document.getElementById('veiculo') || document.getElementById('equipamento');
-      const kmIniEl = document.getElementById('kmInicial') || document.getElementById('km_inicial') || document.getElementById('inicioKm');
-      const kmFinEl = document.getElementById('kmFinal') || document.getElementById('km_final') || document.getElementById('fimKm');
+// Função infalível para gerar o relatório sem risco de travamento
+    function gerarRelatorioGestor() {
+      // Tenta apanhar os valores dos inputs de forma segura
+      let nome = 'Não informado';
+      let matricula = 'Não informada';
+      let frota = 'Fiorino';
+      let kmInicial = '0';
+      let kmFinal = '0';
 
-      // Extrai os valores automaticamente
-      const nome = (nomeEl && nomeEl.value) ? nomeEl.value : 'Não informado';
-      const matricula = (matriculaEl && matriculaEl.value) ? matriculaEl.value : 'Não informada';
-      const frota = (frotaEl && frotaEl.value) ? frotaEl.value : 'Fiorino';
-      const kmInicial = (kmIniEl && kmIniEl.value) ? kmIniEl.value : '0';
-      const kmFinal = (kmFinEl && kmFinEl.value) ? kmFinEl.value : '0';
+      try {
+        const elNome = document.getElementById('nomeOperador') || document.querySelector('input[name*="nome"]');
+        const elMat = document.getElementById('matricula') || document.querySelector('input[name*="mat"]');
+        const elFrota = document.getElementById('frota') || document.querySelector('select');
+        const elIni = document.getElementById('kmInicial') || document.querySelector('input[name*="inicial"]');
+        const elFin = document.getElementById('kmFinal') || document.querySelector('input[name*="final"]');
+
+        if (elNome && elNome.value) nome = elNome.value;
+        if (elMat && elMat.value) matricula = elMat.value;
+        if (elFrota && elFrota.value) frota = elFrota.value;
+        if (elIni && elIni.value) kmInicial = elIni.value;
+        if (elFin && elFin.value) kmFinal = elFin.value;
+      } catch (e) {
+        console.log("Erro leve na leitura, usando valores padrão.");
+      }
       
       const totalKm = (Number(kmFinal) - Number(kmInicial)) || 0;
       const dataHoje = new Date().toLocaleDateString('pt-BR');
       
-      // Monta o texto do relatório em partes para evitar cortes no editor
       let textoRelatorio = "📊 *RELATÓRIO DE ROTAS E FROTA - AGRO*\n";
       textoRelatorio += "----------------------------------------\n";
       textoRelatorio += "👤 *Operador:* " + nome + " (Matrícula: " + matricula + ")\n";
@@ -719,6 +727,7 @@ function escapeHtml(str) {
 
       const urlWhatsapp = "https://api.whatsapp.com/send?text=" + encodeURIComponent(textoRelatorio);
       window.open(urlWhatsapp, '_blank');
+    }
 </script>
 <div style="padding: 10px 0;">
   <button onclick="gerarRelatorioGestor()" style="background: #28a745; color: white; border: none; padding: 14px 20px; font-size: 16px; border-radius: 8px; cursor: pointer; width: 100%; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
