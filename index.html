@@ -79,7 +79,7 @@
                     <i class="fa-solid fa-lock"></i>
                 </div>
                 <h2 class="text-xl font-bold text-white">Identificação do Colaborador</h2>
-                <p class="text-xs text-slate-400">Selecione seu nome e insira sua senha para acessar as manobras.</p>
+                <p class="text-xs text-slate-400">Insira sua senha para acessar as manobras.</p>
             </div>
 
             <form id="loginForm" class="space-y-4" onsubmit="event.preventDefault(); validarLoginColaborador();">
@@ -87,14 +87,7 @@
                     <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Colaborador *</label>
                     <div class="relative">
                         <i class="fa-solid fa-user absolute left-3 top-3.5 text-slate-500"></i>
-                        <select id="loginColaborador" required class="input-agro">
-                            <option value="">Selecione o Colaborador</option>
-                            <option value="Fransualdo">Fransualdo</option>
-                            <option value="Guilherme">Guilherme</option>
-                            <option value="Antonio">Antonio</option>
-                            <option value="Breno">Breno</option>
-                            <option value="Kayemerson">Kayemerson</option>
-                        </select>
+                        <input type="text" id="loginColaborador" readonly value="Lucas Alencar" class="input-agro bg-slate-800 text-white font-bold cursor-not-allowed">
                     </div>
                 </div>
 
@@ -118,10 +111,10 @@
             <div class="bg-slate-800/90 border border-slate-700 rounded-xl p-3 flex justify-between items-center text-xs">
                 <div class="flex items-center gap-2 text-slate-300">
                     <i class="fa-solid fa-user-check text-agro-500 text-sm"></i>
-                    <span>Logado como: <strong id="currentCollabLabel" class="text-white">---</strong></span>
+                    <span>Logado como: <strong id="currentCollabLabel" class="text-white">Lucas Alencar</strong></span>
                 </div>
                 <button type="button" onclick="logoutColaborador()" class="text-slate-400 hover:text-red-400 underline cursor-pointer">
-                    <i class="fa-solid fa-right-from-bracket mr-1"></i> Trocar Colaborador
+                    <i class="fa-solid fa-right-from-bracket mr-1"></i> Sair / Bloquear
                 </button>
             </div>
 
@@ -313,7 +306,7 @@
                     </div>
                     <div style="background: #ffffff;" class="p-2 rounded-xl shadow-sm">
                         <span style="color: #64748b;" class="text-[9px] sm:text-[10px] uppercase block font-extrabold">Colaborador</span>
-                        <span id="imgReportCollab" style="color: #0f172a;" class="text-xs sm:text-sm font-black truncate block">---</span>
+                        <span id="imgReportCollab" style="color: #0f172a;" class="text-xs sm:text-sm font-black truncate block">Lucas Alencar</span>
                     </div>
                     <div style="background: #ffffff;" class="p-2 rounded-xl shadow-sm">
                         <span style="color: #64748b;" class="text-[9px] sm:text-[10px] uppercase block font-extrabold">Frota</span>
@@ -388,7 +381,7 @@
     </div>
 
     <footer class="max-w-3xl mx-auto w-full px-4 text-center text-xs text-slate-500 mt-6">
-        <p>AgroRota GPS v4.5 - Horários Completos & Arquivamento de Imagens</p>
+        <p>AgroRota GPS v4.6 - Lucas Alencar</p>
     </footer>
 
     <!-- SCRIPT DA APLICAÇÃO -->
@@ -400,8 +393,10 @@
         let isPaused = false;
         let pastasAbertasModal = {};
 
+        const COLAB_FIXO = "Lucas Alencar";
+
         let activeRoute = {
-            colaborador: '',
+            colaborador: COLAB_FIXO,
             fleet: '',
             kmStart: 0,
             destination: '',
@@ -419,13 +414,14 @@
         };
 
         function verificarSessaoAtiva() {
-            const colabAtivo = localStorage.getItem('agro_fixed_colaborador');
-            if (colabAtivo) {
-                document.getElementById('currentCollabLabel').innerText = colabAtivo;
+            localStorage.setItem('agro_fixed_colaborador', COLAB_FIXO);
+            document.getElementById('currentCollabLabel').innerText = COLAB_FIXO;
+            
+            const pinSessao = localStorage.getItem('agro_session_unlocked');
+            if (pinSessao === 'true') {
                 document.getElementById('loginSection').classList.add('hidden');
                 document.getElementById('appPanel').classList.remove('hidden');
-                
-                carregarDadosSessaoColaborador(colabAtivo);
+                carregarDadosSessaoColaborador();
                 loadHistory();
             } else {
                 document.getElementById('loginSection').classList.remove('hidden');
@@ -434,26 +430,25 @@
         }
 
         function validarLoginColaborador() {
-            const colab = document.getElementById('loginColaborador').value;
             const pin = document.getElementById('loginPin').value.trim();
 
-            if (!colab || !pin) {
-                showAlert('Selecione o colaborador e insira a senha.', 'error');
+            if (!pin) {
+                showAlert('Insira a senha.', 'error');
                 return;
             }
 
-            const senhaSalva = localStorage.getItem(`agro_pin_${colab}`);
+            const senhaSalva = localStorage.getItem('agro_pin_lucas');
 
             if (!senhaSalva) {
                 if (pin.length >= 3) {
-                    localStorage.setItem(`agro_pin_${colab}`, pin);
-                    concluirLogin(colab);
+                    localStorage.setItem('agro_pin_lucas', pin);
+                    concluirLogin();
                 } else {
                     showAlert('A senha precisa ter pelo menos 3 dígitos.', 'error');
                 }
             } else {
                 if (pin === senhaSalva) {
-                    concluirLogin(colab);
+                    concluirLogin();
                 } else {
                     showAlert('Senha incorreta! Acesso negado.', 'error');
                     document.getElementById('loginPin').value = '';
@@ -461,33 +456,31 @@
             }
         }
 
-        function concluirLogin(colab) {
-            localStorage.setItem('agro_fixed_colaborador', colab);
+        function concluirLogin() {
+            localStorage.setItem('agro_session_unlocked', 'true');
             document.getElementById('loginPin').value = '';
-            document.getElementById('currentCollabLabel').innerText = colab;
             
             document.getElementById('loginSection').classList.add('hidden');
             document.getElementById('appPanel').classList.remove('hidden');
 
-            carregarDadosSessaoColaborador(colab);
+            carregarDadosSessaoColaborador();
             loadHistory();
-            showAlert(`Bem-vindo, ${colab}!`, 'success');
+            showAlert(`Bem-vindo, ${COLAB_FIXO}!`, 'success');
         }
 
         function logoutColaborador() {
-            if (confirm("Deseja sair e trocar de colaborador?")) {
-                localStorage.removeItem('agro_fixed_colaborador');
-                document.getElementById('loginColaborador').value = '';
+            if (confirm("Deseja bloquear a sessão?")) {
+                localStorage.removeItem('agro_session_unlocked');
                 document.getElementById('loginPin').value = '';
                 document.getElementById('appPanel').classList.add('hidden');
                 document.getElementById('loginSection').classList.remove('hidden');
-                showAlert('Sessão encerrada.', 'info');
+                showAlert('Sessão bloqueada.', 'info');
             }
         }
 
-        function carregarDadosSessaoColaborador(colab) {
+        function carregarDadosSessaoColaborador() {
             try {
-                const frotaSalva = localStorage.getItem(`agro_fleet_${colab}`);
+                const frotaSalva = localStorage.getItem('agro_fleet_lucas');
                 if (frotaSalva) {
                     document.getElementById('inputFleet').value = frotaSalva;
                 }
@@ -505,14 +498,14 @@
                         }
                     }
                 }
-                atualizarDatalistManobras(colab);
+                atualizarDatalistManobras();
             } catch (e) {}
         }
 
-        function atualizarDatalistManobras(colaborador) {
+        function atualizarDatalistManobras() {
             const history = getSavedHistory();
             const manobrasDoColab = history
-                .filter(r => r.colaborador === colaborador && r.destination)
+                .filter(r => r.destination)
                 .map(r => r.destination);
 
             const padrao = ["Coleta", "Entrega", "Deslocamento Operacional", "Fazenda Esperança", "Fazenda Boa Vista"];
@@ -553,6 +546,7 @@
                 const savedActive = localStorage.getItem('agro_active_route');
                 if (savedActive) {
                     activeRoute = JSON.parse(savedActive);
+                    activeRoute.colaborador = COLAB_FIXO;
 
                     document.getElementById('loginSection').classList.add('hidden');
                     document.getElementById('appPanel').classList.remove('hidden');
@@ -562,7 +556,7 @@
                     document.getElementById('liveDestination').innerText = activeRoute.destination;
                     document.getElementById('liveFleet').innerHTML = `<i class="fa-solid fa-truck mr-1"></i>${activeRoute.fleet}`;
                     document.getElementById('liveKmStart').innerText = activeRoute.kmStart.toFixed(1);
-                    document.getElementById('currentCollabLabel').innerText = activeRoute.colaborador;
+                    document.getElementById('currentCollabLabel').innerText = COLAB_FIXO;
                     updateLiveUi();
 
                     startTimer();
@@ -640,21 +634,20 @@
 
         function startTracking() {
             try {
-                const colaborador = localStorage.getItem('agro_fixed_colaborador');
                 const fleet = document.getElementById('inputFleet').value.trim();
                 const kmStart = parseFloat(document.getElementById('inputKmStart').value);
                 const destination = document.getElementById('inputDestination').value.trim();
                 const notes = document.getElementById('inputNotes').value.trim();
 
-                if (!colaborador || !fleet || isNaN(kmStart) || !destination) {
+                if (!fleet || isNaN(kmStart) || !destination) {
                     showAlert('Preencha todos os campos obrigatórios (*).', 'error');
                     return;
                 }
 
-                localStorage.setItem(`agro_fleet_${colaborador}`, fleet);
+                localStorage.setItem('agro_fleet_lucas', fleet);
 
                 activeRoute = {
-                    colaborador: colaborador,
+                    colaborador: COLAB_FIXO,
                     fleet: fleet,
                     kmStart: kmStart,
                     destination: destination,
@@ -782,7 +775,7 @@
 
                 const routeRecord = {
                     id: Date.now(),
-                    colaborador: activeRoute.colaborador,
+                    colaborador: COLAB_FIXO,
                     fleet: activeRoute.fleet,
                     kmStart: activeRoute.kmStart,
                     kmEnd: kmFinal,
@@ -801,8 +794,7 @@
 
                 localStorage.removeItem('agro_active_route');
 
-                const colabAtual = activeRoute.colaborador;
-                activeRoute = { colaborador: '', fleet: '', kmStart: 0, destination: '', notes: '', startTime: null, elapsedSeconds: 0, distanceKm: 0, lastCoords: null, gpsPoints: 0 };
+                activeRoute = { colaborador: COLAB_FIXO, fleet: '', kmStart: 0, destination: '', notes: '', startTime: null, elapsedSeconds: 0, distanceKm: 0, lastCoords: null, gpsPoints: 0 };
                 isPaused = false;
 
                 document.getElementById('activeSection').classList.add('hidden');
@@ -812,7 +804,7 @@
                 document.getElementById('inputNotes').value = '';
                 document.getElementById('inputKmStart').value = kmFinal.toFixed(1);
 
-                carregarDadosSessaoColaborador(colabAtual);
+                carregarDadosSessaoColaborador();
                 updateGpsStatus(false, "GPS Desconectado");
 
                 loadHistory();
@@ -852,12 +844,11 @@
                     </div>
                 `).join('');
 
-                const colabSel = localStorage.getItem('agro_fixed_colaborador');
-                if (colabSel) atualizarDatalistManobras(colabSel);
+                atualizarDatalistManobras();
             } catch (e) {}
         }
 
-        // --- PREPARAÇÃO DO RELATÓRIO VISUAL (HORÁRIOS COMPLETOS) ---
+        // --- PREPARAÇÃO DO RELATÓRIO VISUAL ---
         function montarDadosRelatorioVisual() {
             const history = getSavedHistory();
             if (history.length === 0) return false;
@@ -871,7 +862,7 @@
             const historyOrdenado = [...rotasParaRelatorio].sort((a, b) => new Date(a.startTime) - new Date(b.startTime));
 
             document.getElementById('imgReportDate').innerText = dataHojeStr;
-            document.getElementById('imgReportCollab').innerText = historyOrdenado[0].colaborador || '---';
+            document.getElementById('imgReportCollab').innerText = COLAB_FIXO;
             document.getElementById('imgReportFleet').innerText = historyOrdenado[0].fleet || '---';
 
             let htmlRotas = "";
@@ -883,7 +874,6 @@
                 const dist = r.distanceKm || 0;
                 totalKmGeral += dist;
 
-                // Alterado para mostrar "Saída:" e "Chegada:" por extenso sem cortar
                 htmlRotas += `
                     <div style="background: #ffffff; border: 1px solid #cbd5e1;" class="rounded-xl overflow-hidden shadow-sm">
                         <div style="background: #0f172a; color: #ffffff;" class="px-3 py-1.5 flex justify-between items-center font-bold text-xs">
@@ -976,7 +966,6 @@
             gerarRelatorioGestor();
         }
 
-        // --- SALVAMENTO AUTOMÁTICO DA IMAGEM NA PASTA DA DATA AO FINALIZAR O DIA ---
         function finalizarEDeixarDiaPronto() {
             if (confirm("Deseja finalizar as demandas de hoje? O relatório em imagem e dados serão guardados automaticamente nas pastas do histórico.")) {
                 const history = getSavedHistory();
@@ -987,22 +976,18 @@
 
                 const dataHojeStr = new Date().toLocaleDateString('pt-BR');
 
-                // 1. Exporta CSV de segurança
                 exportToCSV();
 
-                // 2. Salva o KM final para o dia seguinte
                 if (history[0] && history[0].kmEnd) {
                     localStorage.setItem('agro_last_km_rollover', history[0].kmEnd);
                 }
 
-                // 3. Gera e salva a imagem automaticamente no armazenamento da pasta da data
                 montarDadosRelatorioVisual();
                 const card = document.getElementById('reportCardToImage');
 
                 html2canvas(card, { scale: 2, useCORS: true, backgroundColor: '#ffffff' }).then(canvas => {
                     const imagemBase64 = canvas.toDataURL('image/png');
                     
-                    // Salva a imagem vinculada à data no localStorage
                     let imagensArquivadas = {};
                     try {
                         const savedImg = localStorage.getItem('agro_archived_images');
@@ -1012,22 +997,20 @@
                     imagensArquivadas[dataHojeStr] = imagemBase64;
                     localStorage.setItem('agro_archived_images', JSON.stringify(imagensArquivadas));
 
-                    // Limpa o histórico ativo para iniciar novo dia
                     localStorage.removeItem('agro_routes_history');
                     loadHistory();
-                    carregarDadosSessaoColaborador(localStorage.getItem('agro_fixed_colaborador'));
+                    carregarDadosSessaoColaborador();
 
                     showAlert('Turno finalizado! Relatório e imagem arquivados na pasta com sucesso.', 'success');
                 }).catch(err => {
                     localStorage.removeItem('agro_routes_history');
                     loadHistory();
-                    carregarDadosSessaoColaborador(localStorage.getItem('agro_fixed_colaborador'));
+                    carregarDadosSessaoColaborador();
                     showAlert('Turno finalizado com sucesso!', 'success');
                 });
             }
         }
 
-        // --- RENDERIZAR PASTAS COM OPÇÃO DE VER A IMAGEM ARQUIVADA ---
         function renderizarPastasModal() {
             const contentEl = document.getElementById('modalPastasContent');
             if (!contentEl) return;
@@ -1039,7 +1022,6 @@
                 if (savedImg) imagensArquivadas = JSON.parse(savedImg);
             } catch(e) {}
 
-            // Recolher todas as datas do histórico atual + datas arquivadas
             let gruposPorData = {};
             history.forEach(item => {
                 const dataObj = item.startTime ? new Date(item.startTime) : new Date();
@@ -1048,7 +1030,6 @@
                 gruposPorData[dataStr].push(item);
             });
 
-            // Adicionar datas que já foram finalizadas e possuem imagem arquivada
             for (const dataStr of Object.keys(imagensArquivadas)) {
                 if (!gruposPorData[dataStr]) gruposPorData[dataStr] = [];
             }
@@ -1091,10 +1072,6 @@
                             </button>
                         </div>
                     `;
-                }
-
-                if (rotasDoDia.length === 0 && temImagemSalva) {
-                    htmlFinal += `<div class="text-[11px] text-slate-400 p-2">Turno finalizado com relatório arquivado.</div>`;
                 }
 
                 rotasDoDia.forEach((item, index) => {
@@ -1151,7 +1128,7 @@
         }
 
         function clearHistory() {
-            if (confirm("Apagar todo o histórico atual?")) {
+            if (confirm("Apagar todo o histórico atual e imagens arquivadas?")) {
                 localStorage.removeItem('agro_routes_history');
                 localStorage.removeItem('agro_archived_images');
                 loadHistory();
@@ -1245,6 +1222,7 @@
                 let texto = "📊 *RELATÓRIO DE ROTAS E FROTA - AGRO*\n";
                 texto += "----------------------------------------\n";
                 texto += "📅 *Data do Relatório:* " + dataHojeStr + "\n";
+                texto += "👤 *Colaborador:* " + COLAB_FIXO + "\n";
                 texto += "📦 *Total de Rotas Realizadas:* " + historyOrdenado.length + "\n";
                 texto += "----------------------------------------\n\n";
 
@@ -1254,7 +1232,6 @@
                     
                     texto += `*Rota #${index + 1}*\n`;
                     if (index === 0) {
-                        texto += `👤 *Colaborador:* ${r.colaborador || 'Não informado'}\n`;
                         texto += `🚗 *Frota:* ${r.fleet || 'Não informada'}\n`;
                     }
                     texto += `• Manobra: ${r.destination || 'Não informada'}\n`;
