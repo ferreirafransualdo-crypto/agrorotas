@@ -88,6 +88,24 @@
             </h2>
 
             <form id="startRouteForm" class="space-y-4" onsubmit="event.preventDefault(); startTracking();">
+                
+                <!-- Campo Colaborador -->
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Colaborador *</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-user absolute left-3 top-3.5 text-slate-500"></i>
+                        <select id="inputColaborador" required
+                            class="w-full bg-slate-900 border border-slate-700 rounded-xl py-3 pl-10 pr-3 text-white focus:outline-none focus:border-agro-500 focus:ring-1 focus:ring-agro-500 font-medium">
+                            <option value="">Selecione o Colaborador</option>
+                            <option value="Fransualdo">Fransualdo</option>
+                            <option value="Guilherme">Guilherme</option>
+                            <option value="Antonio">Antonio</option>
+                            <option value="Breno">Breno</option>
+                            <option value="Kayemerson">Kayemerson</option>
+                        </select>
+                    </div>
+                </div>
+
                 <div>
                     <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Veículo / Frota *</label>
                     <div class="relative">
@@ -282,13 +300,11 @@
                 return;
             }
 
-            // Testar se o navegador suporta geolocalização
             if (!navigator.geolocation) {
                 showAlert('Seu navegador não suporta geolocalização por GPS.', 'error');
                 return;
             }
 
-            // Configurar objeto de rota ativa
             activeRoute = {
                 fleet: fleet,
                 kmStart: kmStart,
@@ -301,7 +317,6 @@
                 gpsPoints: 0
             };
 
-            // Iniciar UI Ativa
             document.getElementById('formSection').classList.add('hidden');
             document.getElementById('activeSection').classList.remove('hidden');
 
@@ -310,10 +325,8 @@
             document.getElementById('liveKmStart').innerText = activeRoute.kmStart.toFixed(1);
             updateLiveUi();
 
-            // Iniciar Cronômetro
             startTimer();
 
-            // Iniciar Monitoramento GPS em Tempo Real
             const options = {
                 enableHighAccuracy: true,
                 timeout: 15000,
@@ -328,21 +341,18 @@
                 options
             );
 
-            // Salvar estado para evitar perda por recarga
             saveActiveState();
             showAlert('Rastreamento ativado! Desloque-se com o veículo para atualizar a quilometragem.', 'success');
         }
 
-        // --- PROCESSAR PONTO DE GPS CAPTURADO ---
         function handleGpsSuccess(position) {
             const lat = position.coords.latitude;
             const lng = position.coords.longitude;
-            const speed = position.coords.speed; // em m/s
-            const accuracy = position.coords.accuracy; // em metros
+            const speed = position.coords.speed;
+            const accuracy = position.coords.accuracy;
 
             updateGpsStatus(true, "GPS Ativo (Sinal Forte)");
 
-            // Atualizar Velocidade (m/s -> km/h)
             if (speed !== null && !isNaN(speed) && speed >= 0) {
                 const speedKmh = Math.round(speed * 3.6);
                 document.getElementById('liveSpeed').innerText = `${speedKmh} km/h`;
@@ -352,13 +362,11 @@
 
             document.getElementById('liveGpsAccuracy').innerText = `Precisão: ±${Math.round(accuracy)}m`;
 
-            // Filtrar ruídos de precisão fraca (> 50 metros ignorado para acúmulo de distância)
             if (accuracy > 60) {
                 return; 
             }
 
             if (activeRoute.lastCoords) {
-                // Calcular distância incremental entre a coordenada anterior e a atual
                 const incrementalKm = calculateHaversineDistance(
                     activeRoute.lastCoords.lat,
                     activeRoute.lastCoords.lng,
@@ -366,14 +374,12 @@
                     lng
                 );
 
-                // Evitar picos de GPS Falso (Movimentos maiores que 150km/h entre updates)
-                if (incrementalKm > 0.003) { // Mínimo de 3 metros para somar
+                if (incrementalKm > 0.003) {
                     activeRoute.distanceKm += incrementalKm;
                     activeRoute.lastCoords = { lat, lng };
                     activeRoute.gpsPoints++;
                 }
             } else {
-                // Primeiro ponto capturado
                 activeRoute.lastCoords = { lat, lng };
                 activeRoute.gpsPoints++;
             }
@@ -382,12 +388,11 @@
             saveActiveState();
         }
 
-        // --- TRATAMENTO DE ERROS DE GPS ---
         function handleGpsError(error) {
             let msg = "Erro ao acessar o GPS.";
             switch(error.code) {
                 case error.PERMISSION_DENIED:
-                    msg = "Permissão de localização negada pelo usuário. Ative o GPS nas configurações do seu celular.";
+                    msg = "Permissão de localização negada pelo usuário.";
                     break;
                 case error.POSITION_UNAVAILABLE:
                     msg = "Sinal de GPS indisponível no momento.";
@@ -400,7 +405,6 @@
             showAlert(msg, 'error');
         }
 
-        // --- ATUALIZAR ELEMENTOS DA TELA AO VIVO ---
         function updateLiveUi() {
             const currentKmTotal = activeRoute.kmStart + activeRoute.distanceKm;
             document.getElementById('liveDistance').innerText = activeRoute.distanceKm.toFixed(2);
@@ -408,7 +412,6 @@
             document.getElementById('gpsPointsCount').innerText = activeRoute.gpsPoints;
         }
 
-        // --- CRONÔMETRO DE TEMPO ---
         function startTimer() {
             clearInterval(timerInterval);
             timerInterval = setInterval(() => {
@@ -424,7 +427,6 @@
             return [hrs, mins, secs].map(v => v < 10 ? "0" + v : v).join(":");
         }
 
-        // --- STATUS VISUAL DO GPS ---
         function updateGpsStatus(active, text) {
             const badge = document.getElementById('gpsStatusBadge');
             if (active) {
@@ -436,7 +438,6 @@
             }
         }
 
-        // --- ENCERRAR ROTA ---
         function stopTracking() {
             if (watchId !== null) {
                 navigator.geolocation.clearWatch(watchId);
@@ -448,7 +449,6 @@
             const endTime = new Date().toISOString();
             const kmFinal = activeRoute.kmStart + activeRoute.distanceKm;
 
-            // Criar registro da rota
             const routeRecord = {
                 id: Date.now(),
                 fleet: activeRoute.fleet,
@@ -463,27 +463,22 @@
                 gpsPoints: activeRoute.gpsPoints
             };
 
-            // Salvar no Histórico Local
             const history = getSavedHistory();
             history.unshift(routeRecord);
             localStorage.setItem('agro_routes_history', JSON.stringify(history));
 
-            // Limpar Estado Ativo
             localStorage.removeItem('agro_active_route');
             activeRoute = null;
 
-            // Resetar UI
             document.getElementById('activeSection').classList.add('hidden');
             document.getElementById('formSection').classList.remove('hidden');
             document.getElementById('startRouteForm').reset();
             updateGpsStatus(false, "GPS Desconectado");
 
-            // Recarregar histórico impresso
             loadHistory();
             showAlert(`Rota encerrada com sucesso! Distância total: ${routeRecord.distanceKm.toFixed(2)} KM.`, 'success');
         }
 
-        // --- SALVAR / RESTAURAR ESTADO SE PÁGINA RECARREGAR ---
         function saveActiveState() {
             if (activeRoute) {
                 localStorage.setItem('agro_active_route', JSON.stringify(activeRoute));
@@ -495,8 +490,6 @@
             if (saved) {
                 try {
                     activeRoute = JSON.parse(saved);
-                    
-                    // Restaurar UI
                     document.getElementById('formSection').classList.add('hidden');
                     document.getElementById('activeSection').classList.remove('hidden');
                     document.getElementById('liveDestination').innerText = activeRoute.destination;
@@ -506,7 +499,6 @@
                     updateLiveUi();
                     startTimer();
 
-                    // Re-conectar GPS
                     if (navigator.geolocation) {
                         watchId = navigator.geolocation.watchPosition(
                             handleGpsSuccess,
@@ -521,7 +513,6 @@
             }
         }
 
-        // --- HISTÓRICO E ARMAZENAMENTO ---
         function getSavedHistory() {
             const data = localStorage.getItem('agro_routes_history');
             return data ? JSON.parse(data) : [];
@@ -592,7 +583,6 @@
             }
         }
 
-        // --- EXPORTAR PARA EXCEL / CSV ---
         function exportToCSV() {
             const history = getSavedHistory();
             if (history.length === 0) {
@@ -621,7 +611,6 @@
             document.body.removeChild(a);
         }
 
-        // --- SIMULADOR DE MOVIMENTO GPS (Para Testes Desktop) ---
         function toggleSimulatedMotion() {
             if (!activeRoute) return;
 
@@ -632,9 +621,7 @@
                 btn.className = "text-xs bg-amber-600 hover:bg-amber-500 text-white px-2.5 py-1 rounded-lg font-bold transition";
                 btn.innerHTML = `<i class="fa-solid fa-pause mr-1"></i> Parar Simulação`;
 
-                // Simular atualizações GPS a cada 2 segundos
                 simInterval = setInterval(() => {
-                    // Adiciona ~0.05 KM por pulso
                     const simDistance = 0.04 + (Math.random() * 0.02);
                     activeRoute.distanceKm += simDistance;
                     activeRoute.gpsPoints++;
@@ -655,85 +642,75 @@
             }
         }
 
-        // --- UTILITÁRIOS DE MENSAGENS / UI ---
-        function showAlert(msg, type = 'info') {
+        function escapeHtml(str) {
+            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+
+        function showAlert(message, type) {
             const box = document.getElementById('alertBox');
             const msgEl = document.getElementById('alertMessage');
-            const iconEl = document.getElementById('alertIcon');
+            const icon = document.getElementById('alertIcon');
 
-            box.classList.remove('hidden', 'bg-red-950/80', 'border-red-600', 'text-red-200', 'bg-agro-950/80', 'border-agro-600', 'text-agro-200', 'bg-blue-950/80', 'border-blue-600', 'text-blue-200');
+            box.className = "p-4 rounded-xl border flex items-start gap-3 transition-all " + 
+                (type === 'error' ? 'bg-red-950/80 border-red-700 text-red-200' : 
+                 type === 'success' ? 'bg-agro-950/80 border-agro-700 text-agro-200' : 
+                 'bg-blue-950/80 border-blue-700 text-blue-200');
 
-            if (type === 'error') {
-                box.classList.add('bg-red-950/80', 'border-red-600', 'text-red-200');
-                iconEl.className = "fa-solid fa-triangle-exclamation text-red-400 mt-0.5 text-lg";
-            } else if (type === 'success') {
-                box.classList.add('bg-agro-950/80', 'border-agro-600', 'text-agro-200');
-                iconEl.className = "fa-solid fa-circle-check text-agro-400 mt-0.5 text-lg";
-            } else {
-                box.classList.add('bg-blue-950/80', 'border-blue-600', 'text-blue-200');
-                iconEl.className = "fa-solid fa-circle-info text-blue-400 mt-0.5 text-lg";
-            }
+            icon.className = "fa-solid " + 
+                (type === 'error' ? 'fa-triangle-exclamation text-red-400' : 
+                 type === 'success' ? 'fa-circle-check text-agro-400' : 
+                 'fa-circle-info text-blue-400') + " mt-0.5 text-lg";
 
-            msgEl.innerText = msg;
+            msgEl.innerText = message;
+            box.classList.remove('hidden');
+
+            setTimeout(() => { hideAlert(); }, 5000);
         }
 
         function hideAlert() {
             document.getElementById('alertBox').classList.add('hidden');
         }
-function escapeHtml(str) {
-        return String(str).replace(/[&<>"]/g, function(m) {
-            return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m];
-        });
-    }
-// Função infalível para gerar o relatório sem risco de travamento
-    function gerarRelatorioGestor() {
-      // Tenta apanhar os valores dos inputs de forma segura
-      let nome = 'Não informado';
-      let matricula = 'Não informada';
-      let frota = 'Fiorino';
-      let kmInicial = '0';
-      let kmFinal = '0';
 
-      try {
-        const elNome = document.getElementById('nomeOperador') || document.querySelector('input[name*="nome"]');
-        const elMat = document.getElementById('matricula') || document.querySelector('input[name*="mat"]');
-        const elFrota = document.getElementById('frota') || document.querySelector('select');
-        const elIni = document.getElementById('kmInicial') || document.querySelector('input[name*="inicial"]');
-        const elFin = document.getElementById('kmFinal') || document.querySelector('input[name*="final"]');
+        // --- FUNÇÃO PARA GERAR RELATÓRIO DO GESTOR NO WHATSAPP ---
+        function gerarRelatorioGestor() {
+            const colabEl = document.getElementById('inputColaborador');
+            const fleetEl = document.getElementById('inputFleet');
+            const kmStartEl = document.getElementById('inputKmStart');
 
-        if (elNome && elNome.value) nome = elNome.value;
-        if (elMat && elMat.value) matricula = elMat.value;
-        if (elFrota && elFrota.value) frota = elFrota.value;
-        if (elIni && elIni.value) kmInicial = elIni.value;
-        if (elFin && elFin.value) kmFinal = elFin.value;
-      } catch (e) {
-        console.log("Erro leve na leitura, usando valores padrão.");
-      }
-      
-      const totalKm = (Number(kmFinal) - Number(kmInicial)) || 0;
-      const dataHoje = new Date().toLocaleDateString('pt-BR');
-      
-      let textoRelatorio = "📊 *RELATÓRIO DE ROTAS E FROTA - AGRO*\n";
-      textoRelatorio += "----------------------------------------\n";
-      textoRelatorio += "👤 *Operador:* " + nome + " (Matrícula: " + matricula + ")\n";
-      textoRelatorio += "🚗 *Veículo/Frota:* " + frota + "\n";
-      textoRelatorio += "📅 *Data:* " + dataHoje + "\n\n";
-      textoRelatorio += "📍 *RESUMO DA OPERAÇÃO:*\n";
-      textoRelatorio += "• Km Inicial: " + kmInicial + " km\n";
-      textoRelatorio += "• Km Final: " + kmFinal + " km\n";
-      textoRelatorio += "• Total Percorrido: " + totalKm + " km\n";
-      textoRelatorio += "----------------------------------------\n";
-      textoRelatorio += "Enviado via AgroRotas PWA";
+            const nome = (colabEl && colabEl.value) ? colabEl.value : 'Não informado';
+            const frota = (fleetEl && fleetEl.value) ? fleetEl.value : (activeRoute ? activeRoute.fleet : 'Não informado');
+            const kmInicial = (kmStartEl && kmStartEl.value) ? Number(kmStartEl.value) : (activeRoute ? activeRoute.kmStart : 0);
+            
+            let kmFinal = kmInicial;
+            if (activeRoute) {
+                kmFinal = kmInicial + activeRoute.distanceKm;
+            }
 
-      const urlWhatsapp = "https://api.whatsapp.com/send?text=" + encodeURIComponent(textoRelatorio);
-      window.open(urlWhatsapp, '_blank');
-    }
-</script>
-<div style="padding: 10px 0;">
-  <button onclick="gerarRelatorioGestor()" style="background: #28a745; color: white; border: none; padding: 14px 20px; font-size: 16px; border-radius: 8px; cursor: pointer; width: 100%; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-    📄 Gerar Relatório para o Gestor
-  </button>
-</div>
+            const totalKm = activeRoute ? activeRoute.distanceKm : 0;
+            const dataHoje = new Date().toLocaleDateString('pt-BR');
+
+            let textoRelatorio = "📊 *RELATÓRIO DE ROTAS E FROTA - AGRO*\n";
+            textoRelatorio += "----------------------------------------\n";
+            textoRelatorio += "👤 *Colaborador:* " + nome + "\n";
+            textoRelatorio += "🚗 *Veículo/Frota:* " + frota + "\n";
+            textoRelatorio += "📅 *Data:* " + dataHoje + "\n\n";
+            textoRelatorio += "📍 *RESUMO DA OPERAÇÃO:*\n";
+            textoRelatorio += "• Km Inicial: " + kmInicial.toFixed(1) + " km\n";
+            textoRelatorio += "• Km Final: " + kmFinal.toFixed(1) + " km\n";
+            textoRelatorio += "• Total Percorrido: " + totalKm.toFixed(2) + " km\n";
+            textoRelatorio += "----------------------------------------\n";
+            textoRelatorio += "Enviado via AgroRotas PWA";
+
+            const urlWhatsapp = "https://api.whatsapp.com/send?text=" + encodeURIComponent(textoRelatorio);
+            window.open(urlWhatsapp, '_blank');
+        }
+    </script>
+
+    <div style="padding: 10px 0;">
+      <button onclick="gerarRelatorioGestor()" style="background: #28a745; color: white; border: none; padding: 14px 20px; font-size: 16px; border-radius: 8px; cursor: pointer; width: 100%; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+        📄 Gerar Relatório para o Gestor
+      </button>
+    </div>
+
 </body>
 </html>
-
