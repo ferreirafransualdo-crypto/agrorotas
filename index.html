@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+l<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -79,7 +79,7 @@
                     <i class="fa-solid fa-lock"></i>
                 </div>
                 <h2 class="text-xl font-bold text-white">Identificação do Colaborador</h2>
-                <p class="text-xs text-slate-400">Insira sua senha para acessar as manobras.</p>
+                <p class="text-xs text-slate-400">Selecione seu nome e insira sua senha para acessar.</p>
             </div>
 
             <form id="loginForm" class="space-y-4" onsubmit="event.preventDefault(); validarLoginColaborador();">
@@ -87,7 +87,15 @@
                     <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Colaborador *</label>
                     <div class="relative">
                         <i class="fa-solid fa-user absolute left-3 top-3.5 text-slate-500"></i>
-                        <input type="text" id="loginColaborador" readonly value="Lucas Alencar" class="input-agro bg-slate-800 text-white font-bold cursor-not-allowed">
+                        <select id="loginColaborador" required class="input-agro">
+                            <option value="">Selecione o seu Nome</option>
+                            <option value="Fransualdo">Fransualdo</option>
+                            <option value="Lucas">Lucas</option>
+                            <option value="Breno">Breno</option>
+                            <option value="Guilherme">Guilherme</option>
+                            <option value="Kaymerson">Kaymerson</option>
+                            <option value="Antônio">Antônio</option>
+                        </select>
                     </div>
                 </div>
 
@@ -111,10 +119,10 @@
             <div class="bg-slate-800/90 border border-slate-700 rounded-xl p-3 flex justify-between items-center text-xs">
                 <div class="flex items-center gap-2 text-slate-300">
                     <i class="fa-solid fa-user-check text-agro-500 text-sm"></i>
-                    <span>Logado como: <strong id="currentCollabLabel" class="text-white">Lucas Alencar</strong></span>
+                    <span>Logado como: <strong id="currentCollabLabel" class="text-white">---</strong></span>
                 </div>
                 <button type="button" onclick="logoutColaborador()" class="text-slate-400 hover:text-red-400 underline cursor-pointer">
-                    <i class="fa-solid fa-right-from-bracket mr-1"></i> Sair / Bloquear
+                    <i class="fa-solid fa-right-from-bracket mr-1"></i> Trocar Colaborador
                 </button>
             </div>
 
@@ -306,7 +314,7 @@
                     </div>
                     <div style="background: #ffffff;" class="p-2 rounded-xl shadow-sm">
                         <span style="color: #64748b;" class="text-[9px] sm:text-[10px] uppercase block font-extrabold">Colaborador</span>
-                        <span id="imgReportCollab" style="color: #0f172a;" class="text-xs sm:text-sm font-black truncate block">Lucas Alencar</span>
+                        <span id="imgReportCollab" style="color: #0f172a;" class="text-xs sm:text-sm font-black truncate block">---</span>
                     </div>
                     <div style="background: #ffffff;" class="p-2 rounded-xl shadow-sm">
                         <span style="color: #64748b;" class="text-[9px] sm:text-[10px] uppercase block font-extrabold">Frota</span>
@@ -381,7 +389,7 @@
     </div>
 
     <footer class="max-w-3xl mx-auto w-full px-4 text-center text-xs text-slate-500 mt-6">
-        <p>AgroRota GPS v4.6 - Lucas Alencar</p>
+        <p>AgroRota GPS v4.7 - Seleção de Colaboradores</p>
     </footer>
 
     <!-- SCRIPT DA APLICAÇÃO -->
@@ -393,10 +401,8 @@
         let isPaused = false;
         let pastasAbertasModal = {};
 
-        const COLAB_FIXO = "Lucas Alencar";
-
         let activeRoute = {
-            colaborador: COLAB_FIXO,
+            colaborador: '',
             fleet: '',
             kmStart: 0,
             destination: '',
@@ -414,14 +420,13 @@
         };
 
         function verificarSessaoAtiva() {
-            localStorage.setItem('agro_fixed_colaborador', COLAB_FIXO);
-            document.getElementById('currentCollabLabel').innerText = COLAB_FIXO;
-            
-            const pinSessao = localStorage.getItem('agro_session_unlocked');
-            if (pinSessao === 'true') {
+            const colabAtivo = localStorage.getItem('agro_fixed_colaborador');
+            if (colabAtivo) {
+                document.getElementById('currentCollabLabel').innerText = colabAtivo;
                 document.getElementById('loginSection').classList.add('hidden');
                 document.getElementById('appPanel').classList.remove('hidden');
-                carregarDadosSessaoColaborador();
+                
+                carregarDadosSessaoColaborador(colabAtivo);
                 loadHistory();
             } else {
                 document.getElementById('loginSection').classList.remove('hidden');
@@ -430,25 +435,26 @@
         }
 
         function validarLoginColaborador() {
+            const colab = document.getElementById('loginColaborador').value;
             const pin = document.getElementById('loginPin').value.trim();
 
-            if (!pin) {
-                showAlert('Insira a senha.', 'error');
+            if (!colab || !pin) {
+                showAlert('Selecione o seu nome e insira a senha.', 'error');
                 return;
             }
 
-            const senhaSalva = localStorage.getItem('agro_pin_lucas');
+            const senhaSalva = localStorage.getItem(`agro_pin_${colab}`);
 
             if (!senhaSalva) {
                 if (pin.length >= 3) {
-                    localStorage.setItem('agro_pin_lucas', pin);
-                    concluirLogin();
+                    localStorage.setItem(`agro_pin_${colab}`, pin);
+                    concluirLogin(colab);
                 } else {
                     showAlert('A senha precisa ter pelo menos 3 dígitos.', 'error');
                 }
             } else {
                 if (pin === senhaSalva) {
-                    concluirLogin();
+                    concluirLogin(colab);
                 } else {
                     showAlert('Senha incorreta! Acesso negado.', 'error');
                     document.getElementById('loginPin').value = '';
@@ -456,31 +462,33 @@
             }
         }
 
-        function concluirLogin() {
-            localStorage.setItem('agro_session_unlocked', 'true');
+        function concluirLogin(colab) {
+            localStorage.setItem('agro_fixed_colaborador', colab);
             document.getElementById('loginPin').value = '';
+            document.getElementById('currentCollabLabel').innerText = colab;
             
             document.getElementById('loginSection').classList.add('hidden');
             document.getElementById('appPanel').classList.remove('hidden');
 
-            carregarDadosSessaoColaborador();
+            carregarDadosSessaoColaborador(colab);
             loadHistory();
-            showAlert(`Bem-vindo, ${COLAB_FIXO}!`, 'success');
+            showAlert(`Bem-vindo, ${colab}!`, 'success');
         }
 
         function logoutColaborador() {
-            if (confirm("Deseja bloquear a sessão?")) {
-                localStorage.removeItem('agro_session_unlocked');
+            if (confirm("Deseja sair e trocar de colaborador?")) {
+                localStorage.removeItem('agro_fixed_colaborador');
+                document.getElementById('loginColaborador').value = '';
                 document.getElementById('loginPin').value = '';
                 document.getElementById('appPanel').classList.add('hidden');
                 document.getElementById('loginSection').classList.remove('hidden');
-                showAlert('Sessão bloqueada.', 'info');
+                showAlert('Sessão encerrada.', 'info');
             }
         }
 
-        function carregarDadosSessaoColaborador() {
+        function carregarDadosSessaoColaborador(colab) {
             try {
-                const frotaSalva = localStorage.getItem('agro_fleet_lucas');
+                const frotaSalva = localStorage.getItem(`agro_fleet_${colab}`);
                 if (frotaSalva) {
                     document.getElementById('inputFleet').value = frotaSalva;
                 }
@@ -498,14 +506,14 @@
                         }
                     }
                 }
-                atualizarDatalistManobras();
+                atualizarDatalistManobras(colab);
             } catch (e) {}
         }
 
-        function atualizarDatalistManobras() {
+        function atualizarDatalistManobras(colaborador) {
             const history = getSavedHistory();
             const manobrasDoColab = history
-                .filter(r => r.destination)
+                .filter(r => r.colaborador === colaborador && r.destination)
                 .map(r => r.destination);
 
             const padrao = ["Coleta", "Entrega", "Deslocamento Operacional", "Fazenda Esperança", "Fazenda Boa Vista"];
@@ -546,7 +554,6 @@
                 const savedActive = localStorage.getItem('agro_active_route');
                 if (savedActive) {
                     activeRoute = JSON.parse(savedActive);
-                    activeRoute.colaborador = COLAB_FIXO;
 
                     document.getElementById('loginSection').classList.add('hidden');
                     document.getElementById('appPanel').classList.remove('hidden');
@@ -556,7 +563,7 @@
                     document.getElementById('liveDestination').innerText = activeRoute.destination;
                     document.getElementById('liveFleet').innerHTML = `<i class="fa-solid fa-truck mr-1"></i>${activeRoute.fleet}`;
                     document.getElementById('liveKmStart').innerText = activeRoute.kmStart.toFixed(1);
-                    document.getElementById('currentCollabLabel').innerText = COLAB_FIXO;
+                    document.getElementById('currentCollabLabel').innerText = activeRoute.colaborador;
                     updateLiveUi();
 
                     startTimer();
@@ -634,20 +641,21 @@
 
         function startTracking() {
             try {
+                const colaborador = localStorage.getItem('agro_fixed_colaborador');
                 const fleet = document.getElementById('inputFleet').value.trim();
                 const kmStart = parseFloat(document.getElementById('inputKmStart').value);
                 const destination = document.getElementById('inputDestination').value.trim();
                 const notes = document.getElementById('inputNotes').value.trim();
 
-                if (!fleet || isNaN(kmStart) || !destination) {
+                if (!colaborador || !fleet || isNaN(kmStart) || !destination) {
                     showAlert('Preencha todos os campos obrigatórios (*).', 'error');
                     return;
                 }
 
-                localStorage.setItem('agro_fleet_lucas', fleet);
+                localStorage.setItem(`agro_fleet_${colaborador}`, fleet);
 
                 activeRoute = {
-                    colaborador: COLAB_FIXO,
+                    colaborador: colaborador,
                     fleet: fleet,
                     kmStart: kmStart,
                     destination: destination,
@@ -775,7 +783,7 @@
 
                 const routeRecord = {
                     id: Date.now(),
-                    colaborador: COLAB_FIXO,
+                    colaborador: activeRoute.colaborador,
                     fleet: activeRoute.fleet,
                     kmStart: activeRoute.kmStart,
                     kmEnd: kmFinal,
@@ -794,7 +802,8 @@
 
                 localStorage.removeItem('agro_active_route');
 
-                activeRoute = { colaborador: COLAB_FIXO, fleet: '', kmStart: 0, destination: '', notes: '', startTime: null, elapsedSeconds: 0, distanceKm: 0, lastCoords: null, gpsPoints: 0 };
+                const colabAtual = activeRoute.colaborador;
+                activeRoute = { colaborador: '', fleet: '', kmStart: 0, destination: '', notes: '', startTime: null, elapsedSeconds: 0, distanceKm: 0, lastCoords: null, gpsPoints: 0 };
                 isPaused = false;
 
                 document.getElementById('activeSection').classList.add('hidden');
@@ -804,7 +813,7 @@
                 document.getElementById('inputNotes').value = '';
                 document.getElementById('inputKmStart').value = kmFinal.toFixed(1);
 
-                carregarDadosSessaoColaborador();
+                carregarDadosSessaoColaborador(colabAtual);
                 updateGpsStatus(false, "GPS Desconectado");
 
                 loadHistory();
@@ -844,7 +853,8 @@
                     </div>
                 `).join('');
 
-                atualizarDatalistManobras();
+                const colabSel = localStorage.getItem('agro_fixed_colaborador');
+                if (colabSel) atualizarDatalistManobras(colabSel);
             } catch (e) {}
         }
 
@@ -862,7 +872,7 @@
             const historyOrdenado = [...rotasParaRelatorio].sort((a, b) => new Date(a.startTime) - new Date(b.startTime));
 
             document.getElementById('imgReportDate').innerText = dataHojeStr;
-            document.getElementById('imgReportCollab').innerText = COLAB_FIXO;
+            document.getElementById('imgReportCollab').innerText = historyOrdenado[0].colaborador || localStorage.getItem('agro_fixed_colaborador') || '---';
             document.getElementById('imgReportFleet').innerText = historyOrdenado[0].fleet || '---';
 
             let htmlRotas = "";
@@ -999,13 +1009,13 @@
 
                     localStorage.removeItem('agro_routes_history');
                     loadHistory();
-                    carregarDadosSessaoColaborador();
+                    carregarDadosSessaoColaborador(localStorage.getItem('agro_fixed_colaborador'));
 
                     showAlert('Turno finalizado! Relatório e imagem arquivados na pasta com sucesso.', 'success');
                 }).catch(err => {
                     localStorage.removeItem('agro_routes_history');
                     loadHistory();
-                    carregarDadosSessaoColaborador();
+                    carregarDadosSessaoColaborador(localStorage.getItem('agro_fixed_colaborador'));
                     showAlert('Turno finalizado com sucesso!', 'success');
                 });
             }
@@ -1218,11 +1228,12 @@
                 });
                 const rotasParaRelatorio = rotasDoDia.length > 0 ? rotasDoDia : history;
                 const historyOrdenado = [...rotasParaRelatorio].sort((a, b) => new Date(a.startTime) - new Date(b.startTime));
+                const colabNome = historyOrdenado[0].colaborador || localStorage.getItem('agro_fixed_colaborador') || 'Colaborador';
 
                 let texto = "📊 *RELATÓRIO DE ROTAS E FROTA - AGRO*\n";
                 texto += "----------------------------------------\n";
                 texto += "📅 *Data do Relatório:* " + dataHojeStr + "\n";
-                texto += "👤 *Colaborador:* " + COLAB_FIXO + "\n";
+                texto += "👤 *Colaborador:* " + colabNome + "\n";
                 texto += "📦 *Total de Rotas Realizadas:* " + historyOrdenado.length + "\n";
                 texto += "----------------------------------------\n\n";
 
