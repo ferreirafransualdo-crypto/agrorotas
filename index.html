@@ -258,6 +258,7 @@
         let isSimulating = false;
 
         let activeRoute = {
+            colaborador: '',
             fleet: '',
             kmStart: 0,
             destination: '',
@@ -290,12 +291,13 @@
 
         // --- INICIAR RASTREAMENTO ---
         function startTracking() {
+            const colaborador = document.getElementById('inputColaborador').value.trim();
             const fleet = document.getElementById('inputFleet').value.trim();
             const kmStart = parseFloat(document.getElementById('inputKmStart').value);
             const destination = document.getElementById('inputDestination').value.trim();
             const notes = document.getElementById('inputNotes').value.trim();
 
-            if (!fleet || isNaN(kmStart) || !destination) {
+            if (!colaborador || !fleet || isNaN(kmStart) || !destination) {
                 showAlert('Por favor, preencha todos os campos obrigatórios (*).', 'error');
                 return;
             }
@@ -306,6 +308,7 @@
             }
 
             activeRoute = {
+                colaborador: colaborador,
                 fleet: fleet,
                 kmStart: kmStart,
                 destination: destination,
@@ -451,6 +454,7 @@
 
             const routeRecord = {
                 id: Date.now(),
+                colaborador: activeRoute.colaborador,
                 fleet: activeRoute.fleet,
                 kmStart: activeRoute.kmStart,
                 kmEnd: kmFinal,
@@ -468,7 +472,7 @@
             localStorage.setItem('agro_routes_history', JSON.stringify(history));
 
             localStorage.removeItem('agro_active_route');
-            activeRoute = null;
+            activeRoute = { colaborador: '', fleet: '', kmStart: 0, destination: '', notes: '', startTime: null, elapsedSeconds: 0, distanceKm: 0, lastCoords: null, gpsPoints: 0 };
 
             document.getElementById('activeSection').classList.add('hidden');
             document.getElementById('formSection').classList.remove('hidden');
@@ -590,7 +594,7 @@
                 return;
             }
 
-            let csv = 'Data;Hora Inicio;Frota;Destino;KM Inicial;KM Final;Distancia Percorrida (KM);Duracao;Observacoes\n';
+            let csv = 'Data;Hora Inicio;Colaborador;Frota;Destino;KM Inicial;KM Final;Distancia Percorrida (KM);Duracao;Observacoes\n';
 
             history.forEach(r => {
                 const dt = new Date(r.startTime);
@@ -598,7 +602,7 @@
                 const timeStr = dt.toLocaleTimeString('pt-BR');
                 const duration = formatSeconds(r.durationSeconds || 0);
 
-                csv += `"${dateStr}";"${timeStr}";"${r.fleet}";"${r.destination}";"${r.kmStart.toFixed(1)}";"${r.kmEnd.toFixed(1)}";"${r.distanceKm.toFixed(2)}";"${duration}";"${r.notes || ''}"\n`;
+                csv += `"${dateStr}";"${timeStr}";"${r.colaborador || 'Não informado'}";"${r.fleet}";"${r.destination}";"${r.kmStart.toFixed(1)}";"${r.kmEnd.toFixed(1)}";"${r.distanceKm.toFixed(2)}";"${duration}";"${r.notes || ''}"\n`;
             });
 
             const blob = new Blob(["\ufeff" + csv], { type: 'text/csv;charset=utf-8;' });
@@ -643,7 +647,7 @@
         }
 
         function escapeHtml(str) {
-            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+            return str ? str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;") : '';
         }
 
         function showAlert(message, type) {
@@ -678,22 +682,24 @@
             const kmStartEl = document.getElementById('inputKmStart');
 
             let nome = 'Não informado';
-            if (colabEl && colabEl.value) {
+            if (activeRoute && activeRoute.colaborador) {
+                nome = activeRoute.colaborador;
+            } else if (colabEl && colabEl.value) {
                 nome = colabEl.value;
             }
 
             let frota = 'Não informado';
-            if (fleetEl && fleetEl.value) {
-                frota = fleetEl.value;
-            } else if (activeRoute && activeRoute.fleet) {
+            if (activeRoute && activeRoute.fleet) {
                 frota = activeRoute.fleet;
+            } else if (fleetEl && fleetEl.value) {
+                frota = fleetEl.value;
             }
 
             let kmInicial = 0;
-            if (kmStartEl && kmStartEl.value) {
-                kmInicial = Number(kmStartEl.value);
-            } else if (activeRoute && activeRoute.kmStart) {
+            if (activeRoute && activeRoute.kmStart) {
                 kmInicial = activeRoute.kmStart;
+            } else if (kmStartEl && kmStartEl.value) {
+                kmInicial = Number(kmStartEl.value);
             }
             
             let distancia = (activeRoute && activeRoute.distanceKm) ? activeRoute.distanceKm : 0;
