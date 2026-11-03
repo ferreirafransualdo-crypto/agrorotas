@@ -9,7 +9,9 @@
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- Biblioteca html2canvas para gerar a imagem perfeita -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -262,10 +264,10 @@
                 <div id="historyList" class="space-y-3"></div>
             </section>
 
-            <!-- Botões de Ações e Relatório Visual -->
+            <!-- Botões de Ações e Relatório Visual em Imagem -->
             <div class="space-y-3 pt-2">
               <button type="button" onclick="gerarRelatorioImagem()" class="w-full py-4 bg-blue-600 hover:bg-blue-500 text-white font-extrabold rounded-xl text-base shadow-xl transition flex items-center justify-center gap-2 cursor-pointer">
-                <i class="fa-solid fa-image text-xl"></i> Gerar Imagem do Relatório para o Gestor 📸
+                <i class="fa-solid fa-image text-xl"></i> Gerar Imagem do Relatório 📸
               </button>
 
               <button type="button" onclick="gerarRelatorioGestor()" class="btn-agro shadow-lg text-base cursor-pointer" style="background-color: #16a34a;">
@@ -281,80 +283,89 @@
 
     </main>
 
-    <!-- MODAL DO RELATÓRIO VISUAL (IMAGEM FORMATADA) -->
-    <div id="modalRelatorioVisual" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md z-50 hidden flex flex-col items-center justify-start p-2 sm:p-4 overflow-y-auto">
+    <!-- MODAL DO RELATÓRIO VISUAL (EXATO AO MODELO DA FOTO) -->
+    <div id="modalRelatorioVisual" class="fixed inset-0 bg-slate-950/95 backdrop-blur-md z-50 hidden flex flex-col items-center justify-start p-2 sm:p-4 overflow-y-auto">
         <div class="w-full max-w-xl flex justify-between items-center mb-3 text-white">
-            <span class="text-sm font-bold flex items-center gap-2"><i class="fa-solid fa-wand-magic-sparkles text-amber-400"></i> Relatório Visual Pronto</span>
-            <button type="button" onclick="fecharModalVisual()" class="text-slate-400 hover:text-white bg-slate-800 px-3 py-1.5 rounded-lg text-xs cursor-pointer"><i class="fa-solid fa-xmark mr-1"></i> Fechar</button>
+            <span class="text-sm font-bold flex items-center gap-2 text-emerald-400"><i class="fa-solid fa-circle-check"></i> Relatório Pronto para Baixar</span>
+            <button type="button" onclick="fecharModalVisual()" class="text-slate-300 hover:text-white bg-slate-800 px-3 py-1.5 rounded-lg text-xs cursor-pointer font-bold"><i class="fa-solid fa-xmark mr-1"></i> Fechar</button>
         </div>
 
-        <!-- CARTÃO DO RELATÓRIO -->
-        <div id="reportCardToImage" class="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-xl overflow-hidden shadow-2xl text-slate-100 font-sans">
+        <!-- CARTÃO IDÊNTICO AO LAYOUT ENVIADO -->
+        <div id="reportCardToImage" class="bg-slate-900 border-2 border-slate-700 rounded-2xl w-full max-w-xl overflow-hidden shadow-2xl text-slate-100 font-sans">
             
-            <div class="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 p-5 border-b border-slate-700/80 flex justify-between items-center">
-                <div>
-                    <div class="flex items-center gap-2 text-xs font-black tracking-widest text-emerald-400 uppercase">
-                        <i class="fa-solid fa-seedling"></i> AgroRota Sucroenergia
+            <!-- Cabeçalho Principal Estilo Sucroenergia -->
+            <div class="bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 p-5 border-b-2 border-emerald-500/40 flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-slate-950 font-black text-xl shadow">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
                     </div>
-                    <h2 class="text-2xl font-black text-white tracking-tight mt-0.5">RELATÓRIO DE ROTAS</h2>
+                    <div>
+                        <h2 class="text-xl font-black text-white tracking-wider">Delta <span class="text-xs font-normal text-slate-400 block -mt-1">Sucroenergia</span></h2>
+                    </div>
                 </div>
-                <div class="w-12 h-12 bg-agro-600 rounded-2xl flex items-center justify-center text-white text-2xl shadow-lg">
-                    <i class="fa-solid fa-tractor"></i>
+                <div class="text-right">
+                    <h1 class="text-lg sm:text-xl font-black text-white tracking-tight">RELATÓRIO DE ROTAS</h1>
+                    <div class="text-xs text-emerald-400 font-semibold"><i class="fa-solid fa-route"></i> Operação de Campo</div>
                 </div>
             </div>
 
-            <div class="grid grid-cols-3 gap-2 p-4 bg-slate-800/90 border-b border-slate-700 text-center">
-                <div>
-                    <span class="text-[10px] text-slate-400 uppercase font-bold flex items-center justify-center gap-1"><i class="fa-regular fa-calendar"></i> Data</span>
-                    <span id="imgReportDate" class="text-xs sm:text-sm font-bold text-white">---</span>
+            <!-- Dados do Cabeçalho (Data, Colaborador, Frota) -->
+            <div class="grid grid-cols-3 gap-1 p-3 bg-slate-800/90 border-b border-slate-700 text-center">
+                <div class="bg-slate-900/60 p-2 rounded-xl">
+                    <span class="text-[10px] text-slate-400 uppercase font-bold flex items-center justify-center gap-1"><i class="fa-regular fa-calendar text-agro-400"></i> Data</span>
+                    <span id="imgReportDate" class="text-xs sm:text-sm font-bold text-white">03/11/2026</span>
                 </div>
-                <div class="border-x border-slate-700">
-                    <span class="text-[10px] text-slate-400 uppercase font-bold flex items-center justify-center gap-1"><i class="fa-regular fa-user"></i> Colaborador</span>
+                <div class="bg-slate-900/60 p-2 rounded-xl border-x border-slate-700/60">
+                    <span class="text-[10px] text-slate-400 uppercase font-bold flex items-center justify-center gap-1"><i class="fa-regular fa-user text-agro-400"></i> Colaborador</span>
                     <span id="imgReportCollab" class="text-xs sm:text-sm font-bold text-white">---</span>
                 </div>
-                <div>
-                    <span class="text-[10px] text-slate-400 uppercase font-bold flex items-center justify-center gap-1"><i class="fa-solid fa-truck"></i> Frota</span>
+                <div class="bg-slate-900/60 p-2 rounded-xl">
+                    <span class="text-[10px] text-slate-400 uppercase font-bold flex items-center justify-center gap-1"><i class="fa-solid fa-truck text-agro-400"></i> Frota</span>
                     <span id="imgReportFleet" class="text-xs sm:text-sm font-bold text-white">---</span>
                 </div>
             </div>
 
-            <div id="imgRoutesContainer" class="p-4 space-y-2.5 max-h-[50vh] overflow-y-auto"></div>
+            <!-- Lista de Rotas Estilizadas Exatas ao Modelo -->
+            <div id="imgRoutesContainer" class="p-3 space-y-2.5 max-h-[50vh] overflow-y-auto"></div>
 
-            <div class="p-4 bg-slate-950 border-t border-slate-800 space-y-3">
-                <div class="text-xs font-black uppercase tracking-widest text-emerald-400 flex items-center gap-1.5">
-                    <i class="fa-solid fa-chart-pie"></i> Resumo do Dia
+            <!-- Resumo do Dia -->
+            <div class="p-4 bg-slate-950 border-t-2 border-slate-800 space-y-3">
+                <div class="text-xs font-black uppercase tracking-widest text-emerald-400 flex items-center gap-1.5 border-b border-slate-800 pb-1.5">
+                    <i class="fa-solid fa-chart-pie"></i> RESUMO DO DIA
                 </div>
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
                     <div class="bg-slate-900 p-2.5 rounded-xl border border-slate-800">
-                        <span class="text-[10px] text-slate-400 uppercase block">Total de Rotas</span>
+                        <span class="text-[10px] text-slate-400 uppercase block font-bold">Total de Rotas</span>
                         <span id="imgSumTotalRotas" class="text-base font-black text-white">0</span>
                     </div>
                     <div class="bg-slate-900 p-2.5 rounded-xl border border-slate-800">
-                        <span class="text-[10px] text-slate-400 uppercase block">Total Percorrido</span>
+                        <span class="text-[10px] text-slate-400 uppercase block font-bold">Total Percorrido</span>
                         <span id="imgSumTotalKm" class="text-base font-black text-emerald-400">0.00 km</span>
                     </div>
                     <div class="bg-slate-900 p-2.5 rounded-xl border border-slate-800">
-                        <span class="text-[10px] text-slate-400 uppercase block">Primeira Saída</span>
+                        <span class="text-[10px] text-slate-400 uppercase block font-bold">Primeira Saída</span>
                         <span id="imgSumPrimeiraSaida" class="text-xs font-bold text-white">--:--</span>
                     </div>
                     <div class="bg-slate-900 p-2.5 rounded-xl border border-slate-800">
-                        <span class="text-[10px] text-slate-400 uppercase block">Última Chegada</span>
+                        <span class="text-[10px] text-slate-400 uppercase block font-bold">Última Chegada</span>
                         <span id="imgSumUltimaChegada" class="text-xs font-bold text-white">--:--</span>
                     </div>
                 </div>
             </div>
 
-            <div class="p-3 bg-slate-900 text-center border-t border-slate-800/80 text-[10px] text-slate-400 flex items-center justify-center gap-1.5">
-                <i class="fa-solid fa-circle-check text-emerald-500"></i> Gerado automaticamente via AgroRotas PWA
+            <!-- Rodapé do Cartão -->
+            <div class="p-3 bg-slate-900 text-center border-t border-slate-800 text-[11px] text-slate-300 font-bold flex items-center justify-center gap-2">
+                <i class="fa-solid fa-circle-check text-emerald-400"></i> Enviado via AgroRotas PWA
             </div>
 
         </div>
 
+        <!-- Botões de Ação na Prévia da Imagem -->
         <div class="w-full max-w-xl grid grid-cols-2 gap-3 mt-4 pb-4">
-            <button type="button" onclick="baixarRelatorioTexto()" class="py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs sm:text-sm flex items-center justify-center gap-2 cursor-pointer shadow-lg">
-                <i class="fa-solid fa-download"></i> Baixar Relatório (Texto)
+            <button type="button" onclick="baixarImagemPronta()" class="py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white font-black rounded-xl text-xs sm:text-sm flex items-center justify-center gap-2 cursor-pointer shadow-xl">
+                <i class="fa-solid fa-download text-base"></i> Baixar Imagem (PNG)
             </button>
-            <button type="button" onclick="compartilharNoWhatsApp()" class="py-3 bg-green-600 hover:bg-green-500 text-white font-bold rounded-xl text-xs sm:text-sm flex items-center justify-center gap-2 cursor-pointer shadow-lg">
+            <button type="button" onclick="compartilharNoWhatsApp()" class="py-3.5 bg-green-600 hover:bg-green-500 text-white font-black rounded-xl text-xs sm:text-sm flex items-center justify-center gap-2 cursor-pointer shadow-xl">
                 <i class="fa-brands fa-whatsapp text-lg"></i> Enviar ao Gestor
             </button>
         </div>
@@ -384,7 +395,7 @@
     </div>
 
     <footer class="max-w-3xl mx-auto w-full px-4 text-center text-xs text-slate-500 mt-6">
-        <p>AgroRota GPS v4.0 - Estável & Otimizado</p>
+        <p>AgroRota GPS v4.1 - Padrão Visual Exato</p>
     </footer>
 
     <!-- SCRIPT DA APLICAÇÃO -->
@@ -488,7 +499,6 @@
                     document.getElementById('inputFleet').value = frotaSalva;
                 }
 
-                // Verifica se há rollover do dia anterior
                 const rolloverKm = localStorage.getItem('agro_last_km_rollover');
                 if (rolloverKm) {
                     document.getElementById('inputKmStart').value = parseFloat(rolloverKm).toFixed(1);
@@ -854,11 +864,11 @@
             } catch (e) {}
         }
 
-        // --- GERADOR DO RELATÓRIO VISUAL ---
+        // --- GERADOR DO RELATÓRIO VISUAL IGUAL À FOTO ---
         function gerarRelatorioImagem() {
             const history = getSavedHistory();
             if (history.length === 0) {
-                alert('Não há rotas registradas para gerar o relatório.');
+                alert('Não há rotas registradas para gerar o relatório visual.');
                 return;
             }
 
@@ -884,27 +894,28 @@
                 totalKmGeral += dist;
 
                 htmlRotas += `
-                    <div class="bg-slate-800/90 border border-slate-700/80 rounded-xl overflow-hidden text-xs">
-                        <div class="bg-slate-900 px-3 py-1.5 font-black text-emerald-400 border-b border-slate-700">
-                            Rota #${index + 1}
+                    <div class="bg-slate-900 border border-slate-700/80 rounded-xl overflow-hidden shadow">
+                        <div class="bg-slate-800 px-3 py-1.5 flex justify-between items-center border-b border-slate-700">
+                            <span class="font-extrabold text-white text-xs">Rota #${index + 1}</span>
+                            <span class="text-[10px] text-emerald-400 font-bold uppercase"><i class="fa-solid fa-location-dot"></i> Concluída</span>
                         </div>
-                        <div class="p-3 grid grid-cols-2 sm:grid-cols-3 gap-2 items-center">
+                        <div class="p-3 grid grid-cols-1 sm:grid-cols-3 gap-2 items-center text-xs">
                             <div>
                                 <span class="text-[10px] text-slate-400 uppercase block font-bold">Manobra</span>
-                                <span class="font-extrabold text-white">${escapeHtml(r.destination)}</span>
+                                <span class="font-black text-white text-sm">${escapeHtml(r.destination)}</span>
                             </div>
                             <div>
                                 <span class="text-[10px] text-slate-400 uppercase block font-bold">Horário</span>
-                                <span class="text-slate-200">Saída: ${dtInicio}<br>Chegada: ${dtFim}</span>
+                                <span class="text-slate-300 font-medium">Saída: ${dtInicio}<br>Chegada: ${dtFim}</span>
                             </div>
                             <div>
                                 <span class="text-[10px] text-slate-400 uppercase block font-bold">Quilometragem</span>
-                                <span class="text-slate-200">Ini: ${(r.kmStart || 0).toFixed(1)} km<br>Fin: ${(r.kmEnd || 0).toFixed(1)} km</span>
+                                <span class="text-slate-300 font-medium">Ini: ${(r.kmStart || 0).toFixed(1)} km<br>Fin: ${(r.kmEnd || 0).toFixed(1)} km</span>
                             </div>
-                            <div class="col-span-2 sm:col-span-3 bg-slate-950 p-2 rounded-lg flex justify-between items-center mt-1">
-                                <span class="text-[11px] text-slate-300 font-bold">Total Percorrido:</span>
-                                <span class="text-sm font-black text-emerald-400">${dist.toFixed(2)} km</span>
-                            </div>
+                        </div>
+                        <div class="bg-slate-950 px-3 py-2 border-t border-slate-800 flex justify-between items-center">
+                            <span class="text-xs text-slate-400 font-bold uppercase">Total Percorrido:</span>
+                            <span class="text-base font-black text-blue-400">${dist.toFixed(2)} km</span>
                         </div>
                     </div>
                 `;
@@ -927,25 +938,20 @@
             document.getElementById('modalRelatorioVisual').classList.add('hidden');
         }
 
-        function baixarRelatorioTexto() {
-            const history = getSavedHistory();
-            if (history.length === 0) return;
-            
-            let textoRel = "RELATÓRIO DE ROTAS - AGRO\n==============================\n\n";
-            history.forEach((r, idx) => {
-                textoRel += `Rota #${idx + 1} - ${r.destination}\n`;
-                textoRel += `Frota: ${r.fleet} | Colaborador: ${r.colaborador}\n`;
-                textoRel += `KM Inicial: ${r.kmStart.toFixed(1)} | KM Final: ${r.kmEnd.toFixed(1)}\n`;
-                textoRel += `Total: ${r.distanceKm.toFixed(2)} km\n------------------------------\n`;
-            });
+        // Função para converter o cartão em imagem PNG e baixar
+        function baixarImagemPronta() {
+            const card = document.getElementById('reportCardToImage');
+            showAlert('Gerando imagem para o gestor...', 'info');
 
-            const blob = new Blob([textoRel], { type: 'text/plain;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `Relatorio_Texto_${new Date().toISOString().slice(0,10)}.txt`;
-            a.click();
-            showAlert('Relatório em texto baixado!', 'success');
+            html2canvas(card, { scale: 2, backgroundColor: '#0f172a' }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = `Relatorio_Rotas_${new Date().toISOString().slice(0,10)}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+                showAlert('Imagem gerada e baixada com sucesso!', 'success');
+            }).catch(err => {
+                showAlert('Erro ao gerar imagem.', 'error');
+            });
         }
 
         function compartilharNoWhatsApp() {
@@ -953,7 +959,7 @@
         }
 
         function finalizarEDeixarDiaPronto() {
-            if (confirm("Deseja finalizar as demandas de hoje? Elas serão guardadas nas pastas, a tela principal será limpa e o app ficará pronto para o novo dia com o KM atualizado.")) {
+            if (confirm("Deseja finalizar as demandas de hoje? Elas serão guardadas nas pastas, a tela principal será limpa e o app ficará pronto para o novo dia.")) {
                 exportToCSV();
 
                 const history = getSavedHistory();
