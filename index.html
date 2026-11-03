@@ -695,7 +695,7 @@ function escapeHtml(str) {
       
       const totalKm = (Number(kmFinal) - Number(kmInicial)) || 0;
       
-      const textoRelatorio = "📊 *RELATÓRIO DE ROTAS E FROTA - AGRO*\n----------------------------------------\n👤 *Operador:* " + nome + " (Matrícula: " + matricula + ")\n🚗 *Veículo/Frota:* " + frota + "\n📅 *Data:* " + new Date().toLocaleDateString('pt-BR') + "\n\n📍 *RESUMO DA OPERAÇÃO:*\n• Km Inicial: " + kmInicial + " km\n• Km Final: " + kmFinal + " km\n• Total Percorrido: " + totalKm + " km\n----------------------------------------\nEnviado via AgroRotas PWA";
+      const textoRelatorio = "📊 *RELATÓRIO DE ROTAS E FROTA - AGRO*\n----------------------------------------\n👤 *Condutor:* " + nome + " (Matrícula: " + matricula + ")\n🚗 *Veículo/Frota:* " + frota + "\n📅 *Data:* " + new Date().toLocaleDateString('pt-BR') + "\n\n📍 *RESUMO DA OPERAÇÃO:*\n• Km Inicial: " + kmInicial + " km\n• Km Final: " + kmFinal + " km\n• Total Percorrido: " + totalKm + " km\n----------------------------------------\nEnviado via AgroRotas PWA";
 
       const urlWhatsapp = "https://api.whatsapp.com/send?text=" + encodeURIComponent(textoRelatorio);
       window.open(urlWhatsapp, '_blank');
