@@ -81,7 +81,7 @@
                         <i class="fa-solid fa-unlock mr-1"></i> Destravar App
                     </button>
                     <button type="button" onclick="limparDadosSessao()" class="text-xs text-slate-400 hover:text-red-400 underline">
-                        <i class="fa-solid fa-rotate-right mr-1"></i> Alterar Frota
+                        <i class="fa-solid fa-rotate-right mr-1"></i> Limpar Dados
                     </button>
                 </div>
             </div>
@@ -91,7 +91,7 @@
                     <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Colaborador *</label>
                     <div class="relative">
                         <i class="fa-solid fa-user absolute left-3 top-3.5 text-slate-500"></i>
-                        <select id="inputColaborador" required class="input-agro">
+                        <select id="inputColaborador" required onchange="aoMudarColaborador()" class="input-agro">
                             <option value="">Selecione o Colaborador</option>
                             <option value="Fransualdo">Fransualdo</option>
                             <option value="Guilherme">Guilherme</option>
@@ -124,13 +124,8 @@
                         <div class="relative">
                             <i class="fa-solid fa-location-dot absolute left-3 top-3.5 text-slate-500"></i>
                             <input type="text" id="inputDestination" required placeholder="Ex: Coleta / Fazenda Santa Maria" list="destinationList" class="input-agro placeholder-slate-500">
-                            <datalist id="destinationList">
-                                <option value="Coleta"></option>
-                                <option value="Entrega"></option>
-                                <option value="Deslocamento Operacional"></option>
-                                <option value="Fazenda Esperança"></option>
-                                <option value="Fazenda Boa Vista"></option>
-                            </datalist>
+                            <!-- Datalist Dinâmico por Colaborador -->
+                            <datalist id="destinationList"></datalist>
                         </div>
                     </div>
                 </div>
@@ -235,7 +230,7 @@
     </div>
 
     <footer class="max-w-3xl mx-auto w-full px-4 text-center text-xs text-slate-500 mt-6">
-        <p>AgroRota GPS v2.9</p>
+        <p>AgroRota GPS v3.0</p>
     </footer>
 
     <!-- SCRIPT DA APLICAÇÃO -->
@@ -279,16 +274,41 @@
             }
         }
 
+        function aoMudarColaborador() {
+            const colab = document.getElementById('inputColaborador').value;
+            if (!colab) return;
+            
+            // Carrega dados específicos do colaborador selecionado se já existirem
+            const frotaSalva = localStorage.getItem(`agro_fleet_${colab}`);
+            if (frotaSalva) {
+                document.getElementById('inputFleet').value = frotaSalva;
+            }
+            atualizarDatalistManobras(colab);
+        }
+
+        function atualizarDatalistManobras(colaborador) {
+            const history = getSavedHistory();
+            // Filtra as manobras feitas por este colaborador específico
+            const manobrasDoColab = history
+                .filter(r => r.colaborador === colaborador && r.destination)
+                .map(r => r.destination);
+
+            // Adiciona algumas manobras padrão + as usadas por ele
+            const padrao = ["Coleta", "Entrega", "Deslocamento Operacional", "Fazenda Esperança", "Fazenda Boa Vista"];
+            const todas = [...new Set([...manobrasDoColab, ...padrao])];
+
+            const datalist = document.getElementById('destinationList');
+            if (datalist) {
+                datalist.innerHTML = todas.map(m => `<option value="${m}"></option>`).join('');
+            }
+        }
+
         function carregarDadosSalvosSessao() {
             try {
                 const colaboradorSalvo = localStorage.getItem('agro_fixed_colaborador');
-                const frotaSalva = localStorage.getItem('agro_fixed_frota');
-
                 if (colaboradorSalvo) {
                     document.getElementById('inputColaborador').value = colaboradorSalvo;
-                }
-                if (frotaSalva) {
-                    document.getElementById('inputFleet').value = frotaSalva;
+                    aoMudarColaborador();
                 }
 
                 const history = getSavedHistory();
@@ -296,6 +316,9 @@
                     const ultimaRota = history[0];
                     if (ultimaRota && ultimaRota.kmEnd) {
                         document.getElementById('inputKmStart').value = ultimaRota.kmEnd.toFixed(1);
+                    }
+                    if (ultimaRota && ultimaRota.fleet && !document.getElementById('inputFleet').value) {
+                        document.getElementById('inputFleet').value = ultimaRota.fleet;
                     }
                 }
             } catch (e) {
@@ -337,13 +360,12 @@
         }
 
         function limparDadosSessao() {
-            if (confirm("Deseja redefinir o colaborador e a frota salvos?")) {
+            if (confirm("Deseja redefinir os dados salvos?")) {
                 localStorage.removeItem('agro_fixed_colaborador');
-                localStorage.removeItem('agro_fixed_frota');
                 document.getElementById('inputColaborador').value = "";
                 document.getElementById('inputFleet').value = "";
                 document.getElementById('inputKmStart').value = "";
-                showAlert('Dados redefinidos. Insira os novos dados.', 'info');
+                showAlert('Dados redefinidos.', 'info');
             }
         }
 
@@ -377,11 +399,11 @@
             if (isPaused) {
                 btn.className = "py-2.5 bg-agro-600 hover:bg-agro-500 text-white font-bold rounded-xl text-xs transition flex items-center justify-center gap-2 cursor-pointer";
                 btn.innerHTML = `<i class="fa-solid fa-play"></i> RETORNAR ROTA`;
-                showAlert('Rota pausada. O GPS e o cronômetro foram congelados.', 'info');
+                showAlert('Rota pausada.', 'info');
             } else {
                 btn.className = "py-2.5 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-xl text-xs transition flex items-center justify-center gap-2 cursor-pointer";
                 btn.innerHTML = `<i class="fa-solid fa-pause"></i> PAUSAR ROTA`;
-                showAlert('Rota retomada com sucesso!', 'success');
+                showAlert('Rota retomada.', 'success');
             }
         }
 
@@ -407,7 +429,7 @@
                 }
 
                 localStorage.setItem('agro_fixed_colaborador', colaborador);
-                localStorage.setItem('agro_fixed_frota', fleet);
+                localStorage.setItem(`agro_fleet_${colaborador}`, fleet);
 
                 activeRoute = {
                     colaborador: colaborador,
@@ -557,6 +579,7 @@
 
                 localStorage.removeItem('agro_active_route');
 
+                const colabAtual = activeRoute.colaborador;
                 activeRoute = { colaborador: '', fleet: '', kmStart: 0, destination: '', notes: '', startTime: null, elapsedSeconds: 0, distanceKm: 0, lastCoords: null, gpsPoints: 0 };
                 isPaused = false;
 
@@ -566,6 +589,10 @@
                 document.getElementById('inputDestination').value = '';
                 document.getElementById('inputNotes').value = '';
                 document.getElementById('inputKmStart').value = kmFinal.toFixed(1);
+
+                // Mantém o colaborador selecionado para facilitar a próxima rota
+                document.getElementById('inputColaborador').value = colabAtual;
+                aoMudarColaborador();
 
                 updateGpsStatus(false, "GPS Desconectado");
 
@@ -608,6 +635,9 @@
                         <div class="text-slate-400">Colaborador: ${escapeHtml(item.colaborador)} | KM Final: ${(item.kmEnd || 0).toFixed(1)}</div>
                     </div>
                 `).join('');
+
+                const colabSel = document.getElementById('inputColaborador').value;
+                if (colabSel) atualizarDatalistManobras(colabSel);
             } catch (e) {}
         }
 
