@@ -14,9 +14,7 @@
         tailwind.config = {
             theme: {
                 extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                    },
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
                     colors: {
                         agro: {
                             50: '#f0fdf4',
@@ -32,17 +30,6 @@
             }
         }
     </script>
-    <style>
-        .pulse-ring {
-            box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
-            animation: pulse 1.8s infinite;
-        }
-        @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
-            70% { box-shadow: 0 0 0 12px rgba(34, 197, 94, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
-        }
-    </style>
 </head>
 <body class="bg-slate-900 text-slate-100 font-sans min-h-screen flex flex-col justify-between pb-8">
 
@@ -68,7 +55,7 @@
     <!-- Main Container -->
     <main class="max-w-3xl mx-auto w-full px-4 pt-4 flex-1 space-y-4">
 
-        <!-- Banner de Alerta / Permissões -->
+        <!-- Banner de Alerta -->
         <div id="alertBox" class="hidden p-4 rounded-xl border flex items-start gap-3 transition-all">
             <i id="alertIcon" class="fa-solid fa-circle-info mt-0.5 text-lg"></i>
             <div class="flex-1 text-sm" id="alertMessage"></div>
@@ -217,7 +204,7 @@
 
     </main>
 
-    <!-- Botão de Relatório WhatsApp Separado e Seguro -->
+    <!-- Botão de Relatório WhatsApp -->
     <div class="max-w-3xl mx-auto w-full px-4 mt-4">
       <button onclick="gerarRelatorioGestor()" class="w-full bg-agro-600 hover:bg-agro-500 text-white font-bold py-4 px-6 rounded-xl shadow-lg transition flex items-center justify-center gap-2 text-base">
         <i class="fa-brands fa-whatsapp text-xl"></i> Gerar Relatório para o Gestor
@@ -225,10 +212,10 @@
     </div>
 
     <footer class="max-w-3xl mx-auto w-full px-4 text-center text-xs text-slate-500 mt-6">
-        <p>AgroRota GPS v1.3</p>
+        <p>AgroRota GPS v1.5</p>
     </footer>
 
-    <!-- SCRIPT DA APLICAÇÃO SEGURA -->
+    <!-- SCRIPT DA APLICAÇÃO -->
     <script>
         let watchId = null;
         let timerInterval = null;
@@ -250,7 +237,6 @@
 
         window.onload = function() {
             loadHistory();
-            checkSavedActiveRoute();
         };
 
         function calculateHaversineDistance(lat1, lon1, lat2, lon2) {
@@ -301,10 +287,8 @@
                     watchId = navigator.geolocation.watchPosition(handleGpsSuccess, handleGpsError, { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 });
                 }
 
-                saveActiveState();
                 showAlert('Rastreamento ativado com sucesso!', 'success');
             } catch (e) {
-                console.error(e);
                 showAlert('Erro ao iniciar rastreamento.', 'error');
             }
         }
@@ -338,10 +322,7 @@
                 }
 
                 updateLiveUi();
-                saveActiveState();
-            } catch (err) {
-                console.error(err);
-            }
+            } catch (err) {}
         }
 
         function handleGpsError(error) {
@@ -408,7 +389,6 @@
             const history = getSavedHistory();
             history.unshift(routeRecord);
             localStorage.setItem('agro_routes_history', JSON.stringify(history));
-            localStorage.removeItem('agro_active_route');
 
             activeRoute = { colaborador: '', fleet: '', kmStart: 0, destination: '', notes: '', startTime: null, elapsedSeconds: 0, distanceKm: 0, lastCoords: null, gpsPoints: 0 };
 
@@ -419,28 +399,6 @@
 
             loadHistory();
             showAlert('Rota encerrada e salva com sucesso!', 'success');
-        }
-
-        function saveActiveState() {
-            localStorage.setItem('agro_active_route', JSON.stringify(activeRoute));
-        }
-
-        function checkSavedActiveRoute() {
-            const saved = localStorage.getItem('agro_active_route');
-            if (saved) {
-                try {
-                    activeRoute = JSON.parse(saved);
-                    document.getElementById('formSection').classList.add('hidden');
-                    document.getElementById('activeSection').classList.remove('hidden');
-                    document.getElementById('liveDestination').innerText = activeRoute.destination;
-                    document.getElementById('liveFleet').innerHTML = `<i class="fa-solid fa-truck mr-1"></i>${activeRoute.fleet}`;
-                    document.getElementById('liveKmStart').innerText = activeRoute.kmStart.toFixed(1);
-                    updateLiveUi();
-                    startTimer();
-                } catch(e) {
-                    localStorage.removeItem('agro_active_route');
-                }
-            }
         }
 
         function getSavedHistory() {
@@ -455,7 +413,7 @@
                 listEl.innerHTML = `<div class="text-center py-6 text-slate-500 text-sm">Nenhuma rota registrada.</div>`;
                 return;
             }
-            listEl.innerHTML = history.slice(0, 5).map(item => `
+            listEl.innerHTML = history.map(item => `
                 <div class="bg-slate-900 border border-slate-700/80 rounded-xl p-3 text-xs space-y-1">
                     <div class="flex justify-between font-bold text-white">
                         <span>🚗 ${escapeHtml(item.fleet)} - ${escapeHtml(item.destination)}</span>
@@ -498,7 +456,6 @@
                     activeRoute.distanceKm += 0.05;
                     activeRoute.gpsPoints++;
                     updateLiveUi();
-                    saveActiveState();
                 }, 2000);
             } else {
                 clearInterval(simInterval);
@@ -523,55 +480,44 @@
             document.getElementById('alertBox').classList.add('hidden');
         }
 
-        // --- RELATÓRIO DO GESTOR SEGURO ---
+        // --- RELATÓRIO DO GESTOR COM TODAS AS ROTAS DO HISTÓRICO ---
         function gerarRelatorioGestor() {
             try {
-                const colabEl = document.getElementById('inputColaborador');
-                const fleetEl = document.getElementById('inputFleet');
-                const kmStartEl = document.getElementById('inputKmStart');
-                const destEl = document.getElementById('inputDestination');
-
-                let nome = (activeRoute && activeRoute.colaborador) ? activeRoute.colaborador : ((colabEl && colabEl.value) ? colabEl.value : 'Não informado');
-                let frota = (activeRoute && activeRoute.fleet) ? activeRoute.fleet : ((fleetEl && fleetEl.value) ? fleetEl.value : 'Não informado');
-                let manobra = (activeRoute && activeRoute.destination) ? activeRoute.destination : ((destEl && destEl.value) ? destEl.value : 'Não informada');
-                let kmInicial = (activeRoute && activeRoute.kmStart) ? activeRoute.kmStart : ((kmStartEl && kmStartEl.value) ? Number(kmStartEl.value) : 0);
-                let distancia = (activeRoute && activeRoute.distanceKm) ? activeRoute.distanceKm : 0;
-
-                let horaSaida = (activeRoute && activeRoute.startTime) ? new Date(activeRoute.startTime).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-                let horaChegada = (activeRoute && activeRoute.distanceKm > 0) ? new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : 'Em andamento';
-
                 const history = getSavedHistory();
-                if ((!activeRoute || activeRoute.distanceKm === 0) && history.length > 0 && (!colabEl || !colabEl.value)) {
-                    const ultima = history[0];
-                    nome = ultima.colaborador || nome;
-                    frota = ultima.fleet || frota;
-                    manobra = ultima.destination || manobra;
-                    kmInicial = ultima.kmStart || kmInicial;
-                    distancia = ultima.distanceKm || 0;
-                    if (ultima.startTime) horaSaida = new Date(ultima.startTime).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-                    if (ultima.endTime) horaChegada = new Date(ultima.endTime).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                
+                if (history.length === 0) {
+                    alert('Não há rotas registradas para enviar no relatório.');
+                    return;
                 }
 
-                let kmFinal = kmInicial + distancia;
                 const dataHoje = new Date().toLocaleDateString('pt-BR');
-
                 let texto = "📊 *RELATÓRIO DE ROTAS E FROTA - AGRO*\n";
                 texto += "----------------------------------------\n";
-                texto += "👤 *Colaborador:* " + nome + "\n";
-                texto += "🚗 *Veículo/Frota:* " + frota + "\n";
-                texto += "⚙️ *Tipo de Manobra:* " + manobra + "\n";
-                texto += "📅 *Data:* " + dataHoje + "\n";
-                texto += "⏰ *Saída:* " + horaSaida + " | ⏰ *Chegada:* " + horaChegada + "\n\n";
-                texto += "📍 *RESUMO DA OPERAÇÃO:*\n";
-                texto += "• Km Inicial: " + kmInicial.toFixed(1) + " km\n";
-                texto += "• Km Final: " + kmFinal.toFixed(1) + " km\n";
-                texto += "• Total Percorrido: " + distancia.toFixed(2) + " km\n";
-                texto += "----------------------------------------\n";
+                texto += "📅 *Data do Relatório:* " + dataHoje + "\n";
+                texto += "📦 *Total de Rotas Realizadas:* " + history.length + "\n";
+                texto += "----------------------------------------\n\n";
+
+                // Percorre todas as rotas salvas no histórico em ordem cronológica ou inversa
+                history.forEach((r, index) => {
+                    const dtInicio = r.startTime ? new Date(r.startTime).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '--:--';
+                    const dtFim = r.endTime ? new Date(r.endTime).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '--:--';
+                    
+                    texto += `*Rota #${index + 1}*\n`;
+                    texto += `👤 *Colaborador:* ${r.colaborador || 'Não informado'}\n`;
+                    texto += `🚗 *Frota:* ${r.fleet || 'Não informada'}\n`;
+                    texto += `⚙️ *Manobra:* ${r.destination || 'Não informada'}\n`;
+                    texto += `⏰ *Saída:* ${dtInicio} | *Chegada:* ${dtFim}\n`;
+                    texto += `• KM Inicial: ${(r.kmStart || 0).toFixed(1)} km\n`;
+                    texto += `• KM Final: ${(r.kmEnd || 0).toFixed(1)} km\n`;
+                    texto += `• Total Percorrido: ${(r.distanceKm || 0).toFixed(2)} KM\n`;
+                    texto += "----------------------------------------\n";
+                });
+
                 texto += "Enviado via AgroRotas PWA";
 
                 window.open("https://api.whatsapp.com/send?text=" + encodeURIComponent(texto), '_blank');
             } catch (err) {
-                alert('Erro ao gerar relatório. Tente novamente.');
+                alert('Erro ao gerar relatório completo.');
             }
         }
     </script>
