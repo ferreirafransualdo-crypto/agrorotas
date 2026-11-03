@@ -176,12 +176,12 @@
 
             <div class="bg-slate-800/60 border border-slate-700/60 rounded-xl p-3 flex justify-between items-center text-xs text-slate-400">
                 <span>Pontos GPS: <strong id="gpsPointsCount" class="text-slate-200">0</strong></span>
-                <button id="simMotionBtn" onclick="toggleSimulatedMotion()" class="text-xs bg-slate-700 hover:bg-slate-600 text-slate-200 px-2.5 py-1 rounded-lg transition">
+                <button type="button" id="simMotionBtn" onclick="toggleSimulatedMotion()" class="text-xs bg-slate-700 hover:bg-slate-600 text-slate-200 px-2.5 py-1 rounded-lg transition">
                     <i class="fa-solid fa-gamepad mr-1"></i> Simular Movimento
                 </button>
             </div>
 
-            <button onclick="stopTracking()" 
+            <button type="button" onclick="stopTracking()" 
                 class="w-full py-4 bg-red-600 hover:bg-red-500 text-white font-bold rounded-xl shadow-lg transition-all flex items-center justify-center gap-3 text-lg">
                 <i class="fa-solid fa-square"></i>
                 ENCERRAR ROTA & SALVAR
@@ -195,8 +195,8 @@
                     <i class="fa-solid fa-clock-rotate-left text-blue-400"></i> Histórico de Rotas
                 </h3>
                 <div class="flex gap-2">
-                    <button onclick="exportToCSV()" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-xs font-semibold rounded-lg text-slate-200 transition">Exportar CSV</button>
-                    <button onclick="clearHistory()" class="px-3 py-1.5 bg-slate-700/60 hover:bg-red-900/40 text-xs font-semibold rounded-lg text-slate-400 hover:text-red-300 transition">Limpar</button>
+                    <button type="button" onclick="exportToCSV()" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-xs font-semibold rounded-lg text-slate-200 transition">Exportar CSV</button>
+                    <button type="button" onclick="clearHistory()" class="px-3 py-1.5 bg-slate-700/60 hover:bg-red-900/40 text-xs font-semibold rounded-lg text-slate-400 hover:text-red-300 transition">Limpar</button>
                 </div>
             </div>
             <div id="historyList" class="space-y-3"></div>
@@ -206,16 +206,16 @@
 
     <!-- Botão de Relatório WhatsApp -->
     <div class="max-w-3xl mx-auto w-full px-4 mt-4">
-      <button onclick="gerarRelatorioGestor()" class="w-full bg-agro-600 hover:bg-agro-500 text-white font-bold py-4 px-6 rounded-xl shadow-lg transition flex items-center justify-center gap-2 text-base">
+      <button type="button" onclick="gerarRelatorioGestor()" class="w-full bg-agro-600 hover:bg-agro-500 text-white font-bold py-4 px-6 rounded-xl shadow-lg transition flex items-center justify-center gap-2 text-base">
         <i class="fa-brands fa-whatsapp text-xl"></i> Gerar Relatório para o Gestor
       </button>
     </div>
 
     <footer class="max-w-3xl mx-auto w-full px-4 text-center text-xs text-slate-500 mt-6">
-        <p>AgroRota GPS v1.7</p>
+        <p>AgroRota GPS v1.8</p>
     </footer>
 
-    <!-- SCRIPT DA APLICAÇÃO BLINDADO -->
+    <!-- SCRIPT DA APLICAÇÃO -->
     <script>
         let watchId = null;
         let timerInterval = null;
@@ -236,11 +236,7 @@
         };
 
         window.onload = function() {
-            try {
-                loadHistory();
-            } catch (e) {
-                localStorage.removeItem('agro_routes_history');
-            }
+            loadHistory();
         };
 
         function calculateHaversineDistance(lat1, lon1, lat2, lon2) {
@@ -252,81 +248,75 @@
         }
 
         function startTracking() {
-            try {
-                const colaborador = document.getElementById('inputColaborador').value.trim();
-                const fleet = document.getElementById('inputFleet').value.trim();
-                const kmStart = parseFloat(document.getElementById('inputKmStart').value);
-                const destination = document.getElementById('inputDestination').value.trim();
-                const notes = document.getElementById('inputNotes').value.trim();
+            const colaborador = document.getElementById('inputColaborador').value.trim();
+            const fleet = document.getElementById('inputFleet').value.trim();
+            const kmStart = parseFloat(document.getElementById('inputKmStart').value);
+            const destination = document.getElementById('inputDestination').value.trim();
+            const notes = document.getElementById('inputNotes').value.trim();
 
-                if (!colaborador || !fleet || isNaN(kmStart) || !destination) {
-                    showAlert('Preencha todos os campos obrigatórios (*).', 'error');
-                    return;
-                }
-
-                activeRoute = {
-                    colaborador: colaborador,
-                    fleet: fleet,
-                    kmStart: kmStart,
-                    destination: destination,
-                    notes: notes,
-                    startTime: new Date().toISOString(),
-                    elapsedSeconds: 0,
-                    distanceKm: 0,
-                    lastCoords: null,
-                    gpsPoints: 0
-                };
-
-                document.getElementById('formSection').classList.add('hidden');
-                document.getElementById('activeSection').classList.remove('hidden');
-
-                document.getElementById('liveDestination').innerText = activeRoute.destination;
-                document.getElementById('liveFleet').innerHTML = `<i class="fa-solid fa-truck mr-1"></i>${activeRoute.fleet}`;
-                document.getElementById('liveKmStart').innerText = activeRoute.kmStart.toFixed(1);
-                updateLiveUi();
-
-                startTimer();
-
-                if (navigator.geolocation) {
-                    watchId = navigator.geolocation.watchPosition(handleGpsSuccess, handleGpsError, { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 });
-                }
-
-                showAlert('Rastreamento ativado com sucesso!', 'success');
-            } catch (e) {
-                showAlert('Erro ao iniciar rastreamento.', 'error');
+            if (!colaborador || !fleet || isNaN(kmStart) || !destination) {
+                showAlert('Preencha todos os campos obrigatórios (*).', 'error');
+                return;
             }
+
+            activeRoute = {
+                colaborador: colaborador,
+                fleet: fleet,
+                kmStart: kmStart,
+                destination: destination,
+                notes: notes,
+                startTime: new Date().toISOString(),
+                elapsedSeconds: 0,
+                distanceKm: 0,
+                lastCoords: null,
+                gpsPoints: 0
+            };
+
+            document.getElementById('formSection').classList.add('hidden');
+            document.getElementById('activeSection').classList.remove('hidden');
+
+            document.getElementById('liveDestination').innerText = activeRoute.destination;
+            document.getElementById('liveFleet').innerHTML = `<i class="fa-solid fa-truck mr-1"></i>${activeRoute.fleet}`;
+            document.getElementById('liveKmStart').innerText = activeRoute.kmStart.toFixed(1);
+            updateLiveUi();
+
+            startTimer();
+
+            if (navigator.geolocation) {
+                watchId = navigator.geolocation.watchPosition(handleGpsSuccess, handleGpsError, { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 });
+            }
+
+            showAlert('Rastreamento ativado com sucesso!', 'success');
         }
 
         function handleGpsSuccess(position) {
-            try {
-                const lat = position.coords.latitude;
-                const lng = position.coords.longitude;
-                const speed = position.coords.speed;
-                const accuracy = position.coords.accuracy;
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+            const speed = position.coords.speed;
+            const accuracy = position.coords.accuracy;
 
-                updateGpsStatus(true, "GPS Ativo");
+            updateGpsStatus(true, "GPS Ativo");
 
-                if (speed !== null && !isNaN(speed) && speed >= 0) {
-                    document.getElementById('liveSpeed').innerText = `${Math.round(speed * 3.6)} km/h`;
-                }
-                document.getElementById('liveGpsAccuracy').innerText = `Precisão: ±${Math.round(accuracy)}m`;
+            if (speed !== null && !isNaN(speed) && speed >= 0) {
+                document.getElementById('liveSpeed').innerText = `${Math.round(speed * 3.6)} km/h`;
+            }
+            document.getElementById('liveGpsAccuracy').innerText = `Precisão: ±${Math.round(accuracy)}m`;
 
-                if (accuracy > 60) return; 
+            if (accuracy > 60) return; 
 
-                if (activeRoute.lastCoords) {
-                    const incrementalKm = calculateHaversineDistance(activeRoute.lastCoords.lat, activeRoute.lastCoords.lng, lat, lng);
-                    if (incrementalKm > 0.003) {
-                        activeRoute.distanceKm += incrementalKm;
-                        activeRoute.lastCoords = { lat, lng };
-                        activeRoute.gpsPoints++;
-                    }
-                } else {
+            if (activeRoute.lastCoords) {
+                const incrementalKm = calculateHaversineDistance(activeRoute.lastCoords.lat, activeRoute.lastCoords.lng, lat, lng);
+                if (incrementalKm > 0.003) {
+                    activeRoute.distanceKm += incrementalKm;
                     activeRoute.lastCoords = { lat, lng };
                     activeRoute.gpsPoints++;
                 }
+            } else {
+                activeRoute.lastCoords = { lat, lng };
+                activeRoute.gpsPoints++;
+            }
 
-                updateLiveUi();
-            } catch (err) {}
+            updateLiveUi();
         }
 
         function handleGpsError(error) {
@@ -334,12 +324,10 @@
         }
 
         function updateLiveUi() {
-            try {
-                const currentKmTotal = activeRoute.kmStart + activeRoute.distanceKm;
-                document.getElementById('liveDistance').innerText = activeRoute.distanceKm.toFixed(2);
-                document.getElementById('liveKmCurrent').innerText = currentKmTotal.toFixed(1);
-                document.getElementById('gpsPointsCount').innerText = activeRoute.gpsPoints;
-            } catch (e) {}
+            const currentKmTotal = activeRoute.kmStart + activeRoute.distanceKm;
+            document.getElementById('liveDistance').innerText = activeRoute.distanceKm.toFixed(2);
+            document.getElementById('liveKmCurrent').innerText = currentKmTotal.toFixed(1);
+            document.getElementById('gpsPointsCount').innerText = activeRoute.gpsPoints;
         }
 
         function startTimer() {
@@ -365,63 +353,168 @@
         }
 
         function stopTracking() {
-            try {
-                if (watchId !== null) {
-                    navigator.geolocation.clearWatch(watchId);
-                    watchId = null;
-                }
-                clearInterval(timerInterval);
-                if (isSimulating) toggleSimulatedMotion();
-
-                const endTime = new Date().toISOString();
-                const kmFinal = activeRoute.kmStart + activeRoute.distanceKm;
-
-                const routeRecord = {
-                    id: Date.now(),
-                    colaborador: activeRoute.colaborador,
-                    fleet: activeRoute.fleet,
-                    kmStart: activeRoute.kmStart,
-                    kmEnd: kmFinal,
-                    distanceKm: activeRoute.distanceKm,
-                    destination: activeRoute.destination,
-                    notes: activeRoute.notes,
-                    startTime: activeRoute.startTime,
-                    endTime: endTime,
-                    durationSeconds: activeRoute.elapsedSeconds,
-                    gpsPoints: activeRoute.gpsPoints
-                };
-
-                const history = getSavedHistory();
-                history.unshift(routeRecord);
-                localStorage.setItem('agro_routes_history', JSON.stringify(history));
-
-                activeRoute = { colaborador: '', fleet: '', kmStart: 0, destination: '', notes: '', startTime: null, elapsedSeconds: 0, distanceKm: 0, lastCoords: null, gpsPoints: 0 };
-
-                document.getElementById('activeSection').classList.add('hidden');
-                document.getElementById('formSection').classList.remove('hidden');
-                document.getElementById('startRouteForm').reset();
-                updateGpsStatus(false, "GPS Desconectado");
-
-                loadHistory();
-                showAlert('Rota encerrada e salva com sucesso!', 'success');
-            } catch(e) {
-                showAlert('Erro ao encerrar rota.', 'error');
+            if (watchId !== null) {
+                navigator.geolocation.clearWatch(watchId);
+                watchId = null;
             }
+            clearInterval(timerInterval);
+            if (isSimulating) toggleSimulatedMotion();
+
+            const endTime = new Date().toISOString();
+            const kmFinal = activeRoute.kmStart + activeRoute.distanceKm;
+
+            const routeRecord = {
+                id: Date.now(),
+                colaborador: activeRoute.colaborador,
+                fleet: activeRoute.fleet,
+                kmStart: activeRoute.kmStart,
+                kmEnd: kmFinal,
+                distanceKm: activeRoute.distanceKm,
+                destination: activeRoute.destination,
+                notes: activeRoute.notes,
+                startTime: activeRoute.startTime,
+                endTime: endTime,
+                durationSeconds: activeRoute.elapsedSeconds,
+                gpsPoints: activeRoute.gpsPoints
+            };
+
+            const history = getSavedHistory();
+            history.unshift(routeRecord);
+            localStorage.setItem('agro_routes_history', JSON.stringify(history));
+
+            activeRoute = { colaborador: '', fleet: '', kmStart: 0, destination: '', notes: '', startTime: null, elapsedSeconds: 0, distanceKm: 0, lastCoords: null, gpsPoints: 0 };
+
+            document.getElementById('activeSection').classList.add('hidden');
+            document.getElementById('formSection').classList.remove('hidden');
+            document.getElementById('startRouteForm').reset();
+            updateGpsStatus(false, "GPS Desconectado");
+
+            loadHistory();
+            showAlert('Rota encerrada e salva com sucesso!', 'success');
         }
 
         function getSavedHistory() {
-            try {
-                const data = localStorage.getItem('agro_routes_history');
-                return data ? JSON.parse(data) : [];
-            } catch (e) {
-                return [];
-            }
+            const data = localStorage.getItem('agro_routes_history');
+            return data ? JSON.parse(data) : [];
         }
 
         function loadHistory() {
-            try {
-                const history = getSavedHistory();
-                const listEl = document.getElementById('historyList');
-                if (!listEl) return;
-                if (history.length === 0) {
-                    listEl.
+            const history = getSavedHistory();
+            const listEl = document.getElementById('historyList');
+            if (!listEl) return;
+            if (history.length === 0) {
+                listEl.innerHTML = `<div class="text-center py-6 text-slate-500 text-sm">Nenhuma rota registrada.</div>`;
+                return;
+            }
+            listEl.innerHTML = history.map(item => `
+                <div class="bg-slate-900 border border-slate-700/80 rounded-xl p-3 text-xs space-y-1">
+                    <div class="flex justify-between font-bold text-white">
+                        <span>🚗 ${escapeHtml(item.fleet)} - ${escapeHtml(item.destination)}</span>
+                        <span class="text-agro-400">${(item.distanceKm || 0).toFixed(2)} KM</span>
+                    </div>
+                    <div class="text-slate-400">Colaborador: ${escapeHtml(item.colaborador)} | KM Final: ${(item.kmEnd || 0).toFixed(1)}</div>
+                </div>
+            `).join('');
+        }
+
+        function clearHistory() {
+            if (confirm("Apagar histórico?")) {
+                localStorage.removeItem('agro_routes_history');
+                loadHistory();
+            }
+        }
+
+        function exportToCSV() {
+            const history = getSavedHistory();
+            if (history.length === 0) return showAlert('Sem dados para exportar.', 'error');
+            let csv = 'Colaborador;Frota;Destino;KM Inicial;KM Final;Distancia (KM)\n';
+            history.forEach(r => {
+                csv += `"${r.colaborador}";"${r.fleet}";"${r.destination}";"${r.kmStart.toFixed(1)}";"${r.kmEnd.toFixed(1)}";"${r.distanceKm.toFixed(2)}"\n`;
+            });
+            const blob = new Blob(["\ufeff" + csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `historico_${new Date().toISOString().slice(0,10)}.csv`;
+            a.click();
+        }
+
+        function toggleSimulatedMotion() {
+            isSimulating = !isSimulating;
+            const btn = document.getElementById('simMotionBtn');
+            if (isSimulating) {
+                btn.className = "text-xs bg-amber-600 text-white px-2.5 py-1 rounded-lg font-bold";
+                btn.innerHTML = `Parar Simulação`;
+                simInterval = setInterval(() => {
+                    activeRoute.distanceKm += 0.05;
+                    activeRoute.gpsPoints++;
+                    updateLiveUi();
+                }, 2000);
+            } else {
+                clearInterval(simInterval);
+                btn.className = "text-xs bg-slate-700 text-slate-200 px-2.5 py-1 rounded-lg";
+                btn.innerHTML = `Simular Movimento`;
+            }
+        }
+
+        function escapeHtml(str) {
+            return str ? str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;") : '';
+        }
+
+        function showAlert(msg, type) {
+            const box = document.getElementById('alertBox');
+            const msgEl = document.getElementById('alertMessage');
+            if (!box || !msgEl) return;
+            msgEl.innerText = msg;
+            box.className = `p-4 rounded-xl border flex items-start gap-3 transition-all ${type === 'error' ? 'bg-red-950 border-red-700 text-red-200' : 'bg-agro-950 border-agro-700 text-agro-200'}`;
+            box.classList.remove('hidden');
+            setTimeout(() => box.classList.add('hidden'), 4000);
+        }
+
+        function hideAlert() {
+            const box = document.getElementById('alertBox');
+            if (box) box.classList.add('hidden');
+        }
+
+        // --- RELATÓRIO DO GESTOR FORMATADO ---
+        function gerarRelatorioGestor() {
+            const history = getSavedHistory();
+            
+            if (history.length === 0) {
+                alert('Não há rotas registradas para enviar no relatório.');
+                return;
+            }
+
+            const dataHoje = new Date().toLocaleDateString('pt-BR');
+            let texto = "📊 *RELATÓRIO DE ROTAS E FROTA - AGRO*\n";
+            texto += "----------------------------------------\n";
+            texto += "📅 *Data do Relatório:* " + dataHoje + "\n";
+            texto += "📦 *Total de Rotas Realizadas:* " + history.length + "\n";
+            texto += "----------------------------------------\n\n";
+
+            history.forEach((r, index) => {
+                const dtInicio = r.startTime ? new Date(r.startTime).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '--:--';
+                const dtFim = r.endTime ? new Date(r.endTime).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '--:--';
+                
+                texto += `*Rota #${index + 1}*\n`;
+                
+                if (index === 0) {
+                    texto += `👤 *Colaborador:* ${r.colaborador || 'Não informado'}\n`;
+                    texto += `🚗 *Frota:* ${r.fleet || 'Não informada'}\n`;
+                }
+                
+                texto += `⚙️ *Manobra:* ${r.destination || 'Não informada'}\n`;
+                texto += `⏰ *Saída:* ${dtInicio} | *Chegada:* ${dtFim}\n`;
+                texto += `• KM Inicial: ${(r.kmStart || 0).toFixed(1)} km\n`;
+                texto += `• KM Final: ${(r.kmEnd || 0).toFixed(1)} km\n`;
+                texto += `• Total Percorrido: ${(r.distanceKm || 0).toFixed(2)} KM\n`;
+                texto += "----------------------------------------\n";
+            });
+
+            texto += "Enviado via AgroRotas PWA";
+
+            window.open("https://api.whatsapp.com/send?text=" + encodeURIComponent(texto), '_blank');
+        }
+    </script>
+</body>
+</html>
