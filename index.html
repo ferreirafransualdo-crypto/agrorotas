@@ -281,18 +281,16 @@
 
     </main>
 
-    <!-- MODAL DO RELATÓRIO VISUAL (ADAPTADO PERFEITAMENTE PARA TELA DO IPHONE) -->
+    <!-- MODAL DO RELATÓRIO VISUAL -->
     <div id="modalRelatorioVisual" class="fixed inset-0 bg-slate-950/95 backdrop-blur-md z-50 hidden flex flex-col items-center justify-start p-2 sm:p-4 overflow-y-auto">
         <div class="w-full max-w-lg flex justify-between items-center mb-3 text-white">
             <span class="text-sm font-bold flex items-center gap-2 text-emerald-400"><i class="fa-solid fa-circle-check"></i> Relatório Pronto</span>
             <button type="button" onclick="fecharModalVisual()" class="text-slate-300 hover:text-white bg-slate-800 px-3 py-1.5 rounded-lg text-xs cursor-pointer font-bold"><i class="fa-solid fa-xmark mr-1"></i> Fechar</button>
         </div>
 
-        <!-- CONTAINER RESPONSIVO (Encaixa 100% na tela do iPhone) -->
         <div class="w-full max-w-lg overflow-x-auto rounded-2xl shadow-2xl">
             <div id="reportCardToImage" style="width: 100%; min-width: 340px; background-color: #f8fafc; color: #0f172a;" class="rounded-2xl overflow-hidden font-sans border-2 border-slate-700">
                 
-                <!-- Cabeçalho idêntico à foto -->
                 <div style="background: linear-gradient(135deg, #090d16 0%, #1e293b 100%); color: #ffffff;" class="p-4 sm:p-5 border-b-4 border-emerald-600 flex justify-between items-center">
                     <div class="flex items-center gap-3">
                         <div style="background: #ffffff; color: #090d16;" class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center font-black text-xl shadow-lg">
@@ -308,7 +306,6 @@
                     </div>
                 </div>
 
-                <!-- Dados principais -->
                 <div style="background: #e2e8f0; color: #0f172a;" class="grid grid-cols-3 gap-1 p-2 sm:p-3 text-center font-bold">
                     <div style="background: #ffffff;" class="p-2 rounded-xl shadow-sm">
                         <span style="color: #64748b;" class="text-[9px] sm:text-[10px] uppercase block font-extrabold">Data</span>
@@ -324,10 +321,8 @@
                     </div>
                 </div>
 
-                <!-- Lista de Rotas -->
                 <div id="imgRoutesContainer" style="background: #f1f5f9;" class="p-3 sm:p-4 space-y-2.5 max-h-[50vh] overflow-y-auto"></div>
 
-                <!-- Resumo do Dia -->
                 <div style="background: #090d16; color: #ffffff;" class="p-4 border-t-4 border-slate-800 space-y-2.5">
                     <div class="text-[11px] font-black uppercase tracking-widest text-emerald-400 flex items-center gap-2 border-b border-slate-800 pb-1.5">
                         <i class="fa-solid fa-chart-pie"></i> RESUMO DO DIA
@@ -352,7 +347,6 @@
                     </div>
                 </div>
 
-                <!-- Rodapé -->
                 <div style="background: #0f172a; color: #94a3b8;" class="p-2.5 text-center text-[10px] sm:text-xs font-bold flex items-center justify-center gap-2 border-t border-slate-800">
                     <i class="fa-solid fa-circle-check text-emerald-400"></i> Enviado via AgroRotas PWA
                 </div>
@@ -360,7 +354,6 @@
             </div>
         </div>
 
-        <!-- Botões de Ação para Celular -->
         <div class="w-full max-w-lg grid grid-cols-2 gap-3 mt-3 pb-4">
             <button type="button" onclick="baixarImagemPronta()" class="py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-black rounded-xl text-xs sm:text-sm flex items-center justify-center gap-2 cursor-pointer shadow-xl">
                 <i class="fa-solid fa-download text-base"></i> Baixar Imagem (PNG)
@@ -395,7 +388,7 @@
     </div>
 
     <footer class="max-w-3xl mx-auto w-full px-4 text-center text-xs text-slate-500 mt-6">
-        <p>AgroRota GPS v4.4 - Encaixe Perfeito no iPhone</p>
+        <p>AgroRota GPS v4.5 - Horários Completos & Arquivamento de Imagens</p>
     </footer>
 
     <!-- SCRIPT DA APLICAÇÃO -->
@@ -864,13 +857,10 @@
             } catch (e) {}
         }
 
-        // --- GERADOR DO RELATÓRIO VISUAL ---
-        function gerarRelatorioImagem() {
+        // --- PREPARAÇÃO DO RELATÓRIO VISUAL (HORÁRIOS COMPLETOS) ---
+        function montarDadosRelatorioVisual() {
             const history = getSavedHistory();
-            if (history.length === 0) {
-                alert('Não há rotas registradas para gerar o relatório.');
-                return;
-            }
+            if (history.length === 0) return false;
 
             const dataHojeStr = new Date().toLocaleDateString('pt-BR');
             const rotasDoDia = history.filter(r => {
@@ -893,6 +883,7 @@
                 const dist = r.distanceKm || 0;
                 totalKmGeral += dist;
 
+                // Alterado para mostrar "Saída:" e "Chegada:" por extenso sem cortar
                 htmlRotas += `
                     <div style="background: #ffffff; border: 1px solid #cbd5e1;" class="rounded-xl overflow-hidden shadow-sm">
                         <div style="background: #0f172a; color: #ffffff;" class="px-3 py-1.5 flex justify-between items-center font-bold text-xs">
@@ -906,11 +897,11 @@
                             </div>
                             <div>
                                 <span style="color: #64748b;" class="text-[9px] uppercase block font-extrabold">Horários</span>
-                                <span style="color: #334155;" class="font-semibold text-[11px]">S: ${dtInicio}<br>C: ${dtFim}</span>
+                                <span style="color: #334155;" class="font-semibold text-[11px] leading-tight">Saída: ${dtInicio}<br>Chegada: ${dtFim}</span>
                             </div>
                             <div>
                                 <span style="color: #64748b;" class="text-[9px] uppercase block font-extrabold">Quilometragem</span>
-                                <span style="color: #334155;" class="font-semibold text-[11px]">Ini: ${(r.kmStart || 0).toFixed(1)}<br>Fin: ${(r.kmEnd || 0).toFixed(1)}</span>
+                                <span style="color: #334155;" class="font-semibold text-[11px] leading-tight">Ini: ${(r.kmStart || 0).toFixed(1)}<br>Fin: ${(r.kmEnd || 0).toFixed(1)}</span>
                             </div>
                         </div>
                         <div style="background: #f8fafc; border-top: 1px solid #e2e8f0;" class="px-3 py-2 flex justify-between items-center">
@@ -931,57 +922,47 @@
             document.getElementById('imgSumPrimeiraSaida').innerText = primeiraSaida;
             document.getElementById('imgSumUltimaChegada').innerText = ultimaChegada;
 
-            document.getElementById('modalRelatorioVisual').classList.remove('hidden');
+            return true;
+        }
+
+        function gerarRelatorioImagem() {
+            if (montarDadosRelatorioVisual()) {
+                document.getElementById('modalRelatorioVisual').classList.remove('hidden');
+            } else {
+                alert('Não há rotas registradas para gerar o relatório.');
+            }
         }
 
         function fecharModalVisual() {
             document.getElementById('modalRelatorioVisual').classList.add('hidden');
         }
 
-        // Função de captura otimizada para iPhone
         function baixarImagemPronta() {
             const card = document.getElementById('reportCardToImage');
             showAlert('Processando imagem...', 'info');
 
-            html2canvas(card, { 
-                scale: 3, 
-                useCORS: true,
-                backgroundColor: '#ffffff'
-            }).then(canvas => {
-                const dataUrl = canvas.toDataURL('image/png');
-                
+            html2canvas(card, { scale: 3, useCORS: true, backgroundColor: '#ffffff' }).then(canvas => {
                 const link = document.createElement('a');
-                link.href = dataUrl;
+                link.href = canvas.toDataURL('image/png');
                 link.download = `Relatorio_Rotas_${new Date().toISOString().slice(0,10)}.png`;
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
-
                 showAlert('Imagem salva com sucesso!', 'success');
             }).catch(err => {
                 showAlert('Erro ao gerar imagem.', 'error');
             });
         }
 
-        // Envio direto via compartilhamento nativo do iOS / Android
         function partilharImagemDireta() {
             const card = document.getElementById('reportCardToImage');
-            showAlert('Gerando imagem para WhatsApp...', 'info');
+            showAlert('Preparando para o WhatsApp...', 'info');
 
-            html2canvas(card, { 
-                scale: 3, 
-                useCORS: true,
-                backgroundColor: '#ffffff'
-            }).then(canvas => {
+            html2canvas(card, { scale: 3, useCORS: true, backgroundColor: '#ffffff' }).then(canvas => {
                 canvas.toBlob(blob => {
                     const file = new File([blob], `Relatorio_Rotas.png`, { type: 'image/png' });
-                    
                     if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                        navigator.share({
-                            files: [file],
-                            title: 'Relatório de Rotas - Agro',
-                            text: 'Segue o relatório de rotas do dia.'
-                        }).catch(() => {});
+                        navigator.share({ files: [file], title: 'Relatório de Rotas', text: 'Segue relatório de rotas.' }).catch(() => {});
                     } else {
                         gerarRelatorioGestor();
                     }
@@ -995,33 +976,70 @@
             gerarRelatorioGestor();
         }
 
+        // --- SALVAMENTO AUTOMÁTICO DA IMAGEM NA PASTA DA DATA AO FINALIZAR O DIA ---
         function finalizarEDeixarDiaPronto() {
-            if (confirm("Deseja finalizar as demandas de hoje? Elas serão guardadas nas pastas, a tela principal será limpa e o app ficará pronto para o novo dia.")) {
+            if (confirm("Deseja finalizar as demandas de hoje? O relatório em imagem e dados serão guardados automaticamente nas pastas do histórico.")) {
+                const history = getSavedHistory();
+                if (history.length === 0) {
+                    showAlert('Nenhuma rota para finalizar.', 'error');
+                    return;
+                }
+
+                const dataHojeStr = new Date().toLocaleDateString('pt-BR');
+
+                // 1. Exporta CSV de segurança
                 exportToCSV();
 
-                const history = getSavedHistory();
-                if (history.length > 0 && history[0].kmEnd) {
+                // 2. Salva o KM final para o dia seguinte
+                if (history[0] && history[0].kmEnd) {
                     localStorage.setItem('agro_last_km_rollover', history[0].kmEnd);
                 }
 
-                localStorage.removeItem('agro_routes_history');
-                loadHistory();
-                carregarDadosSessaoColaborador(localStorage.getItem('agro_fixed_colaborador'));
+                // 3. Gera e salva a imagem automaticamente no armazenamento da pasta da data
+                montarDadosRelatorioVisual();
+                const card = document.getElementById('reportCardToImage');
 
-                showAlert('Turno finalizado com sucesso! App pronto para o novo dia.', 'success');
+                html2canvas(card, { scale: 2, useCORS: true, backgroundColor: '#ffffff' }).then(canvas => {
+                    const imagemBase64 = canvas.toDataURL('image/png');
+                    
+                    // Salva a imagem vinculada à data no localStorage
+                    let imagensArquivadas = {};
+                    try {
+                        const savedImg = localStorage.getItem('agro_archived_images');
+                        if (savedImg) imagensArquivadas = JSON.parse(savedImg);
+                    } catch(e) {}
+
+                    imagensArquivadas[dataHojeStr] = imagemBase64;
+                    localStorage.setItem('agro_archived_images', JSON.stringify(imagensArquivadas));
+
+                    // Limpa o histórico ativo para iniciar novo dia
+                    localStorage.removeItem('agro_routes_history');
+                    loadHistory();
+                    carregarDadosSessaoColaborador(localStorage.getItem('agro_fixed_colaborador'));
+
+                    showAlert('Turno finalizado! Relatório e imagem arquivados na pasta com sucesso.', 'success');
+                }).catch(err => {
+                    localStorage.removeItem('agro_routes_history');
+                    loadHistory();
+                    carregarDadosSessaoColaborador(localStorage.getItem('agro_fixed_colaborador'));
+                    showAlert('Turno finalizado com sucesso!', 'success');
+                });
             }
         }
 
+        // --- RENDERIZAR PASTAS COM OPÇÃO DE VER A IMAGEM ARQUIVADA ---
         function renderizarPastasModal() {
             const contentEl = document.getElementById('modalPastasContent');
             if (!contentEl) return;
 
             const history = getSavedHistory();
-            if (history.length === 0) {
-                contentEl.innerHTML = `<div class="text-center py-8 text-slate-500 text-sm">Nenhuma manobra registrada no histórico atual.</div>`;
-                return;
-            }
+            let imagensArquivadas = {};
+            try {
+                const savedImg = localStorage.getItem('agro_archived_images');
+                if (savedImg) imagensArquivadas = JSON.parse(savedImg);
+            } catch(e) {}
 
+            // Recolher todas as datas do histórico atual + datas arquivadas
             let gruposPorData = {};
             history.forEach(item => {
                 const dataObj = item.startTime ? new Date(item.startTime) : new Date();
@@ -1030,11 +1048,22 @@
                 gruposPorData[dataStr].push(item);
             });
 
+            // Adicionar datas que já foram finalizadas e possuem imagem arquivada
+            for (const dataStr of Object.keys(imagensArquivadas)) {
+                if (!gruposPorData[dataStr]) gruposPorData[dataStr] = [];
+            }
+
+            if (Object.keys(gruposPorData).length === 0) {
+                contentEl.innerHTML = `<div class="text-center py-8 text-slate-500 text-sm">Nenhuma pasta de manobras encontrada.</div>`;
+                return;
+            }
+
             let htmlFinal = "";
             for (const [dataStr, rotasDoDia] of Object.entries(gruposPorData)) {
                 rotasDoDia.sort((a, b) => new Date(a.startTime) - new Date(b.startTime));
-                const isOpen = pastasAbertasModal[dataStr] !== undefined ? pastasAbertasModal[dataStr] : true;
+                const isOpen = pastasAbertasModal[dataStr] !== undefined ? pastasAbertasModal[dataStr] : false;
                 const totalKmDia = rotasDoDia.reduce((acc, r) => acc + (r.distanceKm || 0), 0);
+                const temImagemSalva = imagensArquivadas[dataStr] ? true : false;
 
                 htmlFinal += `
                     <div class="bg-slate-950 border border-slate-800 rounded-xl overflow-hidden">
@@ -1043,6 +1072,7 @@
                                 <i class="fa-solid ${isOpen ? 'fa-folder-open text-amber-400' : 'fa-folder text-amber-500'}"></i>
                                 <span>Data: ${dataStr}</span>
                                 <span class="text-[10px] bg-slate-700 text-slate-300 px-2 py-0.5 rounded-full">${rotasDoDia.length} rota(s)</span>
+                                ${temImagemSalva ? '<span class="text-[10px] bg-emerald-900 text-emerald-300 px-2 py-0.5 rounded"><i class="fa-solid fa-image"></i> Imagem Salva</span>' : ''}
                             </div>
                             <div class="flex items-center gap-2 text-xs">
                                 <span class="font-bold text-agro-400">${totalKmDia.toFixed(2)} KM</span>
@@ -1051,6 +1081,21 @@
                         </div>
                         <div class="${isOpen ? 'block' : 'hidden'} p-2.5 space-y-2 border-t border-slate-900">
                 `;
+
+                if (temImagemSalva) {
+                    htmlFinal += `
+                        <div class="p-2 bg-slate-900 rounded-lg flex justify-between items-center text-xs">
+                            <span class="text-emerald-400 font-semibold"><i class="fa-solid fa-file-image mr-1"></i> Relatório em Imagem Arquivado</span>
+                            <button type="button" onclick="verImagemArquivada('${dataStr}')" class="px-3 py-1 bg-blue-600 hover:bg-blue-500 text-white rounded font-bold cursor-pointer">
+                                <i class="fa-solid fa-eye"></i> Ver Imagem
+                            </button>
+                        </div>
+                    `;
+                }
+
+                if (rotasDoDia.length === 0 && temImagemSalva) {
+                    htmlFinal += `<div class="text-[11px] text-slate-400 p-2">Turno finalizado com relatório arquivado.</div>`;
+                }
 
                 rotasDoDia.forEach((item, index) => {
                     const dtInicio = item.startTime ? new Date(item.startTime).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '--:--';
@@ -1081,9 +1126,34 @@
             contentEl.innerHTML = htmlFinal;
         }
 
+        function verImagemArquivada(dataStr) {
+            try {
+                const savedImg = localStorage.getItem('agro_archived_images');
+                if (!savedImg) return;
+                const imagensArquivadas = JSON.parse(savedImg);
+                const imgSrc = imagensArquivadas[dataStr];
+                if (!imgSrc) return;
+
+                const win = window.open("");
+                win.document.write(`
+                    <html>
+                    <head><title>Relatório ${dataStr}</title></head>
+                    <body style="background:#0f172a; margin:0; display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; color:white; font-family:sans-serif;">
+                        <h3 style="margin-bottom:10px;">Relatório de Rotas - ${dataStr}</h3>
+                        <img src="${imgSrc}" style="max-width:100%; height:auto; border-radius:12px; box-shadow:0 10px 25px rgba(0,0,0,0.5);" />
+                        <br><a href="${imgSrc}" download="Relatorio_${dataStr.replace(/\//g,'-')}.png" style="background:#16a34a; color:white; padding:10px 20px; border-radius:8px; text-decoration:none; font-weight:bold; margin-top:15px;">Baixar Esta Imagem</a>
+                    </body>
+                    </html>
+                `);
+            } catch(e) {
+                alert('Erro ao abrir imagem arquivada.');
+            }
+        }
+
         function clearHistory() {
             if (confirm("Apagar todo o histórico atual?")) {
                 localStorage.removeItem('agro_routes_history');
+                localStorage.removeItem('agro_archived_images');
                 loadHistory();
                 if(!document.getElementById('modalPastas').classList.contains('hidden')) {
                     renderizarPastasModal();
@@ -1094,7 +1164,7 @@
         function exportToCSV() {
             try {
                 const history = getSavedHistory();
-                if (history.length === 0) return showAlert('Sem dados para exportar.', 'error');
+                if (history.length === 0) return;
                 
                 let csv = 'Data;Horario_Inicio;Horario_Fim;Colaborador;Frota_Veiculo;Manobra_Destino;KM_Inicial;KM_Final;Distancia_Percorrida_KM;Observacoes\n';
                 
@@ -1113,11 +1183,7 @@
                 a.href = url;
                 a.download = `Relatorio_Manobras_AgroRota_${new Date().toISOString().slice(0,10)}.csv`;
                 a.click();
-                
-                showAlert('Planilha exportada com sucesso!', 'success');
-            } catch (e) {
-                showAlert('Erro ao exportar planilha.', 'error');
-            }
+            } catch (e) {}
         }
 
         function toggleSimulatedMotion() {
