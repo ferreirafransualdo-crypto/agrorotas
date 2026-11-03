@@ -686,16 +686,8 @@
                 return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m];
             });
         }
-        return String(str).replace(/[&<>"]/g, function(m) {
-            return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m];
-        });
-return String(str).replace(/[&<>"]/g, function(m) {
-            return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m];
-        });
-    }
-
- // Função para gerar o relatório para o gestor
-   function gerarRelatorioGestor() {
+// Função para gerar o relatório para o gestor
+    function gerarRelatorioGestor() {
       const nome = document.getElementById('nomeOperador') ? document.getElementById('nomeOperador').value : 'Não informado';
       const matricula = document.getElementById('matricula') ? document.getElementById('matricula').value : 'Não informada';
       const frota = document.getElementById('frota') ? document.getElementById('frota').value : 'Fiorino';
