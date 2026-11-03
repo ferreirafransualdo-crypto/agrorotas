@@ -281,17 +281,16 @@
 
     </main>
 
-    <!-- MODAL DO RELATÓRIO VISUAL (DESIGN EXATO DA FOTO) -->
+    <!-- MODAL DO RELATÓRIO VISUAL -->
     <div id="modalRelatorioVisual" class="fixed inset-0 bg-slate-950/95 backdrop-blur-md z-50 hidden flex flex-col items-center justify-start p-2 sm:p-4 overflow-y-auto">
         <div class="w-full max-w-xl flex justify-between items-center mb-3 text-white">
-            <span class="text-sm font-bold flex items-center gap-2 text-emerald-400"><i class="fa-solid fa-circle-check"></i> Relatório Pronto para Baixar</span>
+            <span class="text-sm font-bold flex items-center gap-2 text-emerald-400"><i class="fa-solid fa-circle-check"></i> Relatório Pronto</span>
             <button type="button" onclick="fecharModalVisual()" class="text-slate-300 hover:text-white bg-slate-800 px-3 py-1.5 rounded-lg text-xs cursor-pointer font-bold"><i class="fa-solid fa-xmark mr-1"></i> Fechar</button>
         </div>
 
-        <!-- CARTÃO COM LARGURA FIXA DE 700PX PARA SAIR SEMPRE PERFEITO NA IMAGEM -->
+        <!-- CARTÃO COM LARGURA FIXA 700PX -->
         <div id="reportCardToImage" style="width: 700px; background-color: #f8fafc; color: #0f172a;" class="rounded-2xl overflow-hidden shadow-2xl font-sans border-4 border-slate-800">
             
-            <!-- Cabeçalho idêntico à foto -->
             <div style="background: linear-gradient(135deg, #090d16 0%, #1e293b 100%); color: #ffffff;" class="p-6 border-b-4 border-emerald-600 flex justify-between items-center">
                 <div class="flex items-center gap-4">
                     <div style="background: #ffffff; color: #090d16;" class="w-14 h-14 rounded-2xl flex items-center justify-center font-black text-2xl shadow-lg">
@@ -307,26 +306,23 @@
                 </div>
             </div>
 
-            <!-- Dados principais -->
             <div style="background: #e2e8f0; color: #0f172a;" class="grid grid-cols-3 gap-1 p-3 text-center font-bold">
                 <div style="background: #ffffff;" class="p-2.5 rounded-xl shadow-sm">
-                    <span style="color: #64748b;" class="text-[10px] uppercase block font-extrabold"><i class="fa-regular fa-calendar"></i> Data do Relatório</span>
+                    <span style="color: #64748b;" class="text-[10px] uppercase block font-extrabold">Data do Relatório</span>
                     <span id="imgReportDate" style="color: #0f172a;" class="text-sm font-black">03/11/2026</span>
                 </div>
                 <div style="background: #ffffff;" class="p-2.5 rounded-xl shadow-sm">
-                    <span style="color: #64748b;" class="text-[10px] uppercase block font-extrabold"><i class="fa-regular fa-user"></i> Colaborador</span>
+                    <span style="color: #64748b;" class="text-[10px] uppercase block font-extrabold">Colaborador</span>
                     <span id="imgReportCollab" style="color: #0f172a;" class="text-sm font-black">---</span>
                 </div>
                 <div style="background: #ffffff;" class="p-2.5 rounded-xl shadow-sm">
-                    <span style="color: #64748b;" class="text-[10px] uppercase block font-extrabold"><i class="fa-solid fa-truck"></i> Frota</span>
+                    <span style="color: #64748b;" class="text-[10px] uppercase block font-extrabold">Frota</span>
                     <span id="imgReportFleet" style="color: #0f172a;" class="text-sm font-black">---</span>
                 </div>
             </div>
 
-            <!-- Lista de Rotas -->
             <div id="imgRoutesContainer" style="background: #f1f5f9;" class="p-4 space-y-3 max-h-[55vh] overflow-y-auto"></div>
 
-            <!-- Resumo do Dia -->
             <div style="background: #090d16; color: #ffffff;" class="p-5 border-t-4 border-slate-800 space-y-3">
                 <div class="text-xs font-black uppercase tracking-widest text-emerald-400 flex items-center gap-2 border-b border-slate-800 pb-2">
                     <i class="fa-solid fa-chart-pie"></i> RESUMO DO DIA
@@ -351,19 +347,19 @@
                 </div>
             </div>
 
-            <!-- Rodapé -->
             <div style="background: #0f172a; color: #94a3b8;" class="p-3 text-center text-xs font-bold flex items-center justify-center gap-2 border-t border-slate-800">
                 <i class="fa-solid fa-circle-check text-emerald-400"></i> Enviado via AgroRotas PWA
             </div>
 
         </div>
 
+        <!-- Botões Corrigidos para Celular / WhatsApp -->
         <div class="w-full max-w-xl grid grid-cols-2 gap-3 mt-4 pb-4">
             <button type="button" onclick="baixarImagemPronta()" class="py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white font-black rounded-xl text-xs sm:text-sm flex items-center justify-center gap-2 cursor-pointer shadow-xl">
                 <i class="fa-solid fa-download text-base"></i> Baixar Imagem (PNG)
             </button>
-            <button type="button" onclick="compartilharNoWhatsApp()" class="py-3.5 bg-green-600 hover:bg-green-500 text-white font-black rounded-xl text-xs sm:text-sm flex items-center justify-center gap-2 cursor-pointer shadow-xl">
-                <i class="fa-brands fa-whatsapp text-lg"></i> Enviar ao Gestor
+            <button type="button" onclick="partilharImagemDireta()" class="py-3.5 bg-green-600 hover:bg-green-500 text-white font-black rounded-xl text-xs sm:text-sm flex items-center justify-center gap-2 cursor-pointer shadow-xl">
+                <i class="fa-brands fa-whatsapp text-lg"></i> Enviar Imagem ao Gestor
             </button>
         </div>
     </div>
@@ -392,7 +388,7 @@
     </div>
 
     <footer class="max-w-3xl mx-auto w-full px-4 text-center text-xs text-slate-500 mt-6">
-        <p>AgroRota GPS v4.2 - Layout Gráfico Padronizado</p>
+        <p>AgroRota GPS v4.3 - Download Otimizado</p>
     </footer>
 
     <!-- SCRIPT DA APLICAÇÃO -->
@@ -861,11 +857,11 @@
             } catch (e) {}
         }
 
-        // --- GERADOR DO RELATÓRIO VISUAL IGUAL À FOTO ---
+        // --- GERADOR DO RELATÓRIO VISUAL ---
         function gerarRelatorioImagem() {
             const history = getSavedHistory();
             if (history.length === 0) {
-                alert('Não há rotas registradas para gerar o relatório visual.');
+                alert('Não há rotas registradas para gerar o relatório.');
                 return;
             }
 
@@ -935,10 +931,10 @@
             document.getElementById('modalRelatorioVisual').classList.add('hidden');
         }
 
-        // Função de captura com largura fixa para garantir perfeição na imagem
+        // Função robusta de download compatível com celular
         function baixarImagemPronta() {
             const card = document.getElementById('reportCardToImage');
-            showAlert('Gerando imagem de alta qualidade...', 'info');
+            showAlert('Processando imagem...', 'info');
 
             html2canvas(card, { 
                 scale: 2, 
@@ -947,13 +943,52 @@
                 width: 700,
                 windowWidth: 700
             }).then(canvas => {
+                const dataUrl = canvas.toDataURL('image/png');
+                
+                // Método alternativo compatível com mobile
                 const link = document.createElement('a');
+                link.href = dataUrl;
                 link.download = `Relatorio_Rotas_${new Date().toISOString().slice(0,10)}.png`;
-                link.href = canvas.toDataURL('image/png');
+                document.body.appendChild(link);
                 link.click();
-                showAlert('Imagem baixada com sucesso!', 'success');
+                document.body.removeChild(link);
+
+                showAlert('Imagem gerada! Verifique seus downloads.', 'success');
             }).catch(err => {
-                showAlert('Erro ao gerar imagem.', 'error');
+                showAlert('Erro ao gerar imagem no dispositivo.', 'error');
+            });
+        }
+
+        // Função para partilhar diretamente via WhatsApp no telemóvel
+        function partilharImagemDireta() {
+            const card = document.getElementById('reportCardToImage');
+            showAlert('Preparando imagem para o WhatsApp...', 'info');
+
+            html2canvas(card, { 
+                scale: 2, 
+                useCORS: true,
+                backgroundColor: '#ffffff',
+                width: 700,
+                windowWidth: 700
+            }).then(canvas => {
+                canvas.toBlob(blob => {
+                    const file = new File([blob], `Relatorio_Rotas.png`, { type: 'image/png' });
+                    
+                    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                        navigator.share({
+                            files: [file],
+                            title: 'Relatório de Rotas - Agro',
+                            text: 'Segue o relatório de rotas e frota do dia.'
+                        }).catch(() => {
+                            showAlert('Partilha cancelada.', 'info');
+                        });
+                    } else {
+                        // Se o navegador não suportar partilha direta de ficheiro, abre o WhatsApp com texto
+                        gerarRelatorioGestor();
+                    }
+                });
+            }).catch(err => {
+                gerarRelatorioGestor();
             });
         }
 
