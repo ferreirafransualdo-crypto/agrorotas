@@ -686,7 +686,7 @@ function escapeHtml(str) {
         });
     }
   // Função inteligente que puxa os dados automaticamente do formulário preenchido
-    function gerarRelatorioGestor() {
+   function gerarRelatorioGestor() {
       // Procura pelos campos usando vários nomes possíveis de IDs para garantir que encontra
       const nomeEl = document.getElementById('nomeOperador') || document.getElementById('nome') || document.getElementById('operador');
       const matriculaEl = document.getElementById('matricula') || document.getElementById('mat') || document.getElementById('codigo');
@@ -702,13 +702,23 @@ function escapeHtml(str) {
       const kmFinal = (kmFinEl && kmFinEl.value) ? kmFinEl.value : '0';
       
       const totalKm = (Number(kmFinal) - Number(kmInicial)) || 0;
+      const dataHoje = new Date().toLocaleDateString('pt-BR');
       
-      const textoRelatorio = "📊 *RELATÓRIO DE ROTAS E FROTA - AGRO*\n----------------------------------------\n👤 *Operador:* " + nome + " (Matrícula: " + matricula + ")\n🚗 *Veículo/Frota:* " + frota + "\n📅 *Data:* " + new Date().toLocaleDateString('pt-BR') + "\n\n📍 *RESUMO DA OPERAÇÃO:*\n• Km Inicial: " + kmInicial + " km\n• Km Final: " + kmFinal + " km\n• Total Percorrido: " + totalKm + " km\n----------------------------------------\nEnviado via AgroRotas PWA";
+      // Monta o texto do relatório em partes para evitar cortes no editor
+      let textoRelatorio = "📊 *RELATÓRIO DE ROTAS E FROTA - AGRO*\n";
+      textoRelatorio += "----------------------------------------\n";
+      textoRelatorio += "👤 *Operador:* " + nome + " (Matrícula: " + matricula + ")\n";
+      textoRelatorio += "🚗 *Veículo/Frota:* " + frota + "\n";
+      textoRelatorio += "📅 *Data:* " + dataHoje + "\n\n";
+      textoRelatorio += "📍 *RESUMO DA OPERAÇÃO:*\n";
+      textoRelatorio += "• Km Inicial: " + kmInicial + " km\n";
+      textoRelatorio += "• Km Final: " + kmFinal + " km\n";
+      textoRelatorio += "• Total Percorrido: " + totalKm + " km\n";
+      textoRelatorio += "----------------------------------------\n";
+      textoRelatorio += "Enviado via AgroRotas PWA";
 
       const urlWhatsapp = "https://api.whatsapp.com/send?text=" + encodeURIComponent(textoRelatorio);
       window.open(urlWhatsapp, '_blank');
-    }
-
 </script>
 <div style="padding: 10px 0;">
   <button onclick="gerarRelatorioGestor()" style="background: #28a745; color: white; border: none; padding: 14px 20px; font-size: 16px; border-radius: 8px; cursor: pointer; width: 100%; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
