@@ -72,9 +72,14 @@
 
         <!-- CARD 1: Formulário de Início -->
         <section id="formSection" class="card-agro">
-            <h2 class="text-lg font-bold text-slate-200 mb-4 flex items-center gap-2">
-                <i class="fa-solid fa-play text-agro-500"></i> Iniciar Nova Rota
-            </h2>
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-lg font-bold text-slate-200 flex items-center gap-2">
+                    <i class="fa-solid fa-play text-agro-500"></i> Iniciar Nova Rota
+                </h2>
+                <button type="button" onclick="limparDadosSessao()" class="text-xs text-slate-400 hover:text-red-400 underline">
+                    <i class="fa-solid fa-rotate-right mr-1"></i> Alterar Colaborador/Frota
+                </button>
+            </div>
 
             <form id="startRouteForm" class="space-y-4" onsubmit="event.preventDefault(); startTracking();">
                 <div>
@@ -96,7 +101,7 @@
                     <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Veículo / Frota *</label>
                     <div class="relative">
                         <i class="fa-solid fa-truck absolute left-3 top-3.5 text-slate-500"></i>
-                        <input type="text" id="inputFleet" required placeholder="Ex: Caminhão 04 / Placa ABC-1234" class="input-agro placeholder-slate-500">
+                        <input type="text" id="inputFleet" required placeholder="Ex: 336862 / Caminhão 04" class="input-agro placeholder-slate-500">
                     </div>
                 </div>
 
@@ -127,7 +132,7 @@
 
                 <div>
                     <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Observações (Opcional)</label>
-                    <input type="text" id="inputNotes" placeholder="Ex: Carga de adubo, motorista João" class="w-full bg-slate-900 border border-slate-700 rounded-xl py-2.5 px-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-agro-500">
+                    <input type="text" id="inputNotes" placeholder="Ex: Carga de adubo" class="w-full bg-slate-900 border border-slate-700 rounded-xl py-2.5 px-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-agro-500">
                 </div>
 
                 <button type="submit" class="btn-agro shadow-lg text-lg">
@@ -139,15 +144,32 @@
 
         <!-- CARD 2: Painel de Controle ao Vivo -->
         <section id="activeSection" class="hidden space-y-4">
-            <div class="card-agro flex items-center justify-between border-agro-500/30">
-                <div>
-                    <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Manobra em Andamento</div>
-                    <div id="liveDestination" class="text-xl font-bold text-agro-500">---</div>
-                    <div id="liveFleet" class="text-xs text-slate-300 mt-0.5"><i class="fa-solid fa-truck mr-1"></i>---</div>
+            <div class="card-agro border-agro-500/30 space-y-3">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Manobra em Andamento</div>
+                        <div class="flex items-center gap-2 mt-1">
+                            <div id="liveDestination" class="text-xl font-bold text-agro-500">---</div>
+                            <button type="button" onclick="renomearDestinoAtivo()" class="text-xs bg-slate-700 hover:bg-slate-600 text-slate-200 px-2.5 py-1 rounded-lg transition cursor-pointer" title="Renomear Destino">
+                                <i class="fa-solid fa-pen"></i> Alterar
+                            </button>
+                        </div>
+                        <div id="liveFleet" class="text-xs text-slate-300 mt-1"><i class="fa-solid fa-truck mr-1"></i>---</div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Tempo Decorrido</div>
+                        <div id="liveTimer" class="text-2xl font-mono font-bold text-white">00:00:00</div>
+                    </div>
                 </div>
-                <div class="text-right">
-                    <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Tempo Decorrido</div>
-                    <div id="liveTimer" class="text-2xl font-mono font-bold text-white">00:00:00</div>
+
+                <!-- Botões de Controle ao Vivo (Pausar / Retornar) -->
+                <div class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-700/60">
+                    <button type="button" id="pauseBtn" onclick="togglePauseTracking()" class="py-2.5 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-xl text-xs transition flex items-center justify-center gap-2 cursor-pointer">
+                        <i class="fa-solid fa-pause"></i> PAUSAR ROTA
+                    </button>
+                    <button type="button" onclick="stopTracking()" class="py-2.5 bg-red-600 hover:bg-red-500 text-white font-bold rounded-xl text-xs transition flex items-center justify-center gap-2 cursor-pointer">
+                        <i class="fa-solid fa-square"></i> ENCERRAR & SALVAR
+                    </button>
                 </div>
             </div>
 
@@ -182,11 +204,6 @@
                     <i class="fa-solid fa-gamepad mr-1"></i> Simular Movimento
                 </button>
             </div>
-
-            <button type="button" onclick="stopTracking()" class="w-full py-4 bg-red-600 hover:bg-red-500 text-white font-bold rounded-xl shadow-lg transition-all flex items-center justify-center gap-3 text-lg cursor-pointer">
-                <i class="fa-solid fa-square"></i>
-                ENCERRAR ROTA & SALVAR
-            </button>
         </section>
 
         <!-- CARD 3: Histórico -->
@@ -213,15 +230,16 @@
     </div>
 
     <footer class="max-w-3xl mx-auto w-full px-4 text-center text-xs text-slate-500 mt-6">
-        <p>AgroRota GPS v2.3</p>
+        <p>AgroRota GPS v2.5</p>
     </footer>
 
-    <!-- SCRIPT DA APLICAÇÃO LIMPO E REATIVO -->
+    <!-- SCRIPT DA APLICAÇÃO -->
     <script>
         let watchId = null;
         let timerInterval = null;
         let simInterval = null;
         let isSimulating = false;
+        let isPaused = false;
 
         let activeRoute = {
             colaborador: '',
@@ -237,12 +255,67 @@
         };
 
         window.onload = function() {
+            loadHistory();
+            carregarDadosSalvosSessao();
+        };
+
+        function carregarDadosSalvosSessao() {
             try {
-                loadHistory();
-            } catch(e) {
+                const colaboradorSalvo = localStorage.getItem('agro_fixed_colaborador');
+                const frotaSalva = localStorage.getItem('agro_fixed_frota');
+
+                if (colaboradorSalvo) {
+                    document.getElementById('inputColaborador').value = colaboradorSalvo;
+                }
+                if (frotaSalva) {
+                    document.getElementById('inputFleet').value = frotaSalva;
+                }
+
+                const history = getSavedHistory();
+                if (history.length > 0) {
+                    const ultimaRota = history[0];
+                    if (ultimaRota && ultimaRota.kmEnd) {
+                        document.getElementById('inputKmStart').value = ultimaRota.kmEnd.toFixed(1);
+                    }
+                }
+            } catch (e) {
                 console.error(e);
             }
-        };
+        }
+
+        function limparDadosSessao() {
+            if (confirm("Deseja redefinir o colaborador e a frota salvos?")) {
+                localStorage.removeItem('agro_fixed_colaborador');
+                localStorage.removeItem('agro_fixed_frota');
+                document.getElementById('inputColaborador').value = "";
+                document.getElementById('inputFleet').value = "";
+                document.getElementById('inputKmStart').value = "";
+                showAlert('Dados redefinidos. Insira os novos dados.', 'info');
+            }
+        }
+
+        function renomearDestinoAtivo() {
+            const novoDestino = prompt("Digite o novo nome para a Manobra / Destino:", activeRoute.destination);
+            if (novoDestino && novoDestino.trim() !== "") {
+                activeRoute.destination = novoDestino.trim();
+                document.getElementById('liveDestination').innerText = activeRoute.destination;
+                showAlert('Destino atualizado com sucesso!', 'success');
+            }
+        }
+
+        function togglePauseTracking() {
+            isPaused = !isPaused;
+            const btn = document.getElementById('pauseBtn');
+            if (isPaused) {
+                btn.className = "py-2.5 bg-agro-600 hover:bg-agro-500 text-white font-bold rounded-xl text-xs transition flex items-center justify-center gap-2 cursor-pointer";
+                btn.innerHTML = `<i class="fa-solid fa-play"></i> RETORNAR ROTA`;
+                showAlert('Rota pausada. O GPS e o cronômetro foram congelados.', 'info');
+            } else {
+                btn.className = "py-2.5 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-xl text-xs transition flex items-center justify-center gap-2 cursor-pointer";
+                btn.innerHTML = `<i class="fa-solid fa-pause"></i> PAUSAR ROTA`;
+                showAlert('Rota retomada com sucesso!', 'success');
+            }
+        }
 
         function calculateHaversineDistance(lat1, lon1, lat2, lon2) {
             const R = 6371; 
@@ -265,6 +338,9 @@
                     return;
                 }
 
+                localStorage.setItem('agro_fixed_colaborador', colaborador);
+                localStorage.setItem('agro_fixed_frota', fleet);
+
                 activeRoute = {
                     colaborador: colaborador,
                     fleet: fleet,
@@ -277,6 +353,10 @@
                     lastCoords: null,
                     gpsPoints: 0
                 };
+
+                isPaused = false;
+                document.getElementById('pauseBtn').className = "py-2.5 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-xl text-xs transition flex items-center justify-center gap-2 cursor-pointer";
+                document.getElementById('pauseBtn').innerHTML = `<i class="fa-solid fa-pause"></i> PAUSAR ROTA`;
 
                 document.getElementById('formSection').classList.add('hidden');
                 document.getElementById('activeSection').classList.remove('hidden');
@@ -299,6 +379,8 @@
         }
 
         function handleGpsSuccess(position) {
+            if (isPaused) return; // Se pausado, ignora atualizações do GPS
+
             try {
                 const lat = position.coords.latitude;
                 const lng = position.coords.longitude;
@@ -331,7 +413,7 @@
         }
 
         function handleGpsError(error) {
-            updateGpsStatus(false, "Sinal Indisponível");
+            if (!isPaused) updateGpsStatus(false, "Sinal Indisponível");
         }
 
         function updateLiveUi() {
@@ -346,6 +428,8 @@
         function startTimer() {
             clearInterval(timerInterval);
             timerInterval = setInterval(() => {
+                if (isPaused) return; // Se pausado, não conta o tempo
+
                 activeRoute.elapsedSeconds++;
                 const hrs = Math.floor(activeRoute.elapsedSeconds / 3600);
                 const mins = Math.floor((activeRoute.elapsedSeconds % 3600) / 60);
@@ -399,10 +483,15 @@
                 localStorage.setItem('agro_routes_history', JSON.stringify(history));
 
                 activeRoute = { colaborador: '', fleet: '', kmStart: 0, destination: '', notes: '', startTime: null, elapsedSeconds: 0, distanceKm: 0, lastCoords: null, gpsPoints: 0 };
+                isPaused = false;
 
                 document.getElementById('activeSection').classList.add('hidden');
                 document.getElementById('formSection').classList.remove('hidden');
-                document.getElementById('startRouteForm').reset();
+                
+                document.getElementById('inputDestination').value = '';
+                document.getElementById('inputNotes').value = '';
+                document.getElementById('inputKmStart').value = kmFinal.toFixed(1);
+
                 updateGpsStatus(false, "GPS Desconectado");
 
                 loadHistory();
@@ -467,6 +556,7 @@
         }
 
         function toggleSimulatedMotion() {
+            if (isPaused) return;
             isSimulating = !isSimulating;
             const btn = document.getElementById('simMotionBtn');
             if (!btn) return;
@@ -504,7 +594,7 @@
             if (box) box.classList.add('hidden');
         }
 
-        // --- RELATÓRIO DO GESTOR COM ORDENAÇÃO CRONOLÓGICA (ROTA 1 À DIANTE) ---
+        // --- RELATÓRIO DO GESTOR ORDENADO DO MAIS ANTIGO PARA O MAIS RECENTE ---
         function gerarRelatorioGestor() {
             try {
                 const history = getSavedHistory();
@@ -514,7 +604,6 @@
                     return;
                 }
 
-                // Ordena rigorosamente do mais antigo para o mais recente para manter a Rota #1 fixa como a primeira feita
                 const historyOrdenado = [...history].sort((a, b) => new Date(a.startTime) - new Date(b.startTime));
 
                 const dataHoje = new Date().toLocaleDateString('pt-BR');
@@ -530,13 +619,11 @@
                     
                     texto += `*Rota #${index + 1}*\n`;
                     
-                    // Rota #1 (a primeira feita no dia) mostra Colaborador e Frota completos
                     if (index === 0) {
                         texto += `👤 *Colaborador:* ${r.colaborador || 'Não informado'}\n`;
                         texto += `🚗 *Frota:* ${r.fleet || 'Não informada'}\n`;
                     }
                     
-                    // Da Rota #2 em diante exibe apenas os dados operacionais limpos
                     texto += `⚙️ *Manobra:* ${r.destination || 'Não informada'}\n`;
                     texto += `⏰ *Saída:* ${dtInicio} | *Chegada:* ${dtFim}\n`;
                     texto += `• KM Inicial: ${(r.kmStart || 0).toFixed(1)} km\n`;
