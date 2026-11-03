@@ -99,7 +99,7 @@
                 <div>
                     <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Senha / PIN (4 Dígitos) *</label>
                     <div class="relative">
-                        <i class="fa-solid key absolute left-3 top-3.5 text-slate-500">🔑</i>
+                        <i class="fa-solid fa-key absolute left-3 top-3.5 text-slate-500"></i>
                         <input type="password" id="loginPin" required maxlength="6" placeholder="Digite sua senha" class="input-agro placeholder-slate-500 tracking-widest font-bold">
                     </div>
                 </div>
@@ -110,7 +110,7 @@
             </form>
         </section>
 
-        <!-- TELA 2: PAINEL DE MANOBRAS E RASTREAMENTO (ETAPA 2) - Inicialmente Oculta -->
+        <!-- TELA 2: PAINEL DE MANOBRAS E RASTREAMENTO (ETAPA 2) -->
         <div id="appPanel" class="hidden space-y-4">
 
             <!-- Identificação ativa do Colaborador Logado -->
@@ -126,13 +126,19 @@
 
             <!-- CARD 1: Formulário de Início de Rota -->
             <section id="formSection" class="card-agro">
-                <div class="flex justify-between items-center mb-4">
+                <div class="flex flex-wrap justify-between items-center gap-2 mb-4 border-b border-slate-700/60 pb-3">
                     <h2 class="text-lg font-bold text-slate-200 flex items-center gap-2">
                         <i class="fa-solid fa-play text-agro-500"></i> Iniciar Nova Rota
                     </h2>
-                    <button type="button" onclick="forcarDestraveGeral()" class="text-xs text-amber-400 hover:text-amber-300 underline" title="Destravar sistema se congelar">
-                        <i class="fa-solid fa-unlock mr-1"></i> Destravar App
-                    </button>
+                    <div class="flex items-center gap-3">
+                        <button type="button" onclick="toggleModalPastas(true)" class="text-xs text-amber-400 hover:text-amber-300 underline font-semibold cursor-pointer flex items-center gap-1">
+                            <i class="fa-solid fa-folder-open"></i> Pastas de Manobras
+                        </button>
+                        <span class="text-slate-600">|</span>
+                        <button type="button" onclick="forcarDestraveGeral()" class="text-xs text-amber-400 hover:text-amber-300 underline cursor-pointer" title="Destravar sistema se congelar">
+                            <i class="fa-solid fa-unlock mr-1"></i> Destravar App
+                        </button>
+                    </div>
                 </div>
 
                 <form id="startRouteForm" class="space-y-4" onsubmit="event.preventDefault(); startTracking();">
@@ -239,11 +245,11 @@
                 </div>
             </section>
 
-            <!-- CARD 3: Histórico Compacto e Botão de Pastas -->
+            <!-- CARD 3: Histórico Compacto -->
             <section class="card-agro space-y-4">
                 <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-700 pb-3">
                     <h3 class="text-lg font-bold text-slate-200 flex items-center gap-2">
-                        <i class="fa-solid fa-clock-rotate-left text-blue-400"></i> Histórico de Rotas
+                        <i class="fa-solid fa-clock-rotate-left text-blue-400"></i> Histórico de Rotas Recentes
                     </h3>
                     <div class="flex gap-2">
                         <button type="button" onclick="exportToCSV()" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-xs font-semibold rounded-lg text-slate-200 transition cursor-pointer">Exportar CSV</button>
@@ -252,10 +258,6 @@
                 </div>
                 
                 <div id="historyList" class="space-y-3"></div>
-
-                <button type="button" onclick="toggleModalPastas(true)" class="w-full py-3 bg-slate-800 hover:bg-slate-700 text-amber-400 font-semibold rounded-xl border border-slate-700 transition flex items-center justify-center gap-2 text-sm cursor-pointer mt-2">
-                    <i class="fa-solid fa-folder-open"></i> Abrir Pastas de Manobras Realizadas (Por Data)
-                </button>
             </section>
 
         </div>
@@ -290,7 +292,7 @@
     </div>
 
     <footer class="max-w-3xl mx-auto w-full px-4 text-center text-xs text-slate-500 mt-6">
-        <p>AgroRota GPS v3.4</p>
+        <p>AgroRota GPS v3.5</p>
     </footer>
 
     <!-- SCRIPT DA APLICAÇÃO -->
@@ -335,7 +337,6 @@
             }
         }
 
-        // Validação da Etapa 1 (Nome + Senha)
         function validarLoginColaborador() {
             const colab = document.getElementById('loginColaborador').value;
             const pin = document.getElementById('loginPin').value.trim();
@@ -348,7 +349,6 @@
             const senhaSalva = localStorage.getItem(`agro_pin_${colab}`);
 
             if (!senhaSalva) {
-                // Primeiro acesso: cadastra a senha
                 if (pin.length >= 3) {
                     localStorage.setItem(`agro_pin_${colab}`, pin);
                     concluirLogin(colab);
@@ -356,7 +356,6 @@
                     showAlert('A senha precisa ter pelo menos 3 dígitos.', 'error');
                 }
             } else {
-                // Acesso normal: valida a senha
                 if (pin === senhaSalva) {
                     concluirLogin(colab);
                 } else {
