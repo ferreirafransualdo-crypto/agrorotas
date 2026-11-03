@@ -685,20 +685,29 @@ function escapeHtml(str) {
             return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m];
         });
     }
-    // Função para gerar o relatório para o gestor
+  // Função inteligente que puxa os dados automaticamente do formulário preenchido
     function gerarRelatorioGestor() {
-      const nome = document.getElementById('nomeOperador') ? document.getElementById('nomeOperador').value : 'Não informado';
-      const matricula = document.getElementById('matricula') ? document.getElementById('matricula').value : 'Não informada';
-      const frota = document.getElementById('frota') ? document.getElementById('frota').value : 'Fiorino';
-      const kmInicial = document.getElementById('kmInicial') ? document.getElementById('kmInicial').value : '0';
-      const kmFinal = document.getElementById('kmFinal') ? document.getElementById('kmFinal').value : '0';
+      // Procura pelos campos usando vários nomes possíveis de IDs para garantir que encontra
+      const nomeEl = document.getElementById('nomeOperador') || document.getElementById('nome') || document.getElementById('operador');
+      const matriculaEl = document.getElementById('matricula') || document.getElementById('mat') || document.getElementById('codigo');
+      const frotaEl = document.getElementById('frota') || document.getElementById('veiculo') || document.getElementById('equipamento');
+      const kmIniEl = document.getElementById('kmInicial') || document.getElementById('km_inicial') || document.getElementById('inicioKm');
+      const kmFinEl = document.getElementById('kmFinal') || document.getElementById('km_final') || document.getElementById('fimKm');
+
+      // Extrai os valores automaticamente
+      const nome = (nomeEl && nomeEl.value) ? nomeEl.value : 'Não informado';
+      const matricula = (matriculaEl && matriculaEl.value) ? matriculaEl.value : 'Não informada';
+      const frota = (frotaEl && frotaEl.value) ? frotaEl.value : 'Fiorino';
+      const kmInicial = (kmIniEl && kmIniEl.value) ? kmIniEl.value : '0';
+      const kmFinal = (kmFinEl && kmFinEl.value) ? kmFinEl.value : '0';
       
       const totalKm = (Number(kmFinal) - Number(kmInicial)) || 0;
       
-      const textoRelatorio = "📊 *RELATÓRIO DE ROTAS E FROTA - AGRO*\n----------------------------------------\n👤 *Condutor:* " + nome + " (Matrícula: " + matricula + ")\n🚗 *Veículo/Frota:* " + frota + "\n📅 *Data:* " + new Date().toLocaleDateString('pt-BR') + "\n\n📍 *RESUMO DA OPERAÇÃO:*\n• Km Inicial: " + kmInicial + " km\n• Km Final: " + kmFinal + " km\n• Total Percorrido: " + totalKm + " km\n----------------------------------------\nEnviado via AgroRotas PWA";
+      const textoRelatorio = "📊 *RELATÓRIO DE ROTAS E FROTA - AGRO*\n----------------------------------------\n👤 *Operador:* " + nome + " (Matrícula: " + matricula + ")\n🚗 *Veículo/Frota:* " + frota + "\n📅 *Data:* " + new Date().toLocaleDateString('pt-BR') + "\n\n📍 *RESUMO DA OPERAÇÃO:*\n• Km Inicial: " + kmInicial + " km\n• Km Final: " + kmFinal + " km\n• Total Percorrido: " + totalKm + " km\n----------------------------------------\nEnviado via AgroRotas PWA";
 
       const urlWhatsapp = "https://api.whatsapp.com/send?text=" + encodeURIComponent(textoRelatorio);
       window.open(urlWhatsapp, '_blank');
+    }
     }
 </script>
 <div style="padding: 10px 0;">
