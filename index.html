@@ -126,17 +126,17 @@
                     </div>
 
                     <div>
-                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Destino / Cliente *</label>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Tipo de Manobra / Destino *</label>
                         <div class="relative">
                             <i class="fa-solid fa-location-dot absolute left-3 top-3.5 text-slate-500"></i>
-                            <input type="text" id="inputDestination" required placeholder="Ex: Fazenda Santa Maria" list="destinationList"
+                            <input type="text" id="inputDestination" required placeholder="Ex: Coleta / Fazenda Santa Maria" list="destinationList"
                                 class="w-full bg-slate-900 border border-slate-700 rounded-xl py-3 pl-10 pr-3 text-white placeholder-slate-500 focus:outline-none focus:border-agro-500 focus:ring-1 focus:ring-agro-500 font-medium">
                             <datalist id="destinationList">
+                                <option value="Coleta"></option>
+                                <option value="Entrega"></option>
+                                <option value="Deslocamento Operacional"></option>
                                 <option value="Fazenda Esperança"></option>
                                 <option value="Fazenda Boa Vista"></option>
-                                <option value="Fornecedor Adubos Brasil"></option>
-                                <option value="Usina Central"></option>
-                                <option value="Garagem Matriz"></option>
                             </datalist>
                         </div>
                     </div>
@@ -162,7 +162,7 @@
             <!-- Header do Status da Rota -->
             <div class="bg-slate-800 border border-agro-500/30 rounded-2xl p-4 shadow-xl flex items-center justify-between">
                 <div>
-                    <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Destino em Andamento</div>
+                    <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Manobra em Andamento</div>
                     <div id="liveDestination" class="text-xl font-bold text-agro-500">---</div>
                     <div id="liveFleet" class="text-xs text-slate-300 mt-0.5"><i class="fa-solid fa-truck mr-1"></i>---</div>
                 </div>
@@ -270,15 +270,13 @@
             gpsPoints: 0
         };
 
-        // --- INICIALIZAÇÃO ---
         window.onload = function() {
             loadHistory();
             checkSavedActiveRoute();
         };
 
-        // --- CÁLCULO DE DISTÂNCIA (FÓRMULA DE HAVERSINE) ---
         function calculateHaversineDistance(lat1, lon1, lat2, lon2) {
-            const R = 6371; // Raio da Terra em KM
+            const R = 6371; 
             const dLat = (lat2 - lat1) * Math.PI / 180;
             const dLon = (lon2 - lon1) * Math.PI / 180;
             const a = 
@@ -286,10 +284,9 @@
                 Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
                 Math.sin(dLon/2) * Math.sin(dLon/2);
             const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-            return R * c; // Distância em KM
+            return R * c; 
         }
 
-        // --- INICIAR RASTREAMENTO ---
         function startTracking() {
             const colaborador = document.getElementById('inputColaborador').value.trim();
             const fleet = document.getElementById('inputFleet').value.trim();
@@ -365,9 +362,7 @@
 
             document.getElementById('liveGpsAccuracy').innerText = `Precisão: ±${Math.round(accuracy)}m`;
 
-            if (accuracy > 60) {
-                return; 
-            }
+            if (accuracy > 60) return; 
 
             if (activeRoute.lastCoords) {
                 const incrementalKm = calculateHaversineDistance(
@@ -392,20 +387,7 @@
         }
 
         function handleGpsError(error) {
-            let msg = "Erro ao acessar o GPS.";
-            switch(error.code) {
-                case error.PERMISSION_DENIED:
-                    msg = "Permissão de localização negada pelo usuário.";
-                    break;
-                case error.POSITION_UNAVAILABLE:
-                    msg = "Sinal de GPS indisponível no momento.";
-                    break;
-                case error.TIMEOUT:
-                    msg = "Tempo limite esgotado ao buscar GPS.";
-                    break;
-            }
             updateGpsStatus(false, "Sinal Indisponível");
-            showAlert(msg, 'error');
         }
 
         function updateLiveUi() {
@@ -594,7 +576,7 @@
                 return;
             }
 
-            let csv = 'Data;Hora Inicio;Colaborador;Frota;Destino;KM Inicial;KM Final;Distancia Percorrida (KM);Duracao;Observacoes\n';
+            let csv = 'Data;Hora Inicio;Colaborador;Frota;Manobra/Destino;KM Inicial;KM Final;Distancia Percorrida (KM);Duracao;Observacoes\n';
 
             history.forEach(r => {
                 const dt = new Date(r.startTime);
@@ -672,40 +654,54 @@
         }
 
         function hideAlert() {
-            document.getElementById('alertBox'].classList.add('hidden');
+            document.getElementById('alertBox').classList.add('hidden');
         }
 
-        // --- FUNÇÃO PARA GERAR RELATÓRIO DO GESTOR NO WHATSAPP (ROBUSTA) ---
+        // --- FUNÇÃO PARA GERAR RELATÓRIO DO GESTOR NO WHATSAPP COM LEITURA DIRETA DA TELA ---
         function gerarRelatorioGestor() {
-            let nome = 'Não informado';
-            let frota = 'Não informado';
-            let kmInicial = 0;
-            let distancia = 0;
+            // 1. Lê diretamente dos inputs da tela (funciona sempre, mesmo antes ou durante a rota)
+            const colabEl = document.getElementById('inputColaborador');
+            const fleetEl = document.getElementById('inputFleet');
+            const kmStartEl = document.getElementById('inputKmStart');
+            const destEl = document.getElementById('inputDestination');
 
-            // 1. Tenta buscar da rota ativa em andamento
+            let nome = (colabEl && colabEl.value) ? colabEl.value : 'Não informado';
+            let frota = (fleetEl && fleetEl.value) ? fleetEl.value : 'Não informado';
+            let manobra = (destEl && destEl.value) ? destEl.value : 'Não informada';
+            let kmInicial = (kmStartEl && kmStartEl.value) ? Number(kmStartEl.value) : 0;
+            let distancia = 0;
+            let horaSaida = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+            let horaChegada = 'Em andamento';
+
+            // 2. Se a rota já foi iniciada e está ativa, puxa os dados do painel ativo
             if (activeRoute && activeRoute.colaborador) {
                 nome = activeRoute.colaborador;
-                frota = activeRoute.fleet || 'Não informado';
-                kmInicial = activeRoute.kmStart || 0;
+                frota = activeRoute.fleet || frota;
+                manobra = activeRoute.destination || manobra;
+                kmInicial = activeRoute.kmStart || kmInicial;
                 distancia = activeRoute.distanceKm || 0;
+                
+                if (activeRoute.startTime) {
+                    const dtInicio = new Date(activeRoute.startTime);
+                    horaSaida = dtInicio.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                }
             } else {
-                // 2. Se não houver rota ativa, busca a última rota guardada no histórico
+                // 3. Se houver rotas no histórico, pega a mais recente caso os campos da tela estejam vazios
                 const history = getSavedHistory();
-                if (history.length > 0) {
+                if (history.length > 0 && (!colabEl || !colabEl.value)) {
                     const ultimaRota = history[0];
-                    nome = ultimaRota.colaborador || 'Não informado';
-                    frota = ultimaRota.fleet || 'Não informado';
-                    kmInicial = ultimaRota.kmStart || 0;
+                    nome = ultimaRota.colaborador || nome;
+                    frota = ultimaRota.fleet || frota;
+                    manobra = ultimaRota.destination || manobra;
+                    kmInicial = ultimaRota.kmStart || kmInicial;
                     distancia = ultimaRota.distanceKm || 0;
-                } else {
-                    // 3. Se não houver histórico, tenta ler diretamente do formulário inicial visível
-                    const colabEl = document.getElementById('inputColaborador');
-                    const fleetEl = document.getElementById('inputFleet');
-                    const kmStartEl = document.getElementById('inputKmStart');
 
-                    if (colabEl && colabEl.value) nome = colabEl.value;
-                    if (fleetEl && fleetEl.value) frota = fleetEl.value;
-                    if (kmStartEl && kmStartEl.value) kmInicial = Number(kmStartEl.value);
+                    if (ultimaRota.startTime) {
+                        horaSaida = new Date(ultimaRota.startTime).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                    }
+                    if (ultimaRota.endTime) {
+                        horaChegada = new Date(ultimaRota.endTime).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                    }
                 }
             }
 
@@ -716,7 +712,9 @@
             textoRelatorio += "----------------------------------------\n";
             textoRelatorio += "👤 *Colaborador:* " + nome + "\n";
             textoRelatorio += "🚗 *Veículo/Frota:* " + frota + "\n";
-            textoRelatorio += "📅 *Data:* " + dataHoje + "\n\n";
+            textoRelatorio += "⚙️ *Tipo de Manobra:* " + manobra + "\n";
+            textoRelatorio += "📅 *Data:* " + dataHoje + "\n";
+            textoRelatorio += "⏰ *Saída:* " + horaSaida + " | ⏰ *Chegada:* " + horaChegada + "\n\n";
             textoRelatorio += "📍 *RESUMO DA OPERAÇÃO:*\n";
             textoRelatorio += "• Km Inicial: " + kmInicial.toFixed(1) + " km\n";
             textoRelatorio += "• Km Final: " + kmFinal.toFixed(1) + " km\n";
