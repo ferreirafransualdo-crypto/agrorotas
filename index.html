@@ -81,7 +81,7 @@
                         <i class="fa-solid fa-unlock mr-1"></i> Destravar App
                     </button>
                     <button type="button" onclick="limparDadosSessao()" class="text-xs text-slate-400 hover:text-red-400 underline">
-                        <i class="fa-solid fa-rotate-right mr-1"></i> Limpar Dados
+                        <i class="fa-solid fa-rotate-right mr-1"></i> Trocar Colaborador
                     </button>
                 </div>
             </div>
@@ -124,7 +124,6 @@
                         <div class="relative">
                             <i class="fa-solid fa-location-dot absolute left-3 top-3.5 text-slate-500"></i>
                             <input type="text" id="inputDestination" required placeholder="Ex: Coleta / Fazenda Santa Maria" list="destinationList" class="input-agro placeholder-slate-500">
-                            <!-- Datalist Dinâmico por Colaborador -->
                             <datalist id="destinationList"></datalist>
                         </div>
                     </div>
@@ -230,7 +229,7 @@
     </div>
 
     <footer class="max-w-3xl mx-auto w-full px-4 text-center text-xs text-slate-500 mt-6">
-        <p>AgroRota GPS v3.0</p>
+        <p>AgroRota GPS v3.1</p>
     </footer>
 
     <!-- SCRIPT DA APLICAÇÃO -->
@@ -261,7 +260,7 @@
         };
 
         function forcarDestraveGeral() {
-            if (confirm("Deseja destravar o aplicativo e limpar qualquer travamento ativo? (O seu histórico de rotas salvas não será apagado).")) {
+            if (confirm("Deseja destravar o aplicativo e limpar qualquer travamento ativo?")) {
                 if (watchId !== null) navigator.geolocation.clearWatch(watchId);
                 clearInterval(timerInterval);
                 clearInterval(simInterval);
@@ -274,11 +273,37 @@
             }
         }
 
+        // Sistema de Segurança por Senha (PIN) por Colaborador
         function aoMudarColaborador() {
             const colab = document.getElementById('inputColaborador').value;
             if (!colab) return;
+
+            const senhaSalva = localStorage.getItem(`agro_pin_${colab}`);
+
+            if (!senhaSalva) {
+                // Se o colaborador ainda não tem senha cadastrada, cadastra agora
+                const novaSenha = prompt(`Primeiro acesso de ${colab}. Defina uma senha (PIN) de 4 dígitos para proteger seu acesso:`);
+                if (novaSenha && novaSenha.trim().length >= 3) {
+                    localStorage.setItem(`agro_pin_${colab}`, novaSenha.trim());
+                    showAlert('Senha cadastrada com sucesso!', 'success');
+                } else {
+                    alert('Senha inválida. Seleção cancelada.');
+                    document.getElementById('inputColaborador').value = '';
+                    return;
+                }
+            } else {
+                // Se já tem senha, solicita a confirmação para liberar o uso
+                const senhaDigitada = prompt(`Digite a senha (PIN) para acessar o perfil de ${colab}:`);
+                if (senhaDigitada !== senhaSalva) {
+                    alert('Senha incorreta! Acesso negado.');
+                    document.getElementById('inputColaborador').value = '';
+                    return;
+                } else {
+                    showAlert(`Acesso liberado para ${colab}`, 'success');
+                }
+            }
             
-            // Carrega dados específicos do colaborador selecionado se já existirem
+            // Carrega os dados específicos deste colaborador
             const frotaSalva = localStorage.getItem(`agro_fleet_${colab}`);
             if (frotaSalva) {
                 document.getElementById('inputFleet').value = frotaSalva;
@@ -288,12 +313,10 @@
 
         function atualizarDatalistManobras(colaborador) {
             const history = getSavedHistory();
-            // Filtra as manobras feitas por este colaborador específico
             const manobrasDoColab = history
                 .filter(r => r.colaborador === colaborador && r.destination)
                 .map(r => r.destination);
 
-            // Adiciona algumas manobras padrão + as usadas por ele
             const padrao = ["Coleta", "Entrega", "Deslocamento Operacional", "Fazenda Esperança", "Fazenda Boa Vista"];
             const todas = [...new Set([...manobrasDoColab, ...padrao])];
 
@@ -316,9 +339,6 @@
                     const ultimaRota = history[0];
                     if (ultimaRota && ultimaRota.kmEnd) {
                         document.getElementById('inputKmStart').value = ultimaRota.kmEnd.toFixed(1);
-                    }
-                    if (ultimaRota && ultimaRota.fleet && !document.getElementById('inputFleet').value) {
-                        document.getElementById('inputFleet').value = ultimaRota.fleet;
                     }
                 }
             } catch (e) {
@@ -360,12 +380,12 @@
         }
 
         function limparDadosSessao() {
-            if (confirm("Deseja redefinir os dados salvos?")) {
+            if (confirm("Deseja trocar de colaborador?")) {
                 localStorage.removeItem('agro_fixed_colaborador');
                 document.getElementById('inputColaborador').value = "";
                 document.getElementById('inputFleet').value = "";
                 document.getElementById('inputKmStart').value = "";
-                showAlert('Dados redefinidos.', 'info');
+                showAlert('Colaborador alterado.', 'info');
             }
         }
 
@@ -590,9 +610,7 @@
                 document.getElementById('inputNotes').value = '';
                 document.getElementById('inputKmStart').value = kmFinal.toFixed(1);
 
-                // Mantém o colaborador selecionado para facilitar a próxima rota
                 document.getElementById('inputColaborador').value = colabAtual;
-                aoMudarColaborador();
 
                 updateGpsStatus(false, "GPS Desconectado");
 
