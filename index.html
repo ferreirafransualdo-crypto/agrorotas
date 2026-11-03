@@ -251,7 +251,6 @@
 
     <!-- SCRIPT DA APLICAÇÃO -->
     <script>
-        // --- ESTADO DA APLICAÇÃO ---
         let watchId = null;
         let timerInterval = null;
         let simInterval = null;
@@ -657,81 +656,40 @@
             document.getElementById('alertBox').classList.add('hidden');
         }
 
-        // --- FUNÇÃO PARA GERAR RELATÓRIO DO GESTOR NO WHATSAPP COM LEITURA DIRETA DA TELA ---
+        // --- FUNÇÃO PARA GERAR RELATÓRIO DO GESTOR NO WHATSAPP ---
         function gerarRelatorioGestor() {
-            // 1. Lê diretamente dos inputs da tela (funciona sempre, mesmo antes ou durante a rota)
             const colabEl = document.getElementById('inputColaborador');
             const fleetEl = document.getElementById('inputFleet');
             const kmStartEl = document.getElementById('inputKmStart');
             const destEl = document.getElementById('inputDestination');
 
-            let nome = (colabEl && colabEl.value) ? colabEl.value : 'Não informado';
-            let frota = (fleetEl && fleetEl.value) ? fleetEl.value : 'Não informado';
-            let manobra = (destEl && destEl.value) ? destEl.value : 'Não informada';
-            let kmInicial = (kmStartEl && kmStartEl.value) ? Number(kmStartEl.value) : 0;
-            let distancia = 0;
-            let horaSaida = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-            let horaChegada = 'Em andamento';
+            let nome = (activeRoute && activeRoute.colaborador) ? activeRoute.colaborador : ((colabEl && colabEl.value) ? colabEl.value : 'Não informado');
+            let frota = (activeRoute && activeRoute.fleet) ? activeRoute.fleet : ((fleetEl && fleetEl.value) ? fleetEl.value : 'Não informado');
+            let manobra = (activeRoute && activeRoute.destination) ? activeRoute.destination : ((destEl && destEl.value) ? destEl.value : 'Não informada');
+            let kmInicial = (activeRoute && activeRoute.kmStart) ? activeRoute.kmStart : ((kmStartEl && kmStartEl.value) ? Number(kmStartEl.value) : 0);
+            let distancia = (activeRoute && activeRoute.distanceKm) ? activeRoute.distanceKm : 0;
+            
+            let horaSaida = (activeRoute && activeRoute.startTime) ? new Date(activeRoute.startTime).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+            let horaChegada = (activeRoute && activeRoute.distanceKm > 0) ? new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : 'Em andamento';
 
-            // 2. Se a rota já foi iniciada e está ativa, puxa os dados do painel ativo
-            if (activeRoute && activeRoute.colaborador) {
-                nome = activeRoute.colaborador;
-                frota = activeRoute.fleet || frota;
-                manobra = activeRoute.destination || manobra;
-                kmInicial = activeRoute.kmStart || kmInicial;
-                distancia = activeRoute.distanceKm || 0;
-                
-                if (activeRoute.startTime) {
-                    const dtInicio = new Date(activeRoute.startTime);
-                    horaSaida = dtInicio.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+            const history = getSavedHistory();
+            if ((!activeRoute || activeRoute.distanceKm === 0) && history.length > 0 && (!colabEl || !colabEl.value)) {
+                const ultimaRota = history[0];
+                nome = ultimaRota.colaborador || nome;
+                frota = ultimaRota.fleet || frota;
+                manobra = ultimaRota.destination || manobra;
+                kmInicial = ultimaRota.kmStart || kmInicial;
+                distancia = ultimaRota.distanceKm || 0;
+
+                if (ultimaRota.startTime) {
+                    horaSaida = new Date(ultimaRota.startTime).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
                 }
-            } else {
-                // 3. Se houver rotas no histórico, pega a mais recente caso os campos da tela estejam vazios
-                const history = getSavedHistory();
-                if (history.length > 0 && (!colabEl || !colabEl.value)) {
-                    const ultimaRota = history[0];
-                    nome = ultimaRota.colaborador || nome;
-                    frota = ultimaRota.fleet || frota;
-                    manobra = ultimaRota.destination || manobra;
-                    kmInicial = ultimaRota.kmStart || kmInicial;
-                    distancia = ultimaRota.distanceKm || 0;
-
-                    if (ultimaRota.startTime) {
-                        horaSaida = new Date(ultimaRota.startTime).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-                    }
-                    if (ultimaRota.endTime) {
-                        horaChegada = new Date(ultimaRota.endTime).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-                    }
+                if (ultimaRota.endTime) {
+                    horaChegada = new Date(ultimaRota.endTime).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
                 }
             }
 
             let kmFinal = kmInicial + distancia;
             const dataHoje = new Date().toLocaleDateString('pt-BR');
 
-            let textoRelatorio = "📊 *RELATÓRIO DE ROTAS E FROTA - AGRO*\n";
-            textoRelatorio += "----------------------------------------\n";
-            textoRelatorio += "👤 *Colaborador:* " + nome + "\n";
-            textoRelatorio += "🚗 *Veículo/Frota:* " + frota + "\n";
-            textoRelatorio += "⚙️ *Tipo de Manobra:* " + manobra + "\n";
-            textoRelatorio += "📅 *Data:* " + dataHoje + "\n";
-            textoRelatorio += "⏰ *Saída:* " + horaSaida + " | ⏰ *Chegada:* " + horaChegada + "\n\n";
-            textoRelatorio += "📍 *RESUMO DA OPERAÇÃO:*\n";
-            textoRelatorio += "• Km Inicial: " + kmInicial.toFixed(1) + " km\n";
-            textoRelatorio += "• Km Final: " + kmFinal.toFixed(1) + " km\n";
-            textoRelatorio += "• Total Percorrido: " + distancia.toFixed(2) + " km\n";
-            textoRelatorio += "----------------------------------------\n";
-            textoRelatorio += "Enviado via AgroRotas PWA";
-
-            const urlWhatsapp = "https://api.whatsapp.com/send?text=" + encodeURIComponent(textoRelatorio);
-            window.open(urlWhatsapp, '_blank');
-        }
-    </script>
-
-    <div style="padding: 10px 0;">
-      <button onclick="gerarRelatorioGestor()" style="background: #28a745; color: white; border: none; padding: 14px 20px; font-size: 16px; border-radius: 8px; cursor: pointer; width: 100%; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-        📄 Gerar Relatório para o Gestor
-      </button>
-    </div>
-
-</body>
-</html>
+            let textoRelatorio = "📊 *RELATÓRIO DE ROTAS E FROTA - AG
