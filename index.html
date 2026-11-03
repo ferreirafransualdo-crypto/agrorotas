@@ -266,7 +266,7 @@
             startTime: null,
             elapsedSeconds: 0,
             distanceKm: 0,
-            lastCoords: null, // {lat, lng}
+            lastCoords: null,
             gpsPoints: 0
         };
 
@@ -672,39 +672,44 @@
         }
 
         function hideAlert() {
-            document.getElementById('alertBox').classList.add('hidden');
+            document.getElementById('alertBox'].classList.add('hidden');
         }
 
-        // --- FUNÇÃO PARA GERAR RELATÓRIO DO GESTOR NO WHATSAPP ---
+        // --- FUNÇÃO PARA GERAR RELATÓRIO DO GESTOR NO WHATSAPP (ROBUSTA) ---
         function gerarRelatorioGestor() {
-            const colabEl = document.getElementById('inputColaborador');
-            const fleetEl = document.getElementById('inputFleet');
-            const kmStartEl = document.getElementById('inputKmStart');
-
             let nome = 'Não informado';
+            let frota = 'Não informado';
+            let kmInicial = 0;
+            let distancia = 0;
+
+            // 1. Tenta buscar da rota ativa em andamento
             if (activeRoute && activeRoute.colaborador) {
                 nome = activeRoute.colaborador;
-            } else if (colabEl && colabEl.value) {
-                nome = colabEl.value;
+                frota = activeRoute.fleet || 'Não informado';
+                kmInicial = activeRoute.kmStart || 0;
+                distancia = activeRoute.distanceKm || 0;
+            } else {
+                // 2. Se não houver rota ativa, busca a última rota guardada no histórico
+                const history = getSavedHistory();
+                if (history.length > 0) {
+                    const ultimaRota = history[0];
+                    nome = ultimaRota.colaborador || 'Não informado';
+                    frota = ultimaRota.fleet || 'Não informado';
+                    kmInicial = ultimaRota.kmStart || 0;
+                    distancia = ultimaRota.distanceKm || 0;
+                } else {
+                    // 3. Se não houver histórico, tenta ler diretamente do formulário inicial visível
+                    const colabEl = document.getElementById('inputColaborador');
+                    const fleetEl = document.getElementById('inputFleet');
+                    const kmStartEl = document.getElementById('inputKmStart');
+
+                    if (colabEl && colabEl.value) nome = colabEl.value;
+                    if (fleetEl && fleetEl.value) frota = fleetEl.value;
+                    if (kmStartEl && kmStartEl.value) kmInicial = Number(kmStartEl.value);
+                }
             }
 
-            let frota = 'Não informado';
-            if (activeRoute && activeRoute.fleet) {
-                frota = activeRoute.fleet;
-            } else if (fleetEl && fleetEl.value) {
-                frota = fleetEl.value;
-            }
-
-            let kmInicial = 0;
-            if (activeRoute && activeRoute.kmStart) {
-                kmInicial = activeRoute.kmStart;
-            } else if (kmStartEl && kmStartEl.value) {
-                kmInicial = Number(kmStartEl.value);
-            }
-            
-            let distancia = (activeRoute && activeRoute.distanceKm) ? activeRoute.distanceKm : 0;
             let kmFinal = kmInicial + distancia;
-
             const dataHoje = new Date().toLocaleDateString('pt-BR');
 
             let textoRelatorio = "📊 *RELATÓRIO DE ROTAS E FROTA - AGRO*\n";
