@@ -680,13 +680,13 @@
         function hideAlert() {
             document.getElementById('alertBox').classList.add('hidden');
         }
+function escapeHtml(str) {
+        return String(str).replace(/[&<>"]/g, function(m) {
+            return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m];
+        });
+    }
 
-        function escapeHtml(str) {
-            return String(str).replace(/[&<>"']/g, function(m) {
-                return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m];
-            });
-        }
-// Função para gerar o relatório para o gestor
+    // Função para gerar o relatório para o gestor
     function gerarRelatorioGestor() {
       const nome = document.getElementById('nomeOperador') ? document.getElementById('nomeOperador').value : 'Não informado';
       const matricula = document.getElementById('matricula') ? document.getElementById('matricula').value : 'Não informada';
@@ -705,3 +705,4 @@
 
 </body>
 </html>
+       
