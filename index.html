@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Rotas Agro & Logística - Rastreamento GPS</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -112,7 +112,7 @@
             </form>
         </section>
 
-        <!-- TELA 2: PAINEL DE MANOBRAS E RASTREAMENTO -->
+        <!-- TELA 2: PAINEL DE MANOBRAS -->
         <div id="appPanel" class="hidden space-y-4">
 
             <div class="bg-slate-800/90 border border-slate-700 rounded-xl p-3 flex justify-between items-center text-xs">
@@ -281,85 +281,92 @@
 
     </main>
 
-    <!-- MODAL DO RELATÓRIO VISUAL -->
+    <!-- MODAL DO RELATÓRIO VISUAL (ADAPTADO PERFEITAMENTE PARA TELA DO IPHONE) -->
     <div id="modalRelatorioVisual" class="fixed inset-0 bg-slate-950/95 backdrop-blur-md z-50 hidden flex flex-col items-center justify-start p-2 sm:p-4 overflow-y-auto">
-        <div class="w-full max-w-xl flex justify-between items-center mb-3 text-white">
+        <div class="w-full max-w-lg flex justify-between items-center mb-3 text-white">
             <span class="text-sm font-bold flex items-center gap-2 text-emerald-400"><i class="fa-solid fa-circle-check"></i> Relatório Pronto</span>
             <button type="button" onclick="fecharModalVisual()" class="text-slate-300 hover:text-white bg-slate-800 px-3 py-1.5 rounded-lg text-xs cursor-pointer font-bold"><i class="fa-solid fa-xmark mr-1"></i> Fechar</button>
         </div>
 
-        <!-- CARTÃO COM LARGURA FIXA 700PX -->
-        <div id="reportCardToImage" style="width: 700px; background-color: #f8fafc; color: #0f172a;" class="rounded-2xl overflow-hidden shadow-2xl font-sans border-4 border-slate-800">
-            
-            <div style="background: linear-gradient(135deg, #090d16 0%, #1e293b 100%); color: #ffffff;" class="p-6 border-b-4 border-emerald-600 flex justify-between items-center">
-                <div class="flex items-center gap-4">
-                    <div style="background: #ffffff; color: #090d16;" class="w-14 h-14 rounded-2xl flex items-center justify-center font-black text-2xl shadow-lg">
-                        <i class="fa-solid fa-triangle-exclamation"></i>
+        <!-- CONTAINER RESPONSIVO (Encaixa 100% na tela do iPhone) -->
+        <div class="w-full max-w-lg overflow-x-auto rounded-2xl shadow-2xl">
+            <div id="reportCardToImage" style="width: 100%; min-width: 340px; background-color: #f8fafc; color: #0f172a;" class="rounded-2xl overflow-hidden font-sans border-2 border-slate-700">
+                
+                <!-- Cabeçalho idêntico à foto -->
+                <div style="background: linear-gradient(135deg, #090d16 0%, #1e293b 100%); color: #ffffff;" class="p-4 sm:p-5 border-b-4 border-emerald-600 flex justify-between items-center">
+                    <div class="flex items-center gap-3">
+                        <div style="background: #ffffff; color: #090d16;" class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center font-black text-xl shadow-lg">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-lg sm:text-xl font-black tracking-wider text-white leading-tight">Delta <span class="text-[10px] font-normal text-slate-300 block -mt-1">Sucroenergia</span></h2>
+                        </div>
                     </div>
-                    <div>
-                        <h2 class="text-2xl font-black tracking-wider text-white">Delta <span class="text-xs font-normal text-slate-300 block">Sucroenergia</span></h2>
+                    <div class="text-right">
+                        <h1 class="text-base sm:text-lg font-black tracking-tight text-white leading-tight">RELATÓRIO DE ROTAS</h1>
+                        <div class="text-[10px] text-emerald-400 font-bold tracking-widest uppercase mt-0.5"><i class="fa-solid fa-route"></i> Campo & Logística</div>
                     </div>
                 </div>
-                <div class="text-right">
-                    <h1 class="text-2xl font-black tracking-tight text-white">RELATÓRIO DE ROTAS</h1>
-                    <div class="text-xs text-emerald-400 font-bold tracking-widest uppercase mt-0.5"><i class="fa-solid fa-route"></i> Campo & Logística</div>
+
+                <!-- Dados principais -->
+                <div style="background: #e2e8f0; color: #0f172a;" class="grid grid-cols-3 gap-1 p-2 sm:p-3 text-center font-bold">
+                    <div style="background: #ffffff;" class="p-2 rounded-xl shadow-sm">
+                        <span style="color: #64748b;" class="text-[9px] sm:text-[10px] uppercase block font-extrabold">Data</span>
+                        <span id="imgReportDate" style="color: #0f172a;" class="text-xs sm:text-sm font-black">03/11/2026</span>
+                    </div>
+                    <div style="background: #ffffff;" class="p-2 rounded-xl shadow-sm">
+                        <span style="color: #64748b;" class="text-[9px] sm:text-[10px] uppercase block font-extrabold">Colaborador</span>
+                        <span id="imgReportCollab" style="color: #0f172a;" class="text-xs sm:text-sm font-black truncate block">---</span>
+                    </div>
+                    <div style="background: #ffffff;" class="p-2 rounded-xl shadow-sm">
+                        <span style="color: #64748b;" class="text-[9px] sm:text-[10px] uppercase block font-extrabold">Frota</span>
+                        <span id="imgReportFleet" style="color: #0f172a;" class="text-xs sm:text-sm font-black truncate block">---</span>
+                    </div>
                 </div>
+
+                <!-- Lista de Rotas -->
+                <div id="imgRoutesContainer" style="background: #f1f5f9;" class="p-3 sm:p-4 space-y-2.5 max-h-[50vh] overflow-y-auto"></div>
+
+                <!-- Resumo do Dia -->
+                <div style="background: #090d16; color: #ffffff;" class="p-4 border-t-4 border-slate-800 space-y-2.5">
+                    <div class="text-[11px] font-black uppercase tracking-widest text-emerald-400 flex items-center gap-2 border-b border-slate-800 pb-1.5">
+                        <i class="fa-solid fa-chart-pie"></i> RESUMO DO DIA
+                    </div>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
+                        <div style="background: #1e293b;" class="p-2 sm:p-2.5 rounded-xl border border-slate-700">
+                            <span class="text-[9px] text-slate-400 uppercase block font-bold">Total Rotas</span>
+                            <span id="imgSumTotalRotas" class="text-sm sm:text-base font-black text-white">0</span>
+                        </div>
+                        <div style="background: #1e293b;" class="p-2 sm:p-2.5 rounded-xl border border-slate-700">
+                            <span class="text-[9px] text-slate-400 uppercase block font-bold">Total KM</span>
+                            <span id="imgSumTotalKm" class="text-sm sm:text-base font-black text-emerald-400">0.00 km</span>
+                        </div>
+                        <div style="background: #1e293b;" class="p-2 sm:p-2.5 rounded-xl border border-slate-700">
+                            <span class="text-[9px] text-slate-400 uppercase block font-bold">1ª Saída</span>
+                            <span id="imgSumPrimeiraSaida" class="text-xs font-bold text-white">--:--</span>
+                        </div>
+                        <div style="background: #1e293b;" class="p-2 sm:p-2.5 rounded-xl border border-slate-700">
+                            <span class="text-[9px] text-slate-400 uppercase block font-bold">Última Chegada</span>
+                            <span id="imgSumUltimaChegada" class="text-xs font-bold text-white">--:--</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Rodapé -->
+                <div style="background: #0f172a; color: #94a3b8;" class="p-2.5 text-center text-[10px] sm:text-xs font-bold flex items-center justify-center gap-2 border-t border-slate-800">
+                    <i class="fa-solid fa-circle-check text-emerald-400"></i> Enviado via AgroRotas PWA
+                </div>
+
             </div>
-
-            <div style="background: #e2e8f0; color: #0f172a;" class="grid grid-cols-3 gap-1 p-3 text-center font-bold">
-                <div style="background: #ffffff;" class="p-2.5 rounded-xl shadow-sm">
-                    <span style="color: #64748b;" class="text-[10px] uppercase block font-extrabold">Data do Relatório</span>
-                    <span id="imgReportDate" style="color: #0f172a;" class="text-sm font-black">03/11/2026</span>
-                </div>
-                <div style="background: #ffffff;" class="p-2.5 rounded-xl shadow-sm">
-                    <span style="color: #64748b;" class="text-[10px] uppercase block font-extrabold">Colaborador</span>
-                    <span id="imgReportCollab" style="color: #0f172a;" class="text-sm font-black">---</span>
-                </div>
-                <div style="background: #ffffff;" class="p-2.5 rounded-xl shadow-sm">
-                    <span style="color: #64748b;" class="text-[10px] uppercase block font-extrabold">Frota</span>
-                    <span id="imgReportFleet" style="color: #0f172a;" class="text-sm font-black">---</span>
-                </div>
-            </div>
-
-            <div id="imgRoutesContainer" style="background: #f1f5f9;" class="p-4 space-y-3 max-h-[55vh] overflow-y-auto"></div>
-
-            <div style="background: #090d16; color: #ffffff;" class="p-5 border-t-4 border-slate-800 space-y-3">
-                <div class="text-xs font-black uppercase tracking-widest text-emerald-400 flex items-center gap-2 border-b border-slate-800 pb-2">
-                    <i class="fa-solid fa-chart-pie"></i> RESUMO DO DIA
-                </div>
-                <div class="grid grid-cols-4 gap-2 text-center">
-                    <div style="background: #1e293b;" class="p-3 rounded-xl border border-slate-700">
-                        <span class="text-[10px] text-slate-400 uppercase block font-bold">Total de Rotas</span>
-                        <span id="imgSumTotalRotas" class="text-lg font-black text-white">0</span>
-                    </div>
-                    <div style="background: #1e293b;" class="p-3 rounded-xl border border-slate-700">
-                        <span class="text-[10px] text-slate-400 uppercase block font-bold">Total Percorrido</span>
-                        <span id="imgSumTotalKm" class="text-lg font-black text-emerald-400">0.00 km</span>
-                    </div>
-                    <div style="background: #1e293b;" class="p-3 rounded-xl border border-slate-700">
-                        <span class="text-[10px] text-slate-400 uppercase block font-bold">Primeira Saída</span>
-                        <span id="imgSumPrimeiraSaida" class="text-xs font-bold text-white">--:--</span>
-                    </div>
-                    <div style="background: #1e293b;" class="p-3 rounded-xl border border-slate-700">
-                        <span class="text-[10px] text-slate-400 uppercase block font-bold">Última Chegada</span>
-                        <span id="imgSumUltimaChegada" class="text-xs font-bold text-white">--:--</span>
-                    </div>
-                </div>
-            </div>
-
-            <div style="background: #0f172a; color: #94a3b8;" class="p-3 text-center text-xs font-bold flex items-center justify-center gap-2 border-t border-slate-800">
-                <i class="fa-solid fa-circle-check text-emerald-400"></i> Enviado via AgroRotas PWA
-            </div>
-
         </div>
 
-        <!-- Botões Corrigidos para Celular / WhatsApp -->
-        <div class="w-full max-w-xl grid grid-cols-2 gap-3 mt-4 pb-4">
-            <button type="button" onclick="baixarImagemPronta()" class="py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white font-black rounded-xl text-xs sm:text-sm flex items-center justify-center gap-2 cursor-pointer shadow-xl">
+        <!-- Botões de Ação para Celular -->
+        <div class="w-full max-w-lg grid grid-cols-2 gap-3 mt-3 pb-4">
+            <button type="button" onclick="baixarImagemPronta()" class="py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-black rounded-xl text-xs sm:text-sm flex items-center justify-center gap-2 cursor-pointer shadow-xl">
                 <i class="fa-solid fa-download text-base"></i> Baixar Imagem (PNG)
             </button>
-            <button type="button" onclick="partilharImagemDireta()" class="py-3.5 bg-green-600 hover:bg-green-500 text-white font-black rounded-xl text-xs sm:text-sm flex items-center justify-center gap-2 cursor-pointer shadow-xl">
-                <i class="fa-brands fa-whatsapp text-lg"></i> Enviar Imagem ao Gestor
+            <button type="button" onclick="partilharImagemDireta()" class="py-3 bg-green-600 hover:bg-green-500 text-white font-black rounded-xl text-xs sm:text-sm flex items-center justify-center gap-2 cursor-pointer shadow-xl">
+                <i class="fa-brands fa-whatsapp text-lg"></i> Enviar ao Gestor
             </button>
         </div>
     </div>
@@ -388,7 +395,7 @@
     </div>
 
     <footer class="max-w-3xl mx-auto w-full px-4 text-center text-xs text-slate-500 mt-6">
-        <p>AgroRota GPS v4.3 - Download Otimizado</p>
+        <p>AgroRota GPS v4.4 - Encaixe Perfeito no iPhone</p>
     </footer>
 
     <!-- SCRIPT DA APLICAÇÃO -->
@@ -888,27 +895,27 @@
 
                 htmlRotas += `
                     <div style="background: #ffffff; border: 1px solid #cbd5e1;" class="rounded-xl overflow-hidden shadow-sm">
-                        <div style="background: #0f172a; color: #ffffff;" class="px-4 py-2 flex justify-between items-center font-bold text-xs">
+                        <div style="background: #0f172a; color: #ffffff;" class="px-3 py-1.5 flex justify-between items-center font-bold text-xs">
                             <span><i class="fa-solid fa-route text-emerald-400 mr-1"></i> Rota #${index + 1}</span>
                             <span class="text-emerald-400">Concluída</span>
                         </div>
-                        <div class="p-3.5 grid grid-cols-3 gap-2 items-center text-xs">
+                        <div class="p-2.5 sm:p-3 grid grid-cols-3 gap-1.5 items-center text-xs">
                             <div>
-                                <span style="color: #64748b;" class="text-[10px] uppercase block font-extrabold">Manobra</span>
-                                <span style="color: #0f172a;" class="font-black text-sm">${escapeHtml(r.destination)}</span>
+                                <span style="color: #64748b;" class="text-[9px] uppercase block font-extrabold">Manobra</span>
+                                <span style="color: #0f172a;" class="font-black text-xs sm:text-sm truncate block">${escapeHtml(r.destination)}</span>
                             </div>
                             <div>
-                                <span style="color: #64748b;" class="text-[10px] uppercase block font-extrabold">Horários</span>
-                                <span style="color: #334155;" class="font-semibold">Saída: ${dtInicio}<br>Chegada: ${dtFim}</span>
+                                <span style="color: #64748b;" class="text-[9px] uppercase block font-extrabold">Horários</span>
+                                <span style="color: #334155;" class="font-semibold text-[11px]">S: ${dtInicio}<br>C: ${dtFim}</span>
                             </div>
                             <div>
-                                <span style="color: #64748b;" class="text-[10px] uppercase block font-extrabold">Quilometragem</span>
-                                <span style="color: #334155;" class="font-semibold">Ini: ${(r.kmStart || 0).toFixed(1)} km<br>Fin: ${(r.kmEnd || 0).toFixed(1)} km</span>
+                                <span style="color: #64748b;" class="text-[9px] uppercase block font-extrabold">Quilometragem</span>
+                                <span style="color: #334155;" class="font-semibold text-[11px]">Ini: ${(r.kmStart || 0).toFixed(1)}<br>Fin: ${(r.kmEnd || 0).toFixed(1)}</span>
                             </div>
                         </div>
-                        <div style="background: #f8fafc; border-top: 1px solid #e2e8f0;" class="px-4 py-2.5 flex justify-between items-center">
-                            <span style="color: #475569;" class="text-xs font-bold uppercase">Total Percorrido:</span>
-                            <span style="color: #2563eb;" class="text-base font-black">${dist.toFixed(2)} km</span>
+                        <div style="background: #f8fafc; border-top: 1px solid #e2e8f0;" class="px-3 py-2 flex justify-between items-center">
+                            <span style="color: #475569;" class="text-[11px] font-bold uppercase">Total Percorrido:</span>
+                            <span style="color: #2563eb;" class="text-sm sm:text-base font-black">${dist.toFixed(2)} km</span>
                         </div>
                     </div>
                 `;
@@ -931,21 +938,18 @@
             document.getElementById('modalRelatorioVisual').classList.add('hidden');
         }
 
-        // Função robusta de download compatível com celular
+        // Função de captura otimizada para iPhone
         function baixarImagemPronta() {
             const card = document.getElementById('reportCardToImage');
             showAlert('Processando imagem...', 'info');
 
             html2canvas(card, { 
-                scale: 2, 
+                scale: 3, 
                 useCORS: true,
-                backgroundColor: '#ffffff',
-                width: 700,
-                windowWidth: 700
+                backgroundColor: '#ffffff'
             }).then(canvas => {
                 const dataUrl = canvas.toDataURL('image/png');
                 
-                // Método alternativo compatível com mobile
                 const link = document.createElement('a');
                 link.href = dataUrl;
                 link.download = `Relatorio_Rotas_${new Date().toISOString().slice(0,10)}.png`;
@@ -953,23 +957,21 @@
                 link.click();
                 document.body.removeChild(link);
 
-                showAlert('Imagem gerada! Verifique seus downloads.', 'success');
+                showAlert('Imagem salva com sucesso!', 'success');
             }).catch(err => {
-                showAlert('Erro ao gerar imagem no dispositivo.', 'error');
+                showAlert('Erro ao gerar imagem.', 'error');
             });
         }
 
-        // Função para partilhar diretamente via WhatsApp no telemóvel
+        // Envio direto via compartilhamento nativo do iOS / Android
         function partilharImagemDireta() {
             const card = document.getElementById('reportCardToImage');
-            showAlert('Preparando imagem para o WhatsApp...', 'info');
+            showAlert('Gerando imagem para WhatsApp...', 'info');
 
             html2canvas(card, { 
-                scale: 2, 
+                scale: 3, 
                 useCORS: true,
-                backgroundColor: '#ffffff',
-                width: 700,
-                windowWidth: 700
+                backgroundColor: '#ffffff'
             }).then(canvas => {
                 canvas.toBlob(blob => {
                     const file = new File([blob], `Relatorio_Rotas.png`, { type: 'image/png' });
@@ -978,12 +980,9 @@
                         navigator.share({
                             files: [file],
                             title: 'Relatório de Rotas - Agro',
-                            text: 'Segue o relatório de rotas e frota do dia.'
-                        }).catch(() => {
-                            showAlert('Partilha cancelada.', 'info');
-                        });
+                            text: 'Segue o relatório de rotas do dia.'
+                        }).catch(() => {});
                     } else {
-                        // Se o navegador não suportar partilha direta de ficheiro, abre o WhatsApp com texto
                         gerarRelatorioGestor();
                     }
                 });
