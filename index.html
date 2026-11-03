@@ -212,10 +212,10 @@
     </div>
 
     <footer class="max-w-3xl mx-auto w-full px-4 text-center text-xs text-slate-500 mt-6">
-        <p>AgroRota GPS v1.6</p>
+        <p>AgroRota GPS v1.7</p>
     </footer>
 
-    <!-- SCRIPT DA APLICAÇÃO -->
+    <!-- SCRIPT DA APLICAÇÃO BLINDADO -->
     <script>
         let watchId = null;
         let timerInterval = null;
@@ -236,7 +236,11 @@
         };
 
         window.onload = function() {
-            loadHistory();
+            try {
+                loadHistory();
+            } catch (e) {
+                localStorage.removeItem('agro_routes_history');
+            }
         };
 
         function calculateHaversineDistance(lat1, lon1, lat2, lon2) {
@@ -361,21 +365,63 @@
         }
 
         function stopTracking() {
-            if (watchId !== null) {
-                navigator.geolocation.clearWatch(watchId);
-                watchId = null;
+            try {
+                if (watchId !== null) {
+                    navigator.geolocation.clearWatch(watchId);
+                    watchId = null;
+                }
+                clearInterval(timerInterval);
+                if (isSimulating) toggleSimulatedMotion();
+
+                const endTime = new Date().toISOString();
+                const kmFinal = activeRoute.kmStart + activeRoute.distanceKm;
+
+                const routeRecord = {
+                    id: Date.now(),
+                    colaborador: activeRoute.colaborador,
+                    fleet: activeRoute.fleet,
+                    kmStart: activeRoute.kmStart,
+                    kmEnd: kmFinal,
+                    distanceKm: activeRoute.distanceKm,
+                    destination: activeRoute.destination,
+                    notes: activeRoute.notes,
+                    startTime: activeRoute.startTime,
+                    endTime: endTime,
+                    durationSeconds: activeRoute.elapsedSeconds,
+                    gpsPoints: activeRoute.gpsPoints
+                };
+
+                const history = getSavedHistory();
+                history.unshift(routeRecord);
+                localStorage.setItem('agro_routes_history', JSON.stringify(history));
+
+                activeRoute = { colaborador: '', fleet: '', kmStart: 0, destination: '', notes: '', startTime: null, elapsedSeconds: 0, distanceKm: 0, lastCoords: null, gpsPoints: 0 };
+
+                document.getElementById('activeSection').classList.add('hidden');
+                document.getElementById('formSection').classList.remove('hidden');
+                document.getElementById('startRouteForm').reset();
+                updateGpsStatus(false, "GPS Desconectado");
+
+                loadHistory();
+                showAlert('Rota encerrada e salva com sucesso!', 'success');
+            } catch(e) {
+                showAlert('Erro ao encerrar rota.', 'error');
             }
-            clearInterval(timerInterval);
-            if (isSimulating) toggleSimulatedMotion();
+        }
 
-            const endTime = new Date().toISOString();
-            const kmFinal = activeRoute.kmStart + activeRoute.distanceKm;
+        function getSavedHistory() {
+            try {
+                const data = localStorage.getItem('agro_routes_history');
+                return data ? JSON.parse(data) : [];
+            } catch (e) {
+                return [];
+            }
+        }
 
-            const routeRecord = {
-                id: Date.now(),
-                colaborador: activeRoute.colaborador,
-                fleet: activeRoute.fleet,
-                kmStart: activeRoute.kmStart,
-                kmEnd: kmFinal,
-                distanceKm: activeRoute.distanceKm,
-                destination: activeRoute.destination
+        function loadHistory() {
+            try {
+                const history = getSavedHistory();
+                const listEl = document.getElementById('historyList');
+                if (!listEl) return;
+                if (history.length === 0) {
+                    listEl.
