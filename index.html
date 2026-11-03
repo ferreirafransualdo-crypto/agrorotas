@@ -205,15 +205,15 @@
             </div>
         </section>
 
-        <!-- CARD 3: Histórico -->
+        <!-- CARD 3: Pastas de Histórico por Data -->
         <section class="card-agro space-y-4">
             <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-700 pb-3">
                 <h3 class="text-lg font-bold text-slate-200 flex items-center gap-2">
-                    <i class="fa-solid fa-clock-rotate-left text-blue-400"></i> Histórico de Rotas
+                    <i class="fa-solid fa-folder-open text-amber-400"></i> Pastas de Manobras Realizadas
                 </h3>
                 <div class="flex gap-2">
                     <button type="button" onclick="exportToCSV()" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-xs font-semibold rounded-lg text-slate-200 transition cursor-pointer">Exportar CSV</button>
-                    <button type="button" onclick="clearHistory()" class="px-3 py-1.5 bg-slate-700/60 hover:bg-red-900/40 text-xs font-semibold rounded-lg text-slate-400 hover:text-red-300 transition cursor-pointer">Limpar</button>
+                    <button type="button" onclick="clearHistory()" class="px-3 py-1.5 bg-slate-700/60 hover:bg-red-900/40 text-xs font-semibold rounded-lg text-slate-400 hover:text-red-300 transition cursor-pointer">Limpar Tudo</button>
                 </div>
             </div>
             <div id="historyList" class="space-y-3"></div>
@@ -224,12 +224,12 @@
     <!-- Botão de Relatório WhatsApp -->
     <div class="max-w-3xl mx-auto w-full px-4 mt-4">
       <button type="button" onclick="gerarRelatorioGestor()" class="btn-agro shadow-lg text-base cursor-pointer" style="background-color: #16a34a;">
-        <i class="fa-brands fa-whatsapp text-xl"></i> Gerar Relatório para o Gestor
+        <i class="fa-brands fa-whatsapp text-xl"></i> Gerar Relatório do Dia para o Gestor
       </button>
     </div>
 
     <footer class="max-w-3xl mx-auto w-full px-4 text-center text-xs text-slate-500 mt-6">
-        <p>AgroRota GPS v3.1</p>
+        <p>AgroRota GPS v3.2</p>
     </footer>
 
     <!-- SCRIPT DA APLICAÇÃO -->
@@ -239,6 +239,9 @@
         let simInterval = null;
         let isSimulating = false;
         let isPaused = false;
+
+        // Armazena quais pastas (datas) estão abertas no momento
+        let pastasAbertas = {};
 
         let activeRoute = {
             colaborador: '',
@@ -273,7 +276,6 @@
             }
         }
 
-        // Sistema de Segurança por Senha (PIN) por Colaborador
         function aoMudarColaborador() {
             const colab = document.getElementById('inputColaborador').value;
             if (!colab) return;
@@ -281,7 +283,6 @@
             const senhaSalva = localStorage.getItem(`agro_pin_${colab}`);
 
             if (!senhaSalva) {
-                // Se o colaborador ainda não tem senha cadastrada, cadastra agora
                 const novaSenha = prompt(`Primeiro acesso de ${colab}. Defina uma senha (PIN) de 4 dígitos para proteger seu acesso:`);
                 if (novaSenha && novaSenha.trim().length >= 3) {
                     localStorage.setItem(`agro_pin_${colab}`, novaSenha.trim());
@@ -292,7 +293,6 @@
                     return;
                 }
             } else {
-                // Se já tem senha, solicita a confirmação para liberar o uso
                 const senhaDigitada = prompt(`Digite a senha (PIN) para acessar o perfil de ${colab}:`);
                 if (senhaDigitada !== senhaSalva) {
                     alert('Senha incorreta! Acesso negado.');
@@ -303,7 +303,6 @@
                 }
             }
             
-            // Carrega os dados específicos deste colaborador
             const frotaSalva = localStorage.getItem(`agro_fleet_${colab}`);
             if (frotaSalva) {
                 document.getElementById('inputFleet').value = frotaSalva;
@@ -411,6 +410,11 @@
                 loadHistory();
                 showAlert('Destino do histórico atualizado com sucesso!', 'success');
             }
+        }
+
+        function togglePasta(dataStr) {
+            pastasAbertas[dataStr] = !pastasAbertas[dataStr];
+            loadHistory();
         }
 
         function togglePauseTracking() {
@@ -630,29 +634,85 @@
             }
         }
 
+        // Agrupa as rotas em "Pastas" organizadas por Data
         function loadHistory() {
             try {
                 const history = getSavedHistory();
                 const listEl = document.getElementById('historyList');
                 if (!listEl) return;
+                
                 if (history.length === 0) {
                     listEl.innerHTML = `<div class="text-center py-6 text-slate-500 text-sm">Nenhuma rota registrada.</div>`;
                     return;
                 }
-                listEl.innerHTML = history.map(item => `
-                    <div class="bg-slate-900 border border-slate-700/80 rounded-xl p-3 text-xs space-y-2">
-                        <div class="flex justify-between items-center font-bold text-white">
-                            <span>🚗 ${escapeHtml(item.fleet)} - ${escapeHtml(item.destination)}</span>
-                            <div class="flex items-center gap-2">
-                                <button type="button" onclick="editarDestinoHistorico(${item.id})" class="text-xs bg-slate-800 hover:bg-slate-700 text-agro-400 px-2 py-1 rounded border border-slate-700 cursor-pointer" title="Editar Destino">
-                                    <i class="fa-solid fa-pen"></i> Editar
-                                </button>
-                                <span class="text-agro-400">${(item.distanceKm || 0).toFixed(2)} KM</span>
+
+                // Agrupa por data (DD/MM/AAAA)
+                let gruposPorData = {};
+                history.forEach(item => {
+                    const dataObj = item.startTime ? new Date(item.startTime) : new Date();
+                    const dataStr = dataObj.toLocaleDateString('pt-BR');
+                    if (!gruposPorData[dataStr]) {
+                        gruposPorData[dataStr] = [];
+                    }
+                    gruposPorData[dataStr].push(item);
+                });
+
+                let htmlFinal = "";
+
+                // Percorre cada data para montar a "pasta"
+                for (const [dataStr, rotasDoDia] of Object.entries(gruposPorData)) {
+                    // Ordena as rotas do dia por horário
+                    rotasDoDia.sort((a, b) => new Date(a.startTime) - new Date(b.startTime));
+                    
+                    const isOpen = pastasAbertas[dataStr] !== undefined ? pastasAbertas[dataStr] : true; // Aberto por padrão
+                    const totalKmDia = rotasDoDia.reduce((acc, r) => acc + (r.distanceKm || 0), 0);
+
+                    htmlFinal += `
+                        <div class="bg-slate-900 border border-slate-700 rounded-xl overflow-hidden mb-3">
+                            <!-- Cabeçalho da Pasta (Abrir / Fechar) -->
+                            <div onclick="togglePasta('${dataStr}')" class="bg-slate-800/90 p-3.5 flex justify-between items-center cursor-pointer hover:bg-slate-800 transition">
+                                <div class="flex items-center gap-2 font-bold text-white text-sm">
+                                    <i class="fa-solid ${isOpen ? 'fa-folder-open text-amber-400' : 'fa-folder text-amber-500'}"></i>
+                                    <span>Data: ${dataStr}</span>
+                                    <span class="text-xs bg-slate-700 text-slate-300 px-2 py-0.5 rounded-full">${rotasDoDia.length} rota(s)</span>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <span class="text-xs font-bold text-agro-400">${totalKmDia.toFixed(2)} KM total</span>
+                                    <i class="fa-solid fa-chevron-${isOpen ? 'up' : 'down'} text-slate-400 text-xs"></i>
+                                </div>
                             </div>
-                        </div>
-                        <div class="text-slate-400">Colaborador: ${escapeHtml(item.colaborador)} | KM Final: ${(item.kmEnd || 0).toFixed(1)}</div>
-                    </div>
-                `).join('');
+
+                            <!-- Conteúdo da Pasta (Lista de Rotas do Dia) -->
+                            <div class="${isOpen ? 'block' : 'hidden'} p-3 space-y-2 border-t border-slate-800">
+                    `;
+
+                    rotasDoDia.forEach((item, index) => {
+                        const dtInicio = item.startTime ? new Date(item.startTime).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '--:--';
+                        const dtFim = item.endTime ? new Date(item.endTime).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '--:--';
+
+                        htmlFinal += `
+                            <div class="bg-slate-950/60 border border-slate-800 rounded-lg p-2.5 text-xs space-y-1">
+                                <div class="flex justify-between items-center font-bold text-white">
+                                    <span>🚗 Rota #${index + 1} (${escapeHtml(item.fleet)}) - ${escapeHtml(item.destination)}</span>
+                                    <div class="flex items-center gap-2">
+                                        <button type="button" onclick="editarDestinoHistorico(${item.id})" class="text-xs bg-slate-800 hover:bg-slate-700 text-agro-400 px-2 py-1 rounded border border-slate-700 cursor-pointer" title="Editar Destino">
+                                            <i class="fa-solid fa-pen"></i> Editar
+                                        </button>
+                                        <span class="text-agro-400">${(item.distanceKm || 0).toFixed(2)} KM</span>
+                                    </div>
+                                </div>
+                                <div class="text-slate-400 flex justify-between">
+                                    <span>Colaborador: ${escapeHtml(item.colaborador)}</span>
+                                    <span>🕒 ${dtInicio} às ${dtFim} | KM Final: ${(item.kmEnd || 0).toFixed(1)}</span>
+                                </div>
+                            </div>
+                        `;
+                    });
+
+                    htmlFinal += `</div></div>`;
+                }
+
+                listEl.innerHTML = htmlFinal;
 
                 const colabSel = document.getElementById('inputColaborador').value;
                 if (colabSel) atualizarDatalistManobras(colabSel);
@@ -660,7 +720,7 @@
         }
 
         function clearHistory() {
-            if (confirm("Apagar histórico?")) {
+            if (confirm("Apagar todo o histórico?")) {
                 localStorage.removeItem('agro_routes_history');
                 loadHistory();
             }
@@ -670,15 +730,16 @@
             try {
                 const history = getSavedHistory();
                 if (history.length === 0) return showAlert('Sem dados para exportar.', 'error');
-                let csv = 'Colaborador;Frota;Destino;KM Inicial;KM Final;Distancia (KM)\n';
+                let csv = 'Data;Colaborador;Frota;Destino;KM Inicial;KM Final;Distancia (KM)\n';
                 history.forEach(r => {
-                    csv += `"${r.colaborador}";"${r.fleet}";"${r.destination}";"${r.kmStart.toFixed(1)}";"${r.kmEnd.toFixed(1)}";"${r.distanceKm.toFixed(2)}"\n`;
+                    const dataStr = r.startTime ? new Date(r.startTime).toLocaleDateString('pt-BR') : '';
+                    csv += `"${dataStr}";"${r.colaborador}";"${r.fleet}";"${r.destination}";"${r.kmStart.toFixed(1)}";"${r.kmEnd.toFixed(1)}";"${r.distanceKm.toFixed(2)}"\n`;
                 });
                 const blob = new Blob(["\ufeff" + csv], { type: 'text/csv;charset=utf-8;' });
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = `historico_${new Date().toISOString().slice(0,10)}.csv`;
+                a.download = `historico_geral_${new Date().toISOString().slice(0,10)}.csv`;
                 a.click();
             } catch (e) {}
         }
@@ -723,7 +784,7 @@
             if (box) box.classList.add('hidden');
         }
 
-        // --- RELATÓRIO DO GESTOR ORDENADO DO MAIS ANTIGO PARA O MAIS RECENTE ---
+        // --- RELATÓRIO DO GESTOR APENAS COM AS ROTAS DO DIA ATUAL OU DA DATA MAIS RECENTE ---
         function gerarRelatorioGestor() {
             try {
                 const history = getSavedHistory();
@@ -733,12 +794,21 @@
                     return;
                 }
 
-                const historyOrdenado = [...history].sort((a, b) => new Date(a.startTime) - new Date(b.startTime));
+                const dataHojeStr = new Date().toLocaleDateString('pt-BR');
 
-                const dataHoje = new Date().toLocaleDateString('pt-BR');
+                // Filtra rotas do dia de hoje (ou pega todas se preferir)
+                const rotasDoDia = history.filter(r => {
+                    const d = r.startTime ? new Date(r.startTime).toLocaleDateString('pt-BR') : '';
+                    return d === dataHojeStr;
+                });
+
+                const rotasParaRelatorio = rotasDoDia.length > 0 ? rotasDoDia : history;
+
+                const historyOrdenado = [...rotasParaRelatorio].sort((a, b) => new Date(a.startTime) - new Date(b.startTime));
+
                 let texto = "📊 *RELATÓRIO DE ROTAS E FROTA - AGRO*\n";
                 texto += "----------------------------------------\n";
-                texto += "📅 *Data do Relatório:* " + dataHoje + "\n";
+                texto += "📅 *Data do Relatório:* " + dataHojeStr + "\n";
                 texto += "📦 *Total de Rotas Realizadas:* " + historyOrdenado.length + "\n";
                 texto += "----------------------------------------\n\n";
 
