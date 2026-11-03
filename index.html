@@ -695,7 +695,7 @@ return String(str).replace(/[&<>"]/g, function(m) {
     }
 
  // Função para gerar o relatório para o gestor
-    function gerarRelatorioGestor() {
+   function gerarRelatorioGestor() {
       const nome = document.getElementById('nomeOperador') ? document.getElementById('nomeOperador').value : 'Não informado';
       const matricula = document.getElementById('matricula') ? document.getElementById('matricula').value : 'Não informada';
       const frota = document.getElementById('frota') ? document.getElementById('frota').value : 'Fiorino';
@@ -704,21 +704,9 @@ return String(str).replace(/[&<>"]/g, function(m) {
       
       const totalKm = (Number(kmFinal) - Number(kmInicial)) || 0;
       
-      const textoRelatorio = `📊 *RELATÓRIO DE ROTAS E FROTA - AGRO*
-----------------------------------------
-👤 *Operador:* ${nome} (Matrícula: ${matricula})
-🚗 *Veículo/Frota:* ${frota}
-📅 *Data:* ${new Date().toLocaleDateString('pt-BR')}
+      const textoRelatorio = "📊 *RELATÓRIO DE ROTAS E FROTA - AGRO*\n----------------------------------------\n👤 *Operador:* " + nome + " (Matrícula: " + matricula + ")\n🚗 *Veículo/Frota:* " + frota + "\n📅 *Data:* " + new Date().toLocaleDateString('pt-BR') + "\n\n📍 *RESUMO DA OPERAÇÃO:*\n• Km Inicial: " + kmInicial + " km\n• Km Final: " + kmFinal + " km\n• Total Percorrido: " + totalKm + " km\n----------------------------------------\nEnviado via AgroRotas PWA";
 
-📍 *RESUMO DA OPERAÇÃO:*
-• Km Inicial: ${kmInicial} km
-• Km Final: ${kmFinal} km
-• Total Percorrido: ${totalKm} km
-
-----------------------------------------
-Enviado via AgroRotas PWA`;
-
-      const urlWhatsapp = `https://api.whatsapp.com/send?text=${encodeURIComponent(textoRelatorio)}`;
+      const urlWhatsapp = "https://api.whatsapp.com/send?text=" + encodeURIComponent(textoRelatorio);
       window.open(urlWhatsapp, '_blank');
     }
 </script>
