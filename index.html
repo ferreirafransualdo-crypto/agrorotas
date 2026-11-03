@@ -252,7 +252,9 @@
                         <i class="fa-solid fa-clock-rotate-left text-blue-400"></i> Histórico de Rotas Recentes
                     </h3>
                     <div class="flex gap-2">
-                        <button type="button" onclick="exportToCSV()" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-xs font-semibold rounded-lg text-slate-200 transition cursor-pointer">Exportar CSV</button>
+                        <button type="button" onclick="exportToCSV()" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-xs font-semibold rounded-lg text-slate-200 transition cursor-pointer flex items-center gap-1">
+                            <i class="fa-solid fa-file-excel text-emerald-400"></i> Exportar CSV/Excel
+                        </button>
                         <button type="button" onclick="clearHistory()" class="px-3 py-1.5 bg-slate-700/60 hover:bg-red-900/40 text-xs font-semibold rounded-lg text-slate-400 hover:text-red-300 transition cursor-pointer">Limpar</button>
                     </div>
                 </div>
@@ -260,10 +262,14 @@
                 <div id="historyList" class="space-y-3"></div>
             </section>
 
-            <!-- Botão de Relatório WhatsApp (Apenas na Segunda Parte / Logado) -->
-            <div class="pt-2">
+            <!-- Botões de Relatório e Fechamento de Turno -->
+            <div class="space-y-2 pt-2">
               <button type="button" onclick="gerarRelatorioGestor()" class="btn-agro shadow-lg text-base cursor-pointer" style="background-color: #16a34a;">
-                <i class="fa-brands fa-whatsapp text-xl"></i> Gerar Relatório do Dia para o Gestor
+                <i class="fa-brands fa-whatsapp text-xl"></i> Gerar Relatório do Dia para o Gestor (WhatsApp)
+              </button>
+              
+              <button type="button" onclick="finalizarEDeixarDiaPronto()" class="w-full py-3 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-xl text-sm transition flex items-center justify-center gap-2 cursor-pointer shadow-lg">
+                <i class="fa-solid fa-box-archive"></i> Finalizar Relatório do Dia & Iniciar Novo Dia
               </button>
             </div>
 
@@ -283,16 +289,19 @@
                 </button>
             </div>
             <div id="modalPastasContent" class="p-4 overflow-y-auto space-y-3 flex-1"></div>
-            <div class="p-3 bg-slate-800/80 border-t border-slate-700 text-center">
+            <div class="p-3 bg-slate-800/80 border-t border-slate-700 text-center flex justify-between items-center">
+                <button type="button" onclick="exportToCSV()" class="px-4 py-2 bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-bold rounded-xl cursor-pointer flex items-center gap-1.5">
+                    <i class="fa-solid fa-download"></i> Baixar Planilha Geral (CSV/Excel)
+                </button>
                 <button type="button" onclick="toggleModalPastas(false)" class="px-5 py-2 bg-slate-700 hover:bg-slate-600 text-white text-xs font-bold rounded-xl cursor-pointer">
-                    Fechar Janela
+                    Fechar
                 </button>
             </div>
         </div>
     </div>
 
     <footer class="max-w-3xl mx-auto w-full px-4 text-center text-xs text-slate-500 mt-6">
-        <p>AgroRota GPS v3.6</p>
+        <p>AgroRota GPS v3.8 - Fechamento de Turno Automatizado</p>
     </footer>
 
     <!-- SCRIPT DA APLICAÇÃO -->
@@ -755,13 +764,40 @@
             } catch (e) {}
         }
 
+        // --- FUNÇÃO DE FECHAMENTO AUTOMÁTICO DE TURNO / VIRADA DE DIA ---
+        function finalizarEDeixarDiaPronto() {
+            if (confirm("Deseja finalizar as demandas de hoje? Elas serão guardadas permanentemente na pasta por data, o histórico recente será limpo e o app ficará pronto para o novo dia.")) {
+                
+                // 1. Exporta automaticamente a planilha do dia para garantir que o usuário tenha o backup
+                exportToCSV();
+
+                // 2. Limpa apenas o histórico visível da tela principal (as demandas do dia anterior),
+                // mas as pastas organizadas por data e os dados de KM final continuam salvos na memória para o próximo dia.
+                const history = getSavedHistory();
+                
+                // Guarda o último KM final registrado para servir de KM inicial automático no dia seguinte
+                if (history.length > 0 && history[0].kmEnd) {
+                    localStorage.setItem('agro_last_km_rollover', history[0].kmEnd);
+                }
+
+                // Limpa o histórico geral ativo da tela principal para zerar as demandas do dia
+                localStorage.removeItem('agro_routes_history');
+
+                // Recarrega os campos da tela (o KM inicial pega o último KM rodado)
+                loadHistory();
+                carregarDadosSessaoColaborador(localStorage.getItem('agro_fixed_colaborador'));
+
+                showAlert('Turno finalizado com sucesso! Demandas arquivadas nas pastas e app pronto para o novo dia.', 'success');
+            }
+        }
+
         function renderizarPastasModal() {
             const contentEl = document.getElementById('modalPastasContent');
             if (!contentEl) return;
 
             const history = getSavedHistory();
             if (history.length === 0) {
-                contentEl.innerHTML = `<div class="text-center py-8 text-slate-500 text-sm">Nenhuma manobra registrada.</div>`;
+                contentEl.innerHTML = `<div class="text-center py-8 text-slate-500 text-sm">Nenhuma manobra registrada no histórico atual.</div>`;
                 return;
             }
 
@@ -825,7 +861,7 @@
         }
 
         function clearHistory() {
-            if (confirm("Apagar todo o histórico?")) {
+            if (confirm("Apagar todo o histórico atual?")) {
                 localStorage.removeItem('agro_routes_history');
                 loadHistory();
                 if(!document.getElementById('modalPastas').classList.contains('hidden')) {
@@ -838,18 +874,29 @@
             try {
                 const history = getSavedHistory();
                 if (history.length === 0) return showAlert('Sem dados para exportar.', 'error');
-                let csv = 'Data;Colaborador;Frota;Destino;KM Inicial;KM Final;Distancia (KM)\n';
+                
+                let csv = 'Data;Horario_Inicio;Horario_Fim;Colaborador;Frota_Veiculo;Manobra_Destino;KM_Inicial;KM_Final;Distancia_Percorrida_KM;Observacoes\n';
+                
                 history.forEach(r => {
                     const dataStr = r.startTime ? new Date(r.startTime).toLocaleDateString('pt-BR') : '';
-                    csv += `"${dataStr}";"${r.colaborador}";"${r.fleet}";"${r.destination}";"${r.kmStart.toFixed(1)}";"${r.kmEnd.toFixed(1)}";"${r.distanceKm.toFixed(2)}"\n`;
+                    const dtInicio = r.startTime ? new Date(r.startTime).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '';
+                    const dtFim = r.endTime ? new Date(r.endTime).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '';
+                    const obs = r.notes ? r.notes.replace(/;/g, ' ') : '';
+                    
+                    csv += `"${dataStr}";"${dtInicio}";"${dtFim}";"${r.colaborador}";"${r.fleet}";"${r.destination}";"${r.kmStart.toFixed(1)}";"${r.kmEnd.toFixed(1)}";"${r.distanceKm.toFixed(2)}";"${obs}"\n`;
                 });
+                
                 const blob = new Blob(["\ufeff" + csv], { type: 'text/csv;charset=utf-8;' });
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = `historico_geral_${new Date().toISOString().slice(0,10)}.csv`;
+                a.download = `Relatorio_Manobras_AgroRota_${new Date().toISOString().slice(0,10)}.csv`;
                 a.click();
-            } catch (e) {}
+                
+                showAlert('Planilha exportada com sucesso!', 'success');
+            } catch (e) {
+                showAlert('Erro ao exportar planilha.', 'error');
+            }
         }
 
         function toggleSimulatedMotion() {
