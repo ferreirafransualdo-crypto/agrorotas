@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <!-- Biblioteca html2canvas para gerar a imagem perfeita -->
+    <!-- Biblioteca html2canvas -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script>
         tailwind.config = {
@@ -72,7 +72,7 @@
             <button type="button" onclick="hideAlert()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
         </div>
 
-        <!-- TELA 1: IDENTIFICAÇÃO E SENHA (ETAPA 1) -->
+        <!-- TELA 1: IDENTIFICAÇÃO E SENHA -->
         <section id="loginSection" class="card-agro max-w-md mx-auto mt-8 space-y-5">
             <div class="text-center space-y-1">
                 <div class="w-12 h-12 bg-agro-600/20 border border-agro-500/40 text-agro-400 rounded-2xl mx-auto flex items-center justify-center text-xl mb-2">
@@ -112,10 +112,9 @@
             </form>
         </section>
 
-        <!-- TELA 2: PAINEL DE MANOBRAS E RASTREAMENTO (ETAPA 2) -->
+        <!-- TELA 2: PAINEL DE MANOBRAS E RASTREAMENTO -->
         <div id="appPanel" class="hidden space-y-4">
 
-            <!-- Identificação ativa do Colaborador Logado -->
             <div class="bg-slate-800/90 border border-slate-700 rounded-xl p-3 flex justify-between items-center text-xs">
                 <div class="flex items-center gap-2 text-slate-300">
                     <i class="fa-solid fa-user-check text-agro-500 text-sm"></i>
@@ -203,7 +202,6 @@
                         </div>
                     </div>
 
-                    <!-- Botões de Controle ao Vivo -->
                     <div class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-700/60">
                         <button type="button" id="pauseBtn" onclick="togglePauseTracking()" class="py-2.5 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-xl text-xs transition flex items-center justify-center gap-2 cursor-pointer">
                             <i class="fa-solid fa-pause"></i> PAUSAR ROTA
@@ -264,7 +262,7 @@
                 <div id="historyList" class="space-y-3"></div>
             </section>
 
-            <!-- Botões de Ações e Relatório Visual em Imagem -->
+            <!-- Botões de Ações -->
             <div class="space-y-3 pt-2">
               <button type="button" onclick="gerarRelatorioImagem()" class="w-full py-4 bg-blue-600 hover:bg-blue-500 text-white font-extrabold rounded-xl text-base shadow-xl transition flex items-center justify-center gap-2 cursor-pointer">
                 <i class="fa-solid fa-image text-xl"></i> Gerar Imagem do Relatório 📸
@@ -283,84 +281,83 @@
 
     </main>
 
-    <!-- MODAL DO RELATÓRIO VISUAL (EXATO AO MODELO DA FOTO) -->
+    <!-- MODAL DO RELATÓRIO VISUAL (DESIGN EXATO DA FOTO) -->
     <div id="modalRelatorioVisual" class="fixed inset-0 bg-slate-950/95 backdrop-blur-md z-50 hidden flex flex-col items-center justify-start p-2 sm:p-4 overflow-y-auto">
         <div class="w-full max-w-xl flex justify-between items-center mb-3 text-white">
             <span class="text-sm font-bold flex items-center gap-2 text-emerald-400"><i class="fa-solid fa-circle-check"></i> Relatório Pronto para Baixar</span>
             <button type="button" onclick="fecharModalVisual()" class="text-slate-300 hover:text-white bg-slate-800 px-3 py-1.5 rounded-lg text-xs cursor-pointer font-bold"><i class="fa-solid fa-xmark mr-1"></i> Fechar</button>
         </div>
 
-        <!-- CARTÃO IDÊNTICO AO LAYOUT ENVIADO -->
-        <div id="reportCardToImage" class="bg-slate-900 border-2 border-slate-700 rounded-2xl w-full max-w-xl overflow-hidden shadow-2xl text-slate-100 font-sans">
+        <!-- CARTÃO COM LARGURA FIXA DE 700PX PARA SAIR SEMPRE PERFEITO NA IMAGEM -->
+        <div id="reportCardToImage" style="width: 700px; background-color: #f8fafc; color: #0f172a;" class="rounded-2xl overflow-hidden shadow-2xl font-sans border-4 border-slate-800">
             
-            <!-- Cabeçalho Principal Estilo Sucroenergia -->
-            <div class="bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 p-5 border-b-2 border-emerald-500/40 flex justify-between items-center">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-slate-950 font-black text-xl shadow">
+            <!-- Cabeçalho idêntico à foto -->
+            <div style="background: linear-gradient(135deg, #090d16 0%, #1e293b 100%); color: #ffffff;" class="p-6 border-b-4 border-emerald-600 flex justify-between items-center">
+                <div class="flex items-center gap-4">
+                    <div style="background: #ffffff; color: #090d16;" class="w-14 h-14 rounded-2xl flex items-center justify-center font-black text-2xl shadow-lg">
                         <i class="fa-solid fa-triangle-exclamation"></i>
                     </div>
                     <div>
-                        <h2 class="text-xl font-black text-white tracking-wider">Delta <span class="text-xs font-normal text-slate-400 block -mt-1">Sucroenergia</span></h2>
+                        <h2 class="text-2xl font-black tracking-wider text-white">Delta <span class="text-xs font-normal text-slate-300 block">Sucroenergia</span></h2>
                     </div>
                 </div>
                 <div class="text-right">
-                    <h1 class="text-lg sm:text-xl font-black text-white tracking-tight">RELATÓRIO DE ROTAS</h1>
-                    <div class="text-xs text-emerald-400 font-semibold"><i class="fa-solid fa-route"></i> Operação de Campo</div>
+                    <h1 class="text-2xl font-black tracking-tight text-white">RELATÓRIO DE ROTAS</h1>
+                    <div class="text-xs text-emerald-400 font-bold tracking-widest uppercase mt-0.5"><i class="fa-solid fa-route"></i> Campo & Logística</div>
                 </div>
             </div>
 
-            <!-- Dados do Cabeçalho (Data, Colaborador, Frota) -->
-            <div class="grid grid-cols-3 gap-1 p-3 bg-slate-800/90 border-b border-slate-700 text-center">
-                <div class="bg-slate-900/60 p-2 rounded-xl">
-                    <span class="text-[10px] text-slate-400 uppercase font-bold flex items-center justify-center gap-1"><i class="fa-regular fa-calendar text-agro-400"></i> Data</span>
-                    <span id="imgReportDate" class="text-xs sm:text-sm font-bold text-white">03/11/2026</span>
+            <!-- Dados principais -->
+            <div style="background: #e2e8f0; color: #0f172a;" class="grid grid-cols-3 gap-1 p-3 text-center font-bold">
+                <div style="background: #ffffff;" class="p-2.5 rounded-xl shadow-sm">
+                    <span style="color: #64748b;" class="text-[10px] uppercase block font-extrabold"><i class="fa-regular fa-calendar"></i> Data do Relatório</span>
+                    <span id="imgReportDate" style="color: #0f172a;" class="text-sm font-black">03/11/2026</span>
                 </div>
-                <div class="bg-slate-900/60 p-2 rounded-xl border-x border-slate-700/60">
-                    <span class="text-[10px] text-slate-400 uppercase font-bold flex items-center justify-center gap-1"><i class="fa-regular fa-user text-agro-400"></i> Colaborador</span>
-                    <span id="imgReportCollab" class="text-xs sm:text-sm font-bold text-white">---</span>
+                <div style="background: #ffffff;" class="p-2.5 rounded-xl shadow-sm">
+                    <span style="color: #64748b;" class="text-[10px] uppercase block font-extrabold"><i class="fa-regular fa-user"></i> Colaborador</span>
+                    <span id="imgReportCollab" style="color: #0f172a;" class="text-sm font-black">---</span>
                 </div>
-                <div class="bg-slate-900/60 p-2 rounded-xl">
-                    <span class="text-[10px] text-slate-400 uppercase font-bold flex items-center justify-center gap-1"><i class="fa-solid fa-truck text-agro-400"></i> Frota</span>
-                    <span id="imgReportFleet" class="text-xs sm:text-sm font-bold text-white">---</span>
+                <div style="background: #ffffff;" class="p-2.5 rounded-xl shadow-sm">
+                    <span style="color: #64748b;" class="text-[10px] uppercase block font-extrabold"><i class="fa-solid fa-truck"></i> Frota</span>
+                    <span id="imgReportFleet" style="color: #0f172a;" class="text-sm font-black">---</span>
                 </div>
             </div>
 
-            <!-- Lista de Rotas Estilizadas Exatas ao Modelo -->
-            <div id="imgRoutesContainer" class="p-3 space-y-2.5 max-h-[50vh] overflow-y-auto"></div>
+            <!-- Lista de Rotas -->
+            <div id="imgRoutesContainer" style="background: #f1f5f9;" class="p-4 space-y-3 max-h-[55vh] overflow-y-auto"></div>
 
             <!-- Resumo do Dia -->
-            <div class="p-4 bg-slate-950 border-t-2 border-slate-800 space-y-3">
-                <div class="text-xs font-black uppercase tracking-widest text-emerald-400 flex items-center gap-1.5 border-b border-slate-800 pb-1.5">
+            <div style="background: #090d16; color: #ffffff;" class="p-5 border-t-4 border-slate-800 space-y-3">
+                <div class="text-xs font-black uppercase tracking-widest text-emerald-400 flex items-center gap-2 border-b border-slate-800 pb-2">
                     <i class="fa-solid fa-chart-pie"></i> RESUMO DO DIA
                 </div>
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
-                    <div class="bg-slate-900 p-2.5 rounded-xl border border-slate-800">
+                <div class="grid grid-cols-4 gap-2 text-center">
+                    <div style="background: #1e293b;" class="p-3 rounded-xl border border-slate-700">
                         <span class="text-[10px] text-slate-400 uppercase block font-bold">Total de Rotas</span>
-                        <span id="imgSumTotalRotas" class="text-base font-black text-white">0</span>
+                        <span id="imgSumTotalRotas" class="text-lg font-black text-white">0</span>
                     </div>
-                    <div class="bg-slate-900 p-2.5 rounded-xl border border-slate-800">
+                    <div style="background: #1e293b;" class="p-3 rounded-xl border border-slate-700">
                         <span class="text-[10px] text-slate-400 uppercase block font-bold">Total Percorrido</span>
-                        <span id="imgSumTotalKm" class="text-base font-black text-emerald-400">0.00 km</span>
+                        <span id="imgSumTotalKm" class="text-lg font-black text-emerald-400">0.00 km</span>
                     </div>
-                    <div class="bg-slate-900 p-2.5 rounded-xl border border-slate-800">
+                    <div style="background: #1e293b;" class="p-3 rounded-xl border border-slate-700">
                         <span class="text-[10px] text-slate-400 uppercase block font-bold">Primeira Saída</span>
                         <span id="imgSumPrimeiraSaida" class="text-xs font-bold text-white">--:--</span>
                     </div>
-                    <div class="bg-slate-900 p-2.5 rounded-xl border border-slate-800">
+                    <div style="background: #1e293b;" class="p-3 rounded-xl border border-slate-700">
                         <span class="text-[10px] text-slate-400 uppercase block font-bold">Última Chegada</span>
                         <span id="imgSumUltimaChegada" class="text-xs font-bold text-white">--:--</span>
                     </div>
                 </div>
             </div>
 
-            <!-- Rodapé do Cartão -->
-            <div class="p-3 bg-slate-900 text-center border-t border-slate-800 text-[11px] text-slate-300 font-bold flex items-center justify-center gap-2">
+            <!-- Rodapé -->
+            <div style="background: #0f172a; color: #94a3b8;" class="p-3 text-center text-xs font-bold flex items-center justify-center gap-2 border-t border-slate-800">
                 <i class="fa-solid fa-circle-check text-emerald-400"></i> Enviado via AgroRotas PWA
             </div>
 
         </div>
 
-        <!-- Botões de Ação na Prévia da Imagem -->
         <div class="w-full max-w-xl grid grid-cols-2 gap-3 mt-4 pb-4">
             <button type="button" onclick="baixarImagemPronta()" class="py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white font-black rounded-xl text-xs sm:text-sm flex items-center justify-center gap-2 cursor-pointer shadow-xl">
                 <i class="fa-solid fa-download text-base"></i> Baixar Imagem (PNG)
@@ -395,7 +392,7 @@
     </div>
 
     <footer class="max-w-3xl mx-auto w-full px-4 text-center text-xs text-slate-500 mt-6">
-        <p>AgroRota GPS v4.1 - Padrão Visual Exato</p>
+        <p>AgroRota GPS v4.2 - Layout Gráfico Padronizado</p>
     </footer>
 
     <!-- SCRIPT DA APLICAÇÃO -->
@@ -894,28 +891,28 @@
                 totalKmGeral += dist;
 
                 htmlRotas += `
-                    <div class="bg-slate-900 border border-slate-700/80 rounded-xl overflow-hidden shadow">
-                        <div class="bg-slate-800 px-3 py-1.5 flex justify-between items-center border-b border-slate-700">
-                            <span class="font-extrabold text-white text-xs">Rota #${index + 1}</span>
-                            <span class="text-[10px] text-emerald-400 font-bold uppercase"><i class="fa-solid fa-location-dot"></i> Concluída</span>
+                    <div style="background: #ffffff; border: 1px solid #cbd5e1;" class="rounded-xl overflow-hidden shadow-sm">
+                        <div style="background: #0f172a; color: #ffffff;" class="px-4 py-2 flex justify-between items-center font-bold text-xs">
+                            <span><i class="fa-solid fa-route text-emerald-400 mr-1"></i> Rota #${index + 1}</span>
+                            <span class="text-emerald-400">Concluída</span>
                         </div>
-                        <div class="p-3 grid grid-cols-1 sm:grid-cols-3 gap-2 items-center text-xs">
+                        <div class="p-3.5 grid grid-cols-3 gap-2 items-center text-xs">
                             <div>
-                                <span class="text-[10px] text-slate-400 uppercase block font-bold">Manobra</span>
-                                <span class="font-black text-white text-sm">${escapeHtml(r.destination)}</span>
+                                <span style="color: #64748b;" class="text-[10px] uppercase block font-extrabold">Manobra</span>
+                                <span style="color: #0f172a;" class="font-black text-sm">${escapeHtml(r.destination)}</span>
                             </div>
                             <div>
-                                <span class="text-[10px] text-slate-400 uppercase block font-bold">Horário</span>
-                                <span class="text-slate-300 font-medium">Saída: ${dtInicio}<br>Chegada: ${dtFim}</span>
+                                <span style="color: #64748b;" class="text-[10px] uppercase block font-extrabold">Horários</span>
+                                <span style="color: #334155;" class="font-semibold">Saída: ${dtInicio}<br>Chegada: ${dtFim}</span>
                             </div>
                             <div>
-                                <span class="text-[10px] text-slate-400 uppercase block font-bold">Quilometragem</span>
-                                <span class="text-slate-300 font-medium">Ini: ${(r.kmStart || 0).toFixed(1)} km<br>Fin: ${(r.kmEnd || 0).toFixed(1)} km</span>
+                                <span style="color: #64748b;" class="text-[10px] uppercase block font-extrabold">Quilometragem</span>
+                                <span style="color: #334155;" class="font-semibold">Ini: ${(r.kmStart || 0).toFixed(1)} km<br>Fin: ${(r.kmEnd || 0).toFixed(1)} km</span>
                             </div>
                         </div>
-                        <div class="bg-slate-950 px-3 py-2 border-t border-slate-800 flex justify-between items-center">
-                            <span class="text-xs text-slate-400 font-bold uppercase">Total Percorrido:</span>
-                            <span class="text-base font-black text-blue-400">${dist.toFixed(2)} km</span>
+                        <div style="background: #f8fafc; border-top: 1px solid #e2e8f0;" class="px-4 py-2.5 flex justify-between items-center">
+                            <span style="color: #475569;" class="text-xs font-bold uppercase">Total Percorrido:</span>
+                            <span style="color: #2563eb;" class="text-base font-black">${dist.toFixed(2)} km</span>
                         </div>
                     </div>
                 `;
@@ -938,17 +935,23 @@
             document.getElementById('modalRelatorioVisual').classList.add('hidden');
         }
 
-        // Função para converter o cartão em imagem PNG e baixar
+        // Função de captura com largura fixa para garantir perfeição na imagem
         function baixarImagemPronta() {
             const card = document.getElementById('reportCardToImage');
-            showAlert('Gerando imagem para o gestor...', 'info');
+            showAlert('Gerando imagem de alta qualidade...', 'info');
 
-            html2canvas(card, { scale: 2, backgroundColor: '#0f172a' }).then(canvas => {
+            html2canvas(card, { 
+                scale: 2, 
+                useCORS: true,
+                backgroundColor: '#ffffff',
+                width: 700,
+                windowWidth: 700
+            }).then(canvas => {
                 const link = document.createElement('a');
                 link.download = `Relatorio_Rotas_${new Date().toISOString().slice(0,10)}.png`;
                 link.href = canvas.toDataURL('image/png');
                 link.click();
-                showAlert('Imagem gerada e baixada com sucesso!', 'success');
+                showAlert('Imagem baixada com sucesso!', 'success');
             }).catch(err => {
                 showAlert('Erro ao gerar imagem.', 'error');
             });
