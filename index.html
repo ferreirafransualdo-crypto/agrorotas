@@ -59,7 +59,7 @@
                 </div>
                 <div>
                     <h1 class="font-bold text-lg leading-tight text-white">AgroRota GPS</h1>
-                    <p class="text-xs text-slate-400">Controle de Frota & Logística (Anti-Sleep)</p>
+                    <p class="text-xs text-slate-400">Controle de Frota & Logística (Blindado)</p>
                 </div>
             </div>
             <div class="flex items-center gap-2">
@@ -408,7 +408,7 @@
         let timerInterval = null;
         let watchId = null;
         let simInterval = null;
-        let wakeLock = null; // Variável para manter a tela sempre acesa (Anti-Sleep)
+        let wakeLock = null;
         let isSimulating = false;
         let isPaused = false;
 
@@ -439,24 +439,19 @@
             }
         };
 
-        // 💡 Mantém a tela acesa impedindo o modo de suspensão no painel da máquina
         async function solicitarWakeLock() {
             try {
                 if ('wakeLock' in navigator) {
                     wakeLock = await navigator.wakeLock.request('screen');
-                    console.log('Wake Lock ativado: Tela mantida acesa.');
                 }
             } catch (err) {
-                console.warn(`Erro ao ativar Wake Lock: ${err.name}, ${err.message}`);
+                console.warn(`Wake Lock indisponível: ${err.message}`);
             }
         }
 
         function liberarWakeLock() {
             if (wakeLock !== null) {
-                wakeLock.release().then(() => {
-                    wakeLock = null;
-                    console.log('Wake Lock liberado.');
-                });
+                wakeLock.release().then(() => { wakeLock = null; });
             }
         }
 
@@ -522,7 +517,7 @@
         }
 
         function logoutColaborador() {
-            if (confirm("Deseja sair da sua sessão? Seus dados estão salvos localmente.")) {
+            if (confirm("Deseja sair da sua sessão? Seus dados estão seguros.")) {
                 localStorage.removeItem('agro_fixed_colaborador');
                 document.getElementById('appPanel').classList.add('hidden');
                 document.getElementById('loginSection').classList.remove('hidden');
@@ -640,7 +635,7 @@
             iniciarTimerUI();
             iniciarGPSContinuo();
             solicitarWakeLock();
-            showAlert('Rastreamento GPS iniciado com Tela Cheia Ativa!', 'success');
+            showAlert('Rastreamento GPS iniciado!', 'success');
         }
 
         function iniciarTimerUI() {
@@ -682,7 +677,7 @@
                         if (speedEl) speedEl.innerText = `${speed} km/h`;
                         if (accEl) accEl.innerText = `Precisão: ±${accuracy.toFixed(0)}m`;
 
-                        if (accuracy > 35) return; // Descarte de sinal fraco
+                        if (accuracy > 35) return;
 
                         const novaCoord = { lat, lng };
                         if (activeRoute.lastCoords) {
@@ -706,7 +701,6 @@
                                 
                                 activeRoute.lastCoords = novaCoord; 
 
-                                // 🔄 SALVAMENTO CONTÍNUO: Grava o progresso para evitar perda de dados se o app fechar
                                 const colab = localStorage.getItem('agro_fixed_colaborador');
                                 if (colab) {
                                     localStorage.setItem(`agro_active_route_${colab}`, JSON.stringify(activeRoute));
@@ -718,9 +712,6 @@
                     },
                     (err) => {
                         console.warn("Erro no monitoramento GPS:", err.message);
-                        if(badge) {
-                            badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-red-400"></span><span>Sinal GPS Perdido</span>';
-                        }
                     },
                     { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
                 );
@@ -807,9 +798,11 @@
                     distance: distanceNum.toFixed(2)
                 };
 
-                let history = JSON.parse(localStorage.getItem(`agro_routes_history_${colabAtivo}`) || '[]');
+                // 🛡️ BLINDA O HISTÓRICO: Puxa o histórico atual e adiciona a nova rota no final sem apagar as anteriores
+                let historyKey = `agro_routes_history_${colabAtivo}`;
+                let history = JSON.parse(localStorage.getItem(historyKey) || '[]');
                 history.push(registro);
-                localStorage.setItem(`agro_routes_history_${colabAtivo}`, JSON.stringify(history));
+                localStorage.setItem(historyKey, JSON.stringify(history));
 
                 localStorage.setItem(`agro_last_fleet_${colabAtivo}`, registro.fleet);
                 localStorage.setItem(`agro_last_km_${colabAtivo}`, kmFinal.toFixed(1));
@@ -819,7 +812,7 @@
                 document.getElementById('inputKmStart').value = kmFinal.toFixed(1);
 
             } catch (err) {
-                console.error("Erro ao gravar:", err);
+                console.error("Erro ao gravar histórico:", err);
             } finally {
                 localStorage.removeItem(`agro_active_route_${colabAtivo}`);
                 isSimulating = false;
@@ -832,7 +825,7 @@
 
                 carregarDadosSessaoColaborador(colabAtivo);
                 loadHistory();
-                showAlert('Rota encerrada e salva com sucesso no histórico!', 'success');
+                showAlert('Rota encerrada e salva com segurança!', 'success');
             }
         }
 
