@@ -171,7 +171,7 @@
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">KM Inicial * (Puxa do Cache Offline)</label>
+                            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">KM Inicial * (Puxado do Histórico)</label>
                             <div class="relative">
                                 <i class="fa-solid fa-gauge-high absolute left-3 top-3.5 text-slate-500"></i>
                                 <input type="number" step="0.1" id="inputKmStart" required placeholder="Ex: 19745.0" class="input-agro placeholder-slate-500 font-semibold text-lg bg-slate-800/80 text-agro-400">
@@ -406,7 +406,7 @@
     <!-- SCRIPT DA APLICAÇÃO -->
     <script>
         let timerInterval = null;
-        let gpsInterval = null;
+        let watchId = null; // ID do sensor contínuo watchPosition
         let simInterval = null;
         let isSimulating = false;
         let isPaused = false;
@@ -446,21 +446,10 @@
                 if(dot) dot.className = "w-2 h-2 rounded-full bg-emerald-400";
                 if(text) text.innerText = "Online";
                 if(badge) badge.className = "flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-950/80 border border-emerald-500/50 text-emerald-300 text-[10px] font-medium";
-                sincronizarDadosPendentes();
             } else {
                 if(dot) dot.className = "w-2 h-2 rounded-full bg-amber-400 animate-pulse";
                 if(text) text.innerText = "Offline (Modo Cache)";
                 if(badge) badge.className = "flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-950/80 border border-amber-500/50 text-amber-300 text-[10px] font-medium";
-            }
-        }
-
-        function sincronizarDadosPendentes() {
-            const colab = localStorage.getItem('agro_fixed_colaborador');
-            if (!colab) return;
-            const pendente = localStorage.getItem(`agro_pending_sync_${colab}`);
-            if (pendente) {
-                console.log("Rede restabelecida: Dados locais sincronizados.");
-                localStorage.removeItem(`agro_pending_sync_${colab}`);
             }
         }
 
@@ -533,7 +522,7 @@
 
         function pararTodosOsTimers() {
             if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
-            if (gpsInterval) { clearInterval(gpsInterval); gpsInterval = null; }
+            if (watchId !== null) { navigator.geolocation.clearWatch(watchId); watchId = null; }
             if (simInterval) { clearInterval(simInterval); simInterval = null; }
         }
 
@@ -582,7 +571,7 @@
                     document.getElementById('liveFleet').innerHTML = `<i class="fa-solid fa-truck mr-1"></i> Frota: ${activeRoute.fleet}`;
                     document.getElementById('liveKmStart').innerText = Number(activeRoute.kmStart).toFixed(1);
                     iniciarTimerUI();
-                    iniciarGPSReal();
+                    iniciarGPSContinuo();
                 } catch(e) {
                     localStorage.removeItem(`agro_active_route_${colab}`);
                 }
@@ -622,8 +611,8 @@
             document.getElementById('liveKmStart').innerText = kmStart.toFixed(1);
 
             iniciarTimerUI();
-            iniciarGPSReal();
-            showAlert('Rastreamento GPS iniciado com filtros antifalsos!', 'success');
+            iniciarGPSContinuo();
+            showAlert('Rastreamento GPS contínuo iniciado!', 'success');
         }
 
         function iniciarTimerUI() {
@@ -643,61 +632,69 @@
             }, 1000);
         }
 
-        function iniciarGPSReal() {
+        // 🛰️ GPS CONTÍNUO (watchPosition) - Corrige travamentos de tela e zera velocidade/km
+        function iniciarGPSContinuo() {
             const badge = document.getElementById('gpsStatusBadge');
             if (badge) {
                 badge.className = "flex items-center gap-2 px-3 py-1 rounded-full bg-agro-900/80 border border-agro-500/50 text-agro-300 text-xs font-semibold";
-                badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-agro-400 animate-pulse"></span><span>GPS Ativo (Filtro Antirruído)</span>';
+                badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-agro-400 animate-pulse"></span><span>GPS Contínuo Ativo</span>';
             }
 
             if ("geolocation" in navigator) {
-                gpsInterval = setInterval(() => {
-                    if (isPaused || isSimulating) return;
+                watchId = navigator.geolocation.watchPosition(
+                    (pos) => {
+                        if (isPaused || isSimulating) return;
 
-                    navigator.geolocation.getCurrentPosition(
-                        (pos) => {
-                            const lat = pos.coords.latitude;
-                            const lng = pos.coords.longitude;
-                            const accuracy = pos.coords.accuracy; 
-                            const speed = ((pos.coords.speed || 0) * 3.6).toFixed(0);
+                        const lat = pos.coords.latitude;
+                        const lng = pos.coords.longitude;
+                        const accuracy = pos.coords.accuracy; 
+                        const speed = ((pos.coords.speed || 0) * 3.6).toFixed(0);
+                        
+                        const speedEl = document.getElementById('liveSpeed');
+                        const accEl = document.getElementById('liveGpsAccuracy');
+                        if (speedEl) speedEl.innerText = `${speed} km/h`;
+                        if (accEl) accEl.innerText = `Precisão: ±${accuracy.toFixed(0)}m`;
+
+                        // Filtro de precisão fraca (acima de 30m é descartado para evitar ruído)
+                        if (accuracy > 30) return;
+
+                        const novaCoord = { lat, lng };
+                        if (activeRoute.lastCoords) {
+                            const R = 6371e3; 
+                            const dLat = (lat - activeRoute.lastCoords.lat) * Math.PI / 180;
+                            const dLon = (lng - activeRoute.lastCoords.lng) * Math.PI / 180;
+                            const a = Math.sin(dLat/2) * Math.sin(dLat/2) + 
+                                      Math.cos(activeRoute.lastCoords.lat * Math.PI / 180) * 
+                                      Math.cos(lat * Math.PI / 180) * 
+                                      Math.sin(dLon/2) * Math.sin(dLon/2);
+                            const dist = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
                             
-                            const speedEl = document.getElementById('liveSpeed');
-                            const accEl = document.getElementById('liveGpsAccuracy');
-                            if (speedEl) speedEl.innerText = `${speed} km/h`;
-                            if (accEl) accEl.innerText = `Precisão: ±${accuracy.toFixed(0)}m`;
-
-                            if (accuracy > 25) {
-                                return; 
-                            }
-
-                            const novaCoord = { lat, lng };
-                            if (activeRoute.lastCoords) {
-                                const R = 6371e3; 
-                                const dLat = (lat - activeRoute.lastCoords.lat) * Math.PI / 180;
-                                const dLon = (lng - activeRoute.lastCoords.lng) * Math.PI / 180;
-                                const a = Math.sin(dLat/2) * Math.sin(dLat/2) + 
-                                          Math.cos(activeRoute.lastCoords.lat * Math.PI / 180) * 
-                                          Math.cos(lat * Math.PI / 180) * 
-                                          Math.sin(dLon/2) * Math.sin(dLon/2);
-                                const dist = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+                            // Se moveu mais que 4 metros e menos que 500 metros em um único salto
+                            if (dist >= 4 && dist < 500) {
+                                activeRoute.distanceKm += dist / 1000;
+                                activeRoute.gpsPoints++;
                                 
-                                if (dist >= 6 && dist < 500) {
-                                    activeRoute.distanceKm += dist / 1000;
-                                    activeRoute.gpsPoints++;
-                                    const distEl = document.getElementById('liveDistance');
-                                    const ptsEl = document.getElementById('gpsPointsCount');
-                                    if (distEl) distEl.innerText = activeRoute.distanceKm.toFixed(2);
-                                    if (ptsEl) ptsEl.innerText = activeRoute.gpsPoints;
-                                    activeRoute.lastCoords = novaCoord; 
-                                }
-                            } else {
-                                activeRoute.lastCoords = novaCoord;
+                                const distEl = document.getElementById('liveDistance');
+                                const ptsEl = document.getElementById('gpsPointsCount');
+                                if (distEl) distEl.innerText = activeRoute.distanceKm.toFixed(2);
+                                if (ptsEl) ptsEl.innerText = activeRoute.gpsPoints;
+                                
+                                activeRoute.lastCoords = novaCoord; 
                             }
-                        },
-                        (err) => {},
-                        { enableHighAccuracy: true, timeout: 4000, maximumAge: 0 }
-                    );
-                }, 4000);
+                        } else {
+                            activeRoute.lastCoords = novaCoord;
+                        }
+                    },
+                    (err) => {
+                        console.warn("Erro no monitoramento GPS:", err.message);
+                        if(badge) {
+                            badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-red-400"></span><span>Sinal GPS Perdido</span>';
+                        }
+                    },
+                    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+                );
+            } else {
+                showAlert("Geolocalização não é suportada neste navegador.", "error");
             }
         }
 
@@ -782,7 +779,6 @@
                 localStorage.setItem(`agro_last_fleet_${colabAtivo}`, registro.fleet);
                 localStorage.setItem(`agro_last_km_${colabAtivo}`, kmFinal.toFixed(1));
                 localStorage.setItem(`agro_fleet_km_${colabAtivo}_${registro.fleet}`, kmFinal.toFixed(1));
-                localStorage.setItem(`agro_pending_sync_${colabAtivo}`, "true");
 
                 document.getElementById('inputFleet').value = registro.fleet;
                 document.getElementById('inputKmStart').value = kmFinal.toFixed(1);
