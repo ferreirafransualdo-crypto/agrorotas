@@ -1,4 +1,4 @@
-l<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -292,17 +292,19 @@ l<!DOCTYPE html>
         <div class="w-full max-w-lg overflow-x-auto rounded-2xl shadow-2xl">
             <div id="reportCardToImage" style="width: 100%; min-width: 340px; background-color: #f8fafc; color: #0f172a;" class="rounded-2xl overflow-hidden font-sans border-2 border-slate-700">
                 
+                <!-- CABEÇALHO ATUALIZADO: ESTILO IDÊNTICO AO TOPO DO APLICATIVO -->
                 <div style="background: linear-gradient(135deg, #090d16 0%, #1e293b 100%); color: #ffffff;" class="p-4 sm:p-5 border-b-4 border-emerald-600 flex justify-between items-center">
                     <div class="flex items-center gap-3">
-                        <div style="background: #ffffff; color: #090d16;" class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center font-black text-xl shadow-lg">
-                            <i class="fa-solid fa-triangle-exclamation"></i>
+                        <div style="background: #16a34a; color: #ffffff;" class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center font-bold text-xl shadow-lg">
+                            <i class="fa-solid fa-truck-ramp-box"></i>
                         </div>
                         <div>
-                            <h2 class="text-lg sm:text-xl font-black tracking-wider text-white leading-tight">Delta <span class="text-[10px] font-normal text-slate-300 block -mt-1">Sucroenergia</span></h2>
+                            <h2 class="text-base sm:text-lg font-bold tracking-tight text-white leading-tight">AgroRota GPS</h2>
+                            <p class="text-[10px] sm:text-xs text-slate-400">Controle de Frota & Logística</p>
                         </div>
                     </div>
                     <div class="text-right">
-                        <h1 class="text-base sm:text-lg font-black tracking-tight text-white leading-tight">RELATÓRIO DE ROTAS</h1>
+                        <h1 class="text-sm sm:text-base font-black tracking-tight text-white leading-tight">RELATÓRIO DE ROTAS</h1>
                         <div class="text-[10px] text-emerald-400 font-bold tracking-widest uppercase mt-0.5"><i class="fa-solid fa-route"></i> Campo & Logística</div>
                     </div>
                 </div>
@@ -389,7 +391,7 @@ l<!DOCTYPE html>
     </div>
 
     <footer class="max-w-3xl mx-auto w-full px-4 text-center text-xs text-slate-500 mt-6">
-        <p>AgroRota GPS v4.7 - Seleção de Colaboradores</p>
+        <p>AgroRota GPS v4.9 - Layout Unificado</p>
     </footer>
 
     <!-- SCRIPT DA APLICAÇÃO -->
@@ -1230,7 +1232,7 @@ l<!DOCTYPE html>
                 const historyOrdenado = [...rotasParaRelatorio].sort((a, b) => new Date(a.startTime) - new Date(b.startTime));
                 const colabNome = historyOrdenado[0].colaborador || localStorage.getItem('agro_fixed_colaborador') || 'Colaborador';
 
-                let texto = "📊 *RELATÓRIO DE ROTAS E FROTA - AGRO*\n";
+                let texto = "📊 *RELATÓRIO DE ROTAS E FROTA - AGRO ROTA GPS*\n";
                 texto += "----------------------------------------\n";
                 texto += "📅 *Data do Relatório:* " + dataHojeStr + "\n";
                 texto += "👤 *Colaborador:* " + colabNome + "\n";
@@ -1245,7 +1247,7 @@ l<!DOCTYPE html>
                     if (index === 0) {
                         texto += `🚗 *Frota:* ${r.fleet || 'Não informada'}\n`;
                     }
-                    texto += `• Manobra: ${r.destination || 'Não informada'}\n`;
+                    texto += `• Manobra: ${r.destination || 'Not informada'}\n`;
                     texto += `• Saída: ${dtInicio} | Chegada: ${dtFim}\n`;
                     texto += `• KM Inicial: ${(r.kmStart || 0).toFixed(1)} km\n`;
                     texto += `• KM Final: ${(r.kmEnd || 0).toFixed(1)} km\n`;
