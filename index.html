@@ -876,11 +876,30 @@
             }).then(canvas => {
                 card.style.width = '100%';
 
-                const link = document.createElement('a');
-                link.download = `Relatorio_AgroRota_${new Date().toISOString().slice(0,10)}.png`;
-                link.href = canvas.toDataURL('image/png');
-                link.click();
-                showAlert('Imagem baixada com sucesso!', 'success');
+                canvas.toBlob((blob) => {
+                    if (!blob) {
+                        showAlert('Erro ao converter imagem. Tente novamente.', 'error');
+                        return;
+                    }
+                    const file = new File([blob], `Relatorio_AgroRota_${new Date().toISOString().slice(0,10)}.png`, { type: 'image/png' });
+
+                    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                        navigator.share({
+                            files: [file],
+                            title: 'Relatório AgroRota GPS',
+                            text: 'Segue o relatório de rotas do AgroRota GPS.'
+                        }).then(() => {
+                            showAlert('Relatório compartilhado com sucesso!', 'success');
+                        }).catch((error) => {
+                            if (error.name !== 'AbortError') {
+                                baixarArquivoFallback(canvas);
+                            }
+                        });
+                    } else {
+                        baixarArquivoFallback(canvas);
+                    }
+                }, 'image/png');
+
             }).catch(err => {
                 card.style.width = '100%';
                 console.error("Erro html2canvas:", err);
@@ -888,11 +907,19 @@
             });
         }
 
+        function baixarArquivoFallback(canvas) {
+            const link = document.createElement('a');
+            link.download = `Relatorio_AgroRota_${new Date().toISOString().slice(0,10)}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+            showAlert('Imagem baixada com sucesso na sua galeria!', 'success');
+        }
+
         function partilharImagemDireta() {
             baixarImagemPronta();
             setTimeout(() => {
                 gerarRelatorioGestor();
-            }, 1200);
+            }, 1500);
         }
 
         function gerarRelatorioGestor() {
@@ -921,6 +948,7 @@
             });
 
             texto += `🛣️ *KM TOTAL DO DIA:* *${totalKmGeral.toFixed(2)} KM*\n\n`;
+            texto += `_📸 Imagem do relatório gerada e salva no dispositivo._\n`;
             texto += `_Enviado via AgroRota GPS_`;
 
             const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(texto)}`;
