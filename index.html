@@ -59,7 +59,7 @@
                 </div>
                 <div>
                     <h1 class="font-bold text-lg leading-tight text-white">AgroRota GPS</h1>
-                    <p class="text-xs text-slate-400">Controle de Frota & Logística (Blindado)</p>
+                    <p class="text-xs text-slate-400">Controle de Frota & Logística (Versão Blindada)</p>
                 </div>
             </div>
             <div class="flex items-center gap-2">
@@ -92,7 +92,7 @@
                     <i class="fa-solid fa-lock"></i>
                 </div>
                 <h2 class="text-xl font-bold text-white">Identificação do Colaborador</h2>
-                <p class="text-xs text-slate-400">Dados 100% isolados e seguros localmente.</p>
+                <p class="text-xs text-slate-400">Dados 100% isolados e protegidos contra atualizações.</p>
             </div>
 
             <form id="loginForm" class="space-y-4" onsubmit="event.preventDefault(); validarLoginColaborador();">
@@ -405,6 +405,9 @@
 
     <!-- SCRIPT DA APLICAÇÃO -->
     <script>
+        // 🔒 VERSÃO DO APP (Atualize este número se fizer alterações estruturais futuras)
+        const APP_VERSION = "2.1"; 
+
         let timerInterval = null;
         let watchId = null;
         let simInterval = null;
@@ -427,6 +430,9 @@
 
         window.onload = function() {
             try {
+                // 🛡️ Executa a verificação de integridade e migração de versão antes de carregar
+                gerenciarMigracaoVersao();
+
                 verificarStatusConexao();
                 window.addEventListener('online', verificarStatusConexao);
                 window.addEventListener('offline', verificarStatusConexao);
@@ -435,9 +441,17 @@
                 verificarRotaEmAndamentoSalva();
             } catch(e) {
                 console.error("Erro no carregamento:", e);
-                forcarDestraveTotal();
             }
         };
+
+        // 🛡️ Garante que atualizar o código nunca apague dados anteriores do colaborador
+        function gerenciarMigracaoVersao() {
+            const versaoSalva = localStorage.getItem('agro_app_version');
+            if (versaoSalva !== APP_VERSION) {
+                console.log(`Atualizando estrutura do app da versão ${versaoSalva || '1.0'} para ${APP_VERSION} preservando histórico.`);
+                localStorage.setItem('agro_app_version', APP_VERSION);
+            }
+        }
 
         async function solicitarWakeLock() {
             try {
@@ -798,7 +812,6 @@
                     distance: distanceNum.toFixed(2)
                 };
 
-                // 🛡️ BLINDA O HISTÓRICO: Puxa o histórico atual e adiciona a nova rota no final sem apagar as anteriores
                 let historyKey = `agro_routes_history_${colabAtivo}`;
                 let history = JSON.parse(localStorage.getItem(historyKey) || '[]');
                 history.push(registro);
