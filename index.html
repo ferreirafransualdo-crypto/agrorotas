@@ -346,7 +346,7 @@
         </div>
     </div>
 
-    <!-- MODAL: Pastas de Manobras Privadas por Data -->
+    <!-- MODAL: Pastas de Manobras Privadas por Data (Expansíveis/Acordeão) -->
     <div id="modalPastas" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-lg w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
             <div class="p-4 bg-slate-800 border-b border-slate-700 flex justify-between items-center">
@@ -473,7 +473,6 @@
             if (simInterval) { clearInterval(simInterval); simInterval = null; }
         }
 
-        // CARREGA DADOS EXCLUSIVOS DO COLABORADOR LOGADO
         function carregarDadosSessaoColaborador(colab) {
             try {
                 const ultimaFrotaSalva = localStorage.getItem(`agro_last_fleet_${colab}`);
@@ -677,7 +676,6 @@
                     distance: distanceNum.toFixed(2)
                 };
 
-                // HISTÓRICO PRIVADO ISOLADO POR COLABORADOR
                 let history = JSON.parse(localStorage.getItem(`agro_routes_history_${colabAtivo}`) || '[]');
                 history.push(registro);
                 localStorage.setItem(`agro_routes_history_${colabAtivo}`, JSON.stringify(history));
@@ -944,6 +942,7 @@
             }
         }
 
+        // FUNÇÃO DE PASTAS EXPANSÍVEIS (ACORDEÃO)
         function toggleModalPastas(abrir) {
             const m = document.getElementById('modalPastas');
             if (abrir) {
@@ -955,27 +954,95 @@
                 if (datas.length === 0) {
                     content.innerHTML = '<div class="text-xs text-slate-500 text-center py-6">Nenhuma pasta arquivada no seu perfil.</div>';
                 } else {
-                    content.innerHTML = datas.map(data => `
-                        <div class="bg-slate-800 border border-slate-700 rounded-xl p-3 space-y-2">
-                            <div class="flex justify-between items-center text-xs font-bold text-amber-400">
-                                <span><i class="fa-solid fa-folder-closed mr-1"></i> Pasta: ${data}</span>
-                                <span class="text-slate-400">${pastas[data].length} rota(s)</span>
-                            </div>
-                            <div class="space-y-1 pl-2 border-l border-slate-700">
-                                ${pastas[data].map((r, i) => `
-                                    <div class="text-[11px] text-slate-300 flex justify-between">
-                                        <span>#${i+1} ${r.destination} (${r.fleet})</span>
-                                        <span class="text-agro-400 font-semibold">${r.distance} km</span>
+                    content.innerHTML = datas.map((data, index) => {
+                        let totalKmPasta = 0;
+                        pastas[data].forEach(r => totalKmPasta += parseFloat(r.distance || 0));
+
+                        return `
+                            <div class="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden transition">
+                                <!-- Cabeçalho da Pasta (Clicável para abrir/fechar) -->
+                                <button type="button" onclick="alternarAcordeaoPasta('pastaContent_${index}', 'icon_${index}')" class="w-full p-3 bg-slate-800 hover:bg-slate-750 flex justify-between items-center text-xs font-bold text-amber-400 cursor-pointer text-left">
+                                    <span class="flex items-center gap-2">
+                                        <i id="icon_${index}" class="fa-solid fa-folder text-amber-500"></i> 
+                                        <span>Pasta: ${data}</span>
+                                    </span>
+                                    <div class="flex items-center gap-3">
+                                        <span class="text-slate-300 font-semibold">${pastas[data].length} rota(s) | ${totalKmPasta.toFixed(2)} km</span>
+                                        <i class="fa-solid fa-chevron-down text-slate-400 text-[10px]"></i>
                                     </div>
-                                `).join('')}
+                                </button>
+
+                                <!-- Conteúdo Interno da Pasta (Oculto por padrão) -->
+                                <div id="pastaContent_${index}" class="hidden p-3 bg-slate-900/90 border-t border-slate-700/60 space-y-2">
+                                    ${pastas[data].map((r, i) => `
+                                        <div class="bg-slate-800/80 p-2.5 rounded-lg border border-slate-700 text-[11px] space-y-1">
+                                            <div class="flex justify-between items-center text-white font-bold">
+                                                <span><i class="fa-solid fa-route text-agro-500 mr-1"></i> Rota #${i+1}: ${r.destination}</span>
+                                                <span class="text-agro-400">${r.distance} km</span>
+                                            </div>
+                                            <div class="text-slate-400 flex justify-between">
+                                                <span>Frota: ${r.fleet} | Saída: ${r.startTime} - Chegada: ${r.endTime}</span>
+                                                <span>KM Fim: ${r.kmFinal}</span>
+                                            </div>
+                                        </div>
+                                    `).join('')}
+
+                                    <button type="button" onclick="enviarPastaWhatsApp('${data}')" class="w-full mt-2 py-2 bg-green-600 hover:bg-green-500 text-white font-bold rounded-lg text-xs flex items-center justify-center gap-2 cursor-pointer shadow-md">
+                                        <i class="fa-brands fa-whatsapp"></i> Enviar Relatório desta Pasta via WhatsApp
+                                    </button>
+                                </div>
                             </div>
-                        </div>
-                    `).join('');
+                        `;
+                    }).join('');
                 }
                 m.classList.remove('hidden');
             } else {
                 m.classList.add('hidden');
             }
+        }
+
+        // Alterna visualmente o acordeão da pasta
+        function alternarAcordeaoPasta(contentId, iconId) {
+            const el = document.getElementById(contentId);
+            const icon = document.getElementById(iconId);
+            if (el.classList.contains('hidden')) {
+                el.classList.remove('hidden');
+                icon.className = "fa-solid fa-folder-open text-amber-400";
+            } else {
+                el.classList.add('hidden');
+                icon.className = "fa-solid fa-folder text-amber-500";
+            }
+        }
+
+        // Envia o resumo de uma pasta específica arquivada via WhatsApp
+        function enviarPastaWhatsApp(dataPasta) {
+            const colabAtivo = localStorage.getItem('agro_fixed_colaborador');
+            const pastas = JSON.parse(localStorage.getItem(`agro_archived_folders_${colabAtivo}`) || '{}');
+            const rotasPasta = pastas[dataPasta];
+
+            if (!rotasPasta || rotasPasta.length === 0) return;
+
+            let totalKmGeral = 0;
+            rotasPasta.forEach(r => totalKmGeral += parseFloat(r.distance || 0));
+
+            let texto = `*📊 RELATÓRIO ARQUIVADO - ${dataPasta}* 🚜\n\n`;
+
+            rotasPasta.forEach((r, idx) => {
+                texto += `*Rota #${idx + 1}*\n`;
+                texto += `👤 *Colaborador:* ${r.colaborador}\n`;
+                texto += `🚗 *Frota:* ${r.fleet}\n`;
+                texto += `⚙️ *Manobra:* ${r.destination}\n`;
+                texto += `⏰ *Saída:* ${r.startTime} | *Chegada:* ${r.endTime}\n`;
+                texto += `- KM Inicial: ${r.kmStart} km\n`;
+                texto += `- KM Final: ${r.kmFinal} km\n`;
+                texto += `- Total Percorrido: *${r.distance} KM*\n\n`;
+            });
+
+            texto += `🛣️ *KM TOTAL DA PASTA (${dataPasta}):* *${totalKmGeral.toFixed(2)} KM*\n\n`;
+            texto += `_Enviado via AgroRota GPS_`;
+
+            const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(texto)}`;
+            window.open(url, '_blank');
         }
 
         function showAlert(msg, type) {
@@ -988,7 +1055,7 @@
             setTimeout(() => box.classList.add('hidden'), 4000);
         }
 
-        function hideAlert() { document.getElementById('alertBox').classList.add('hidden'); }
+        function hideAlert() { document.getElementById('alertBox'].classList.add('hidden'); }
     </script>
 </body>
 </html>
