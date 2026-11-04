@@ -85,14 +85,14 @@
             <button type="button" onclick="hideAlert()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
         </div>
 
-        <!-- TELA 1: IDENTIFICAÇÃO E SELEÇÃO DE QUALQUER USUÁRIO -->
+        <!-- TELA 1: IDENTIFICAÇÃO E SELEÇÃO DE COLABORADOR -->
         <section id="loginSection" class="card-agro max-w-md mx-auto mt-8 space-y-5">
             <div class="text-center space-y-1">
                 <div class="w-12 h-12 bg-agro-600/20 border border-agro-500/40 text-agro-400 rounded-2xl mx-auto flex items-center justify-center text-xl mb-2">
                     <i class="fa-solid fa-users"></i>
                 </div>
                 <h2 class="text-xl font-bold text-white">Acesso Multi-Colaborador</h2>
-                <p class="text-xs text-slate-400">Selecione seu nome em qualquer celular.</p>
+                <p class="text-xs text-slate-400">Selecione seu nome em qualquer dispositivo.</p>
             </div>
 
             <form id="loginForm" class="space-y-4" onsubmit="event.preventDefault(); validarLoginColaborador();">
@@ -157,14 +157,14 @@
                         </button>
                         <span class="text-slate-600">|</span>
                         <button type="button" onclick="forcarDestraveGeral()" class="text-xs text-amber-400 hover:text-amber-300 underline cursor-pointer">
-                            <i class="fa-solid fa-unlock mr-1"></i> Destravar App
+                            <i class="fa-solid fa-unlock mr-1"></i> Destravar
                         </button>
                     </div>
                 </div>
 
                 <form id="startRouteForm" class="space-y-4" onsubmit="event.preventDefault(); startTracking();">
                     <div>
-                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Veículo / Frota * (Salva Automaticamente)</label>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Veículo / Frota *</label>
                         <div class="relative">
                             <i class="fa-solid fa-truck absolute left-3 top-3.5 text-slate-500"></i>
                             <input type="text" id="inputFleet" required placeholder="Ex: 336862" oninput="carregarKmPorFrota(this.value)" class="input-agro placeholder-slate-500 font-bold">
@@ -173,7 +173,7 @@
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">KM Inicial * (Puxado do Histórico)</label>
+                            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">KM Inicial *</label>
                             <div class="relative">
                                 <i class="fa-solid fa-gauge-high absolute left-3 top-3.5 text-slate-500"></i>
                                 <input type="number" step="0.1" id="inputKmStart" required placeholder="Ex: 19745.0" class="input-agro placeholder-slate-500 font-semibold text-lg bg-slate-800/80 text-agro-400">
@@ -272,7 +272,7 @@
                     </h3>
                     <div class="flex gap-2">
                         <button type="button" onclick="exportToCSV()" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-xs font-semibold rounded-lg text-slate-200 transition cursor-pointer flex items-center gap-1">
-                            <i class="fa-solid fa-file-excel text-emerald-400"></i> Exportar CSV
+                            <i class="fa-solid fa-file-excel text-emerald-400"></i> CSV
                         </button>
                         <button type="button" onclick="clearHistory()" class="px-3 py-1.5 bg-slate-700/60 hover:bg-red-900/40 text-xs font-semibold rounded-lg text-slate-400 hover:text-red-300 transition cursor-pointer">Limpar</button>
                     </div>
@@ -292,8 +292,19 @@
               </button>
               
               <button type="button" onclick="finalizarDemandaDoDia()" class="w-full py-3 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-xl text-sm transition flex items-center justify-center gap-2 cursor-pointer shadow-lg">
-                <i class="fa-solid fa-folder-plus"></i> Finalizar Demanda do Dia & Arquivar nas Minhas Pastas
+                <i class="fa-solid fa-folder-plus"></i> Finalizar Demanda & Arquivar nas Pastas
               </button>
+
+              <!-- Ferramentas de Backup de Segurança -->
+              <div class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-700/60">
+                  <button type="button" onclick="fazerBackupDados()" class="py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-xl border border-slate-700 transition flex items-center justify-center gap-1.5 cursor-pointer">
+                      <i class="fa-solid fa-download text-agro-400"></i> Backup (Salvar)
+                  </button>
+                  <label class="py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-xl border border-slate-700 transition flex items-center justify-center gap-1.5 cursor-pointer">
+                      <i class="fa-solid fa-upload text-blue-400"></i> Restaurar Dados
+                      <input type="file" id="importFile" accept=".json" onchange="restaurarBackupDados(event)" class="hidden">
+                  </label>
+              </div>
             </div>
         </div>
 
@@ -351,19 +362,19 @@
                     </div>
                     <div style="background: #ffffff; padding: 10px; display: grid; grid-template-columns: 1fr 1.2fr 1.2fr 1.2fr; gap: 4px; text-align: center;">
                         <div style="background: #f8fafc; padding: 6px 2px; border-radius: 6px; border: 1px solid #e2e8f0;">
-                            <span style="font-size: 7px; font-weight: 800; color: #64748b; text-transform: uppercase; display: block;">Total de Rotas</span>
+                            <span style="font-size: 7px; font-weight: 800; color: #64748b; text-transform: uppercase; display: block;">Total Rotas</span>
                             <span id="summaryTotalRoutes" style="font-size: 11px; font-weight: 900; color: #0f172a;">0</span>
                         </div>
                         <div style="background: #f8fafc; padding: 6px 2px; border-radius: 6px; border: 1px solid #e2e8f0;">
-                            <span style="font-size: 7px; font-weight: 800; color: #64748b; text-transform: uppercase; display: block;">Total Percorrido</span>
+                            <span style="font-size: 7px; font-weight: 800; color: #64748b; text-transform: uppercase; display: block;">Total KM</span>
                             <span id="summaryTotalKm" style="font-size: 10px; font-weight: 900; color: #2563eb;">0 km</span>
                         </div>
                         <div style="background: #f8fafc; padding: 6px 2px; border-radius: 6px; border: 1px solid #e2e8f0;">
-                            <span style="font-size: 7px; font-weight: 800; color: #64748b; text-transform: uppercase; display: block;">Primeira Saída</span>
+                            <span style="font-size: 7px; font-weight: 800; color: #64748b; text-transform: uppercase; display: block;">1ª Saída</span>
                             <span id="summaryFirstStart" style="font-size: 10px; font-weight: 900; color: #0f172a;">--:--</span>
                         </div>
                         <div style="background: #f8fafc; padding: 6px 2px; border-radius: 6px; border: 1px solid #e2e8f0;">
-                            <span style="font-size: 7px; font-weight: 800; color: #64748b; text-transform: uppercase; display: block;">Última Chegada</span>
+                            <span style="font-size: 7px; font-weight: 800; color: #64748b; text-transform: uppercase; display: block;">Últ. Chegada</span>
                             <span id="summaryLastEnd" style="font-size: 10px; font-weight: 900; color: #0f172a;">--:--</span>
                         </div>
                     </div>
@@ -396,7 +407,7 @@
             <div id="modalPastasContent" class="p-4 overflow-y-auto space-y-3 flex-1"></div>
             <div class="p-3 bg-slate-800/80 border-t border-slate-700 text-center flex justify-between items-center">
                 <button type="button" onclick="exportToCSV()" class="px-4 py-2 bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-bold rounded-xl cursor-pointer">
-                    <i class="fa-solid fa-download"></i> Baixar Planilha (CSV)
+                    <i class="fa-solid fa-download"></i> Baixar CSV
                 </button>
                 <button type="button" onclick="toggleModalPastas(false)" class="px-5 py-2 bg-slate-700 hover:bg-slate-600 text-white text-xs font-bold rounded-xl cursor-pointer">
                     Fechar
@@ -407,7 +418,7 @@
 
     <!-- SCRIPT DA APLICAÇÃO -->
     <script>
-        const APP_VERSION = "2.4"; 
+        const APP_VERSION = "2.5"; 
 
         let timerInterval = null;
         let watchId = null;
@@ -475,7 +486,7 @@
                 if(badge) badge.className = "flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-950/80 border border-emerald-500/50 text-emerald-300 text-[10px] font-medium";
             } else {
                 if(dot) dot.className = "w-2 h-2 rounded-full bg-amber-400 animate-pulse";
-                if(text) text.innerText = "Offline (Modo Cache)";
+                if(text) text.innerText = "Offline (Cache)";
                 if(badge) badge.className = "flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-950/80 border border-amber-500/50 text-amber-300 text-[10px] font-medium";
             }
         }
@@ -531,11 +542,11 @@
             carregarDadosSessaoColaborador(colab);
             loadHistory();
             verificarRotaEmAndamentoSalva();
-            showAlert(`Bem-vindo ao seu painel, ${colab}!`, 'success');
+            showAlert(`Bem-vindo ao painel, ${colab}!`, 'success');
         }
 
         function logoutColaborador() {
-            if (confirm("Deseja sair da sua sessão? Seus dados estão seguros e salvos.")) {
+            if (confirm("Deseja sair da sua sessão? Seus dados estão seguros.")) {
                 localStorage.removeItem('agro_fixed_colaborador');
                 document.getElementById('appPanel').classList.add('hidden');
                 document.getElementById('loginSection').classList.remove('hidden');
@@ -547,21 +558,21 @@
             localStorage.removeItem('agro_fixed_colaborador');
             localStorage.removeItem('agro_last_logged_user');
             document.getElementById('btnTrocarUsuarioContainer').classList.add('hidden');
-            showAlert('Sessão anterior limpa. Escolha o novo colaborador.', 'info');
+            showAlert('Sessão limpa. Escolha o novo colaborador.', 'info');
         }
 
-        function forcarDestraveTotal() {
+        function forcarDestraveGeral() {
             pararTodosOsTimers();
             liberarWakeLock();
             const colabAtivo = localStorage.getItem('agro_fixed_colaborador');
             if (colabAtivo) {
                 localStorage.removeItem(`agro_active_route_${colabAtivo}`);
             }
-            localStorage.removeItem('agro_active_route');
-            localStorage.removeItem('agro_fixed_colaborador');
             isSimulating = false;
             isPaused = false;
-            location.reload();
+            document.getElementById('activeSection').classList.add('hidden');
+            document.getElementById('formSection').classList.remove('hidden');
+            showAlert('Aplicativo destravado com sucesso.', 'success');
         }
 
         function pararTodosOsTimers() {
@@ -661,7 +672,7 @@
             iniciarTimerUI();
             iniciarGPSContinuo();
             solicitarWakeLock();
-            showAlert('Rastreamento GPS iniciado em segundo plano!', 'success');
+            showAlert('Rastreamento GPS iniciado!', 'success');
         }
 
         function iniciarTimerUI() {
@@ -685,7 +696,7 @@
             const badge = document.getElementById('gpsStatusBadge');
             if (badge) {
                 badge.className = "flex items-center gap-2 px-3 py-1 rounded-full bg-agro-900/80 border border-agro-500/50 text-agro-300 text-xs font-semibold";
-                badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-agro-400 animate-pulse"></span><span>GPS em Segundo Plano Ativo</span>';
+                badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-agro-400 animate-pulse"></span><span>GPS Ativo</span>';
             }
 
             if ("geolocation" in navigator) {
@@ -736,9 +747,7 @@
                             activeRoute.lastCoords = novaCoord;
                         }
                     },
-                    (err) => {
-                        console.warn("Aviso de GPS:", err.message);
-                    },
+                    (err) => { console.warn("Aviso de GPS:", err.message); },
                     { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 }
                 );
             }
@@ -850,31 +859,7 @@
 
                 carregarDadosSessaoColaborador(colabAtivo);
                 loadHistory();
-                showAlert('Rota encerrada e salva com segurança!', 'success');
-            }
-        }
-
-        function forcarDestraveGeral() {
-            pararTodosOsTimers();
-            liberarWakeLock();
-            const colabAtivo = localStorage.getItem('agro_fixed_colaborador');
-            if (colabAtivo) {
-                localStorage.removeItem(`agro_active_route_${colabAtivo}`);
-            }
-            isSimulating = false;
-            isPaused = false;
-            document.getElementById('activeSection').classList.add('hidden');
-            document.getElementById('formSection').classList.remove('hidden');
-            showAlert('Aplicativo destravado com sucesso.', 'success');
-        }
-
-        function renomearDestinoAtivo() {
-            const colabAtivo = localStorage.getItem('agro_fixed_colaborador');
-            const novo = prompt("Novo destino:", activeRoute.destination);
-            if (novo && novo.trim() !== '') {
-                activeRoute.destination = novo.trim();
-                document.getElementById('liveDestination').innerText = activeRoute.destination;
-                localStorage.setItem(`agro_active_route_${colabAtivo}`, JSON.stringify(activeRoute));
+                showAlert('Rota salva com segurança!', 'success');
             }
         }
 
@@ -890,7 +875,7 @@
                 const destinationsSet = new Set();
 
                 if (history.length === 0) {
-                    container.innerHTML = '<div class="text-xs text-slate-500 text-center py-4">Nenhuma rota registrada no seu perfil.</div>';
+                    container.innerHTML = '<div class="text-xs text-slate-500 text-center py-4">Nenhuma rota recente.</div>';
                     return;
                 }
 
@@ -917,11 +902,11 @@
         }
 
         function clearHistory() {
-            if (confirm("Deseja apagar o seu histórico privado recente?")) {
+            if (confirm("Deseja apagar o histórico recente?")) {
                 const colabAtivo = localStorage.getItem('agro_fixed_colaborador');
                 localStorage.removeItem(`agro_routes_history_${colabAtivo}`);
                 loadHistory();
-                showAlert('Seu histórico privado foi limpo.', 'info');
+                showAlert('Histórico recente limpo.', 'info');
             }
         }
 
@@ -967,11 +952,8 @@
                 card.style.boxShadow = '0 2px 4px rgba(0,0,0,0.05)';
                 card.innerHTML = `
                     <div style="background: #0b132b; color: #ffffff; padding: 8px 12px; display: flex; justify-content: space-between; align-items: center;">
-                        <span style="font-weight: 900; font-size: 11px; color: #ffffff;">
-                            Rota #${idx + 1}
-                        </span>
+                        <span style="font-weight: 900; font-size: 11px; color: #ffffff;">Rota #${idx + 1}</span>
                     </div>
-
                     <div style="padding: 10px 12px; display: grid; grid-template-columns: 1.2fr 1fr 1fr 1fr; gap: 4px; align-items: center; border-bottom: 1px solid #e2e8f0;">
                         <div>
                             <span style="font-size: 7px; font-weight: 800; color: #64748b; text-transform: uppercase; display: block;">Manobra:</span>
@@ -986,7 +968,7 @@
                             <span style="font-size: 7px; font-weight: 800; color: #64748b; text-transform: uppercase; display: block;">KM Fin: ${r.kmFinal}</span>
                         </div>
                         <div style="text-align: right;">
-                            <span style="font-size: 7px; font-weight: 800; color: #64748b; text-transform: uppercase; display: block;">Total Percorrido:</span>
+                            <span style="font-size: 7px; font-weight: 800; color: #64748b; text-transform: uppercase; display: block;">Total:</span>
                             <span style="font-size: 11px; font-weight: 900; color: #2563eb;">${r.distance} km</span>
                         </div>
                     </div>
@@ -1002,7 +984,7 @@
             const history = JSON.parse(localStorage.getItem(`agro_routes_history_${colabAtivo}`) || '[]');
             
             if (history.length === 0) {
-                showAlert('Nenhuma rota registrada no seu perfil.', 'error');
+                showAlert('Nenhuma rota registrada.', 'error');
                 return;
             }
 
@@ -1023,11 +1005,7 @@
 
             if (popularEstruturaRelatorioVisual(rotasPasta, dataPasta, colabAtivo)) {
                 document.getElementById('modalRelatorioVisual').classList.remove('hidden');
-                
-                // Dispara o download automático após um breve delay para garantir renderização
-                setTimeout(() => {
-                    baixarImagemPronta();
-                }, 400);
+                setTimeout(() => { baixarImagemPronta(); }, 400);
             }
         }
 
@@ -1037,44 +1015,22 @@
 
         function baixarImagemPronta() {
             const card = document.getElementById('reportCardToImage');
-            showAlert('Gerando imagem otimizada...', 'info');
-
+            showAlert('Gerando imagem...', 'info');
             card.style.width = '420px';
 
-            html2canvas(card, { 
-                scale: 2, 
-                backgroundColor: '#f1f5f9',
-                useCORS: true,
-                allowTaint: true,
-                logging: false
-            }).then(canvas => {
+            html2canvas(card, { scale: 2, backgroundColor: '#f1f5f9', useCORS: true, allowTaint: true, logging: false }).then(canvas => {
                 card.style.width = '100%';
-
                 canvas.toBlob((blob) => {
-                    if (!blob) {
-                        showAlert('Erro ao converter imagem.', 'error');
-                        return;
-                    }
+                    if (!blob) return;
                     const file = new File([blob], `Relatorio_AgroRota_${new Date().toISOString().slice(0,10)}.png`, { type: 'image/png' });
-
                     if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                        navigator.share({
-                            files: [file],
-                            title: 'Relatório AgroRota GPS',
-                            text: 'Segue o relatório de rotas do AgroRota GPS.'
-                        }).catch((error) => {
-                            if (error.name !== 'AbortError') {
-                                baixarArquivoFallback(canvas);
-                            }
-                        });
+                        navigator.share({ files: [file], title: 'Relatório AgroRota', text: 'Segue o relatório de rotas.' }).catch(() => { baixarArquivoFallback(canvas); });
                     } else {
                         baixarArquivoFallback(canvas);
                     }
                 }, 'image/png');
-
             }).catch(err => {
                 card.style.width = '100%';
-                console.error("Erro html2canvas:", err);
                 showAlert('Erro ao gerar imagem.', 'error');
             });
         }
@@ -1089,9 +1045,7 @@
 
         function partilharImagemDireta() {
             baixarImagemPronta();
-            setTimeout(() => {
-                gerarRelatorioGestor();
-            }, 1500);
+            setTimeout(() => { gerarRelatorioGestor(); }, 1500);
         }
 
         function gerarRelatorioGestor() {
@@ -1099,7 +1053,7 @@
             const history = JSON.parse(localStorage.getItem(`agro_routes_history_${colabAtivo}`) || '[]');
             
             if (history.length === 0) {
-                showAlert('Sem dados para enviar no WhatsApp.', 'error');
+                showAlert('Sem dados para o WhatsApp.', 'error');
                 return;
             }
 
@@ -1107,20 +1061,13 @@
             history.forEach(r => totalKmGeral += parseFloat(r.distance || 0));
 
             let texto = `*📊 RELATÓRIO DE ROTAS - AGROROTA GPS* 🚜\n\n`;
-
             history.forEach((r, idx) => {
                 texto += `*Rota #${idx + 1}*\n`;
-                texto += `👤 *Colaborador:* ${r.colaborador}\n`;
-                texto += `🚗 *Frota:* ${r.fleet}\n`;
-                texto += `⚙️ *Manobra:* ${r.destination}\n`;
-                texto += `⏰ *Saída:* ${r.startTime} | *Chegada:* ${r.endTime}\n`;
-                texto += `- KM Inicial: ${r.kmStart} km\n`;
-                texto += `- KM Final: ${r.kmFinal} km\n`;
-                texto += `- Total Percorrido: *${r.distance} KM*\n\n`;
+                texto += `👤 ${r.colaborador} | 🚗 ${r.fleet}\n`;
+                texto += `⚙️ ${r.destination}\n`;
+                texto += `⏰ ${r.startTime} - ${r.endTime} | 🛣️ *${r.distance} KM*\n\n`;
             });
-
-            texto += `🛣️ *KM TOTAL DO DIA:* *${totalKmGeral.toFixed(2)} KM*\n\n`;
-            texto += `_Enviado via AgroRota GPS_`;
+            texto += `🛣️ *KM TOTAL DO DIA:* *${totalKmGeral.toFixed(2)} KM*\n\n_Enviado via AgroRota GPS_`;
 
             const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(texto)}`;
             window.open(url, '_blank');
@@ -1130,25 +1077,22 @@
             const colabAtivo = localStorage.getItem('agro_fixed_colaborador');
             const history = JSON.parse(localStorage.getItem(`agro_routes_history_${colabAtivo}`) || '[]');
             if (history.length === 0) {
-                showAlert('Não há rotas recentes para arquivar.', 'error');
+                showAlert('Não há rotas para arquivar.', 'error');
                 return;
             }
 
-            if (confirm("Deseja arquivar suas manobras atuais nas suas pastas privadas por data?")) {
+            if (confirm("Deseja arquivar suas manobras nas suas pastas privadas?")) {
                 let pastas = JSON.parse(localStorage.getItem(`agro_archived_folders_${colabAtivo}`) || '{}');
-                
                 history.forEach(r => {
                     const dataFolder = r.data || new Date().toLocaleDateString('pt-BR');
-                    if (!pastas[dataFolder]) {
-                        pastas[dataFolder] = [];
-                    }
+                    if (!pastas[dataFolder]) pastas[dataFolder] = [];
                     pastas[dataFolder].push(r);
                 });
 
                 localStorage.setItem(`agro_archived_folders_${colabAtivo}`, JSON.stringify(pastas));
                 localStorage.removeItem(`agro_routes_history_${colabAtivo}`);
                 loadHistory();
-                showAlert('Demanda arquivada com sucesso nas suas pastas privadas!', 'success');
+                showAlert('Demanda arquivada com sucesso!', 'success');
             }
         }
 
@@ -1161,7 +1105,7 @@
                 const datas = Object.keys(pastas);
 
                 if (datas.length === 0) {
-                    content.innerHTML = '<div class="text-xs text-slate-500 text-center py-6">Nenhuma pasta arquivada no seu perfil.</div>';
+                    content.innerHTML = '<div class="text-xs text-slate-500 text-center py-6">Nenhuma pasta arquivada.</div>';
                 } else {
                     content.innerHTML = datas.map((data, index) => {
                         let totalKmPasta = 0;
@@ -1169,7 +1113,7 @@
 
                         return `
                             <div class="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden transition">
-                                <button type="button" onclick="alternarAcordeaoPasta('pastaContent_${index}', 'icon_${index}')" class="w-full p-3 bg-slate-800 hover:bg-slate-755 flex justify-between items-center text-xs font-bold text-amber-400 cursor-pointer text-left">
+                                <button type="button" onclick="alternarAcordeaoPasta('pastaContent_${index}', 'icon_${index}')" class="w-full p-3 bg-slate-800 flex justify-between items-center text-xs font-bold text-amber-400 cursor-pointer text-left">
                                     <span class="flex items-center gap-2">
                                         <i id="icon_${index}" class="fa-solid fa-folder text-amber-500"></i> 
                                         <span>Pasta: ${data}</span>
@@ -1184,11 +1128,11 @@
                                     ${pastas[data].map((r, i) => `
                                         <div class="bg-slate-800/80 p-2.5 rounded-lg border border-slate-700 text-[11px] space-y-1">
                                             <div class="flex justify-between items-center text-white font-bold">
-                                                <span><i class="fa-solid fa-route text-agro-500 mr-1"></i> Rota #${i+1}: ${r.destination}</span>
+                                                <span><i class="fa-solid fa-route text-agro-500 mr-1"></i> #${i+1}: ${r.destination}</span>
                                                 <span class="text-agro-400">${r.distance} km</span>
                                             </div>
                                             <div class="text-slate-400 flex justify-between">
-                                                <span>Frota: ${r.fleet} | Saída: ${r.startTime} - Chegada: ${r.endTime}</span>
+                                                <span>Frota: ${r.fleet} | Saída: ${r.startTime}</span>
                                                 <span>KM Fim: ${r.kmFinal}</span>
                                             </div>
                                         </div>
@@ -1196,10 +1140,10 @@
 
                                     <div class="grid grid-cols-2 gap-2 mt-3">
                                         <button type="button" onclick="gerarEBaixarImagemPasta('${data}')" class="py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-lg text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow-md">
-                                            <i class="fa-solid fa-image"></i> Baixar Imagem (PNG)
+                                            <i class="fa-solid fa-image"></i> Baixar Imagem
                                         </button>
                                         <button type="button" onclick="enviarPastaWhatsApp('${data}')" class="py-2 bg-green-600 hover:bg-green-500 text-white font-bold rounded-lg text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow-md">
-                                            <i class="fa-brands fa-whatsapp"></i> Enviar WhatsApp
+                                            <i class="fa-brands fa-whatsapp"></i> WhatsApp
                                         </button>
                                     </div>
                                 </div>
@@ -1229,30 +1173,70 @@
             const colabAtivo = localStorage.getItem('agro_fixed_colaborador');
             const pastas = JSON.parse(localStorage.getItem(`agro_archived_folders_${colabAtivo}`) || '{}');
             const rotasPasta = pastas[dataPasta];
-
-            if (!rotasPasta || rotasPasta.length === 0) return;
+            if (!rotasPasta) return;
 
             let totalKmGeral = 0;
             rotasPasta.forEach(r => totalKmGeral += parseFloat(r.distance || 0));
 
             let texto = `*📊 RELATÓRIO ARQUIVADO - ${dataPasta}* 🚜\n\n`;
-
             rotasPasta.forEach((r, idx) => {
-                texto += `*Rota #${idx + 1}*\n`;
-                texto += `👤 *Colaborador:* ${r.colaborador}\n`;
-                texto += `🚗 *Frota:* ${r.fleet}\n`;
-                texto += `⚙️ *Manobra:* ${r.destination}\n`;
-                texto += `⏰ *Saída:* ${r.startTime} | *Chegada:* ${r.endTime}\n`;
-                texto += `- KM Inicial: ${r.kmStart} km\n`;
-                texto += `- KM Final: ${r.kmFinal} km\n`;
-                texto += `- Total Percorrido: *${r.distance} KM*\n\n`;
+                texto += `*Rota #${idx + 1}* - ${r.destination}\n`;
+                texto += `Frota: ${r.fleet} | Percorrido: *${r.distance} KM*\n\n`;
             });
+            texto += `🛣️ *TOTAL DA PASTA:* *${totalKmGeral.toFixed(2)} KM*\n\n_Enviado via AgroRota GPS_`;
 
-            texto += `🛣️ *KM TOTAL DA PASTA (${dataPasta}):* *${totalKmGeral.toFixed(2)} KM*\n\n`;
-            texto += `_Enviado via AgroRota GPS_`;
+            window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(texto)}`, '_blank');
+        }
 
-            const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(texto)}`;
-            window.open(url, '_blank');
+        // Funções de Backup e Restauração em Segurança
+        function fazerBackupDados() {
+            const colabAtivo = localStorage.getItem('agro_fixed_colaborador');
+            if (!colabAtivo) { showAlert('Nenhum usuário ativo para backup.', 'error'); return; }
+
+            const dadosBackup = {
+                colaborador: colabAtivo,
+                pin: localStorage.getItem(`agro_pin_${colabAtivo}`),
+                history: localStorage.getItem(`agro_routes_history_${colabAtivo}`),
+                folders: localStorage.getItem(`agro_archived_folders_${colabAtivo}`),
+                lastFleet: localStorage.getItem(`agro_last_fleet_${colabAtivo}`),
+                lastKm: localStorage.getItem(`agro_last_km_${colabAtivo}`),
+                dataExportacao: new Date().toISOString()
+            };
+
+            const blob = new Blob([JSON.stringify(dadosBackup, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Backup_AgroRota_${colabAtivo}_${new Date().toISOString().slice(0,10)}.json`;
+            a.click();
+            showAlert('Backup gerado com sucesso!', 'success');
+        }
+
+        function restaurarBackupDados(event) {
+            const arquivo = event.target.files[0];
+            if (!arquivo) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const dados = JSON.parse(e.target.result);
+                    if (!dados.colaborador || !dados.history) {
+                        throw new Error('Formato inválido');
+                    }
+
+                    localStorage.setItem(`agro_pin_${dados.colaborador}`, dados.pin);
+                    localStorage.setItem(`agro_routes_history_${dados.colaborador}`, dados.history);
+                    if(dados.folders) localStorage.setItem(`agro_archived_folders_${dados.colaborador}`, dados.folders);
+                    if(dados.lastFleet) localStorage.setItem(`agro_last_fleet_${dados.colaborador}`, dados.lastFleet);
+                    if(dados.lastKm) localStorage.setItem(`agro_last_km_${dados.colaborador}`, dados.lastKm);
+
+                    showAlert('Dados restaurados com sucesso! Reiniciando...', 'success');
+                    setTimeout(() => { location.reload(); }, 1500);
+                } catch (err) {
+                    showAlert('Erro ao ler arquivo de backup.', 'error');
+                }
+            };
+            reader.readAsText(arquivo);
         }
 
         function showAlert(msg, type) {
