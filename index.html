@@ -165,7 +165,7 @@
                             <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Tipo de Manobra / Destino *</label>
                             <div class="relative">
                                 <i class="fa-solid fa-location-dot absolute left-3 top-3.5 text-slate-500"></i>
-                                <input type="text" id="inputDestination" required placeholder="Ex: Coleta / Fazenda Santa Maria" list="destinationList" class="input-agro placeholder-slate-500">
+                                <input type="text" id="inputDestination" required placeholder="Ex: Maqnelson / Fazenda Santo Antônio" list="destinationList" class="input-agro placeholder-slate-500">
                                 <datalist id="destinationList"></datalist>
                             </div>
                         </div>
@@ -280,7 +280,7 @@
 
     </main>
 
-    <!-- MODAL DO RELATÓRIO VISUAL -->
+    <!-- MODAL DO RELATÓRIO VISUAL (COM O CABEÇALHO MANIDO DO AGROROTA GPS) -->
     <div id="modalRelatorioVisual" class="fixed inset-0 bg-slate-950/95 backdrop-blur-md z-50 hidden flex flex-col items-center justify-start p-2 sm:p-4 overflow-y-auto">
         <div class="w-full max-w-lg flex justify-between items-center mb-3 text-white">
             <span class="text-sm font-bold flex items-center gap-2 text-emerald-400"><i class="fa-solid fa-circle-check"></i> Relatório Pronto</span>
@@ -288,63 +288,47 @@
         </div>
 
         <div class="w-full max-w-lg overflow-x-auto rounded-2xl shadow-2xl">
-            <div id="reportCardToImage" style="width: 100%; min-width: 340px; background-color: #f8fafc; color: #0f172a;" class="rounded-2xl overflow-hidden font-sans border-2 border-slate-700">
-                <div style="background: linear-gradient(135deg, #090d16 0%, #1e293b 100%); color: #ffffff;" class="p-4 sm:p-5 border-b-4 border-emerald-600 flex justify-between items-center">
-                    <div class="flex items-center gap-3">
-                        <div style="background: #16a34a; color: #ffffff;" class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center font-bold text-xl shadow-lg">
+            <!-- CARD DE IMPRESSÃO COM CABEÇALHO AGROROTA GPS -->
+            <div id="reportCardToImage" style="width: 100%; min-width: 480px; background-color: #f1f5f9; color: #0f172a; border-radius: 16px; overflow: hidden; font-family: 'Inter', sans-serif; border: 4px solid #0b132b;">
+                
+                <!-- CABEÇALHO DO AGROROTA GPS -->
+                <div style="background: #090d16; color: #ffffff; padding: 20px 24px; display: flex; justify-content: space-between; align-items: center; border-bottom: 4px solid #16a34a;">
+                    <div style="display: flex; align-items: center; gap: 14px;">
+                        <div style="background: #16a34a; color: #ffffff; width: 46px; height: 46px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 900; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
                             <i class="fa-solid fa-truck-ramp-box"></i>
                         </div>
                         <div>
-                            <h2 class="text-base sm:text-lg font-bold tracking-tight text-white leading-tight">AgroRota GPS</h2>
-                            <p class="text-[10px] sm:text-xs text-slate-400">Controle de Frota & Logística</p>
+                            <div style="font-size: 22px; font-weight: 900; letter-spacing: -0.5px; line-height: 1.1; color: #ffffff;">AgroRota GPS</div>
+                            <div style="font-size: 11px; font-weight: 600; color: #94a3b8; letter-spacing: 0.5px;">Controle de Frota & Logística</div>
                         </div>
                     </div>
-                    <div class="text-right">
-                        <h1 class="text-sm sm:text-base font-black tracking-tight text-white leading-tight">RELATÓRIO DE ROTAS</h1>
-                        <div class="text-[10px] text-emerald-400 font-bold tracking-widest uppercase mt-0.5"><i class="fa-solid fa-route"></i> Campo & Logística</div>
-                    </div>
-                </div>
-
-                <div style="background: #e2e8f0; color: #0f172a;" class="grid grid-cols-3 gap-1 p-2 sm:p-3 text-center font-bold">
-                    <div style="background: #ffffff;" class="p-2 rounded-xl shadow-sm">
-                        <span style="color: #64748b;" class="text-[9px] sm:text-[10px] uppercase block font-extrabold">Data</span>
-                        <span id="imgReportDate" style="color: #0f172a;" class="text-xs sm:text-sm font-black">---</span>
-                    </div>
-                    <div style="background: #ffffff;" class="p-2 rounded-xl shadow-sm">
-                        <span style="color: #64748b;" class="text-[9px] sm:text-[10px] uppercase block font-extrabold">Colaborador</span>
-                        <span id="imgReportCollab" style="color: #0f172a;" class="text-xs sm:text-sm font-black truncate block">---</span>
-                    </div>
-                    <div style="background: #ffffff;" class="p-2 rounded-xl shadow-sm">
-                        <span style="color: #64748b;" class="text-[9px] sm:text-[10px] uppercase block font-extrabold">Frota</span>
-                        <span id="imgReportFleet" style="color: #0f172a;" class="text-xs sm:text-sm font-black truncate block">---</span>
-                    </div>
-                </div>
-
-                <div id="imgRoutesContainer" style="background: #f1f5f9;" class="p-3 sm:p-4 space-y-2.5 max-h-[50vh] overflow-y-auto"></div>
-
-                <div style="background: #090d16; color: #ffffff;" class="p-4 border-t-4 border-slate-800 space-y-2.5">
-                    <div class="text-[11px] font-black uppercase tracking-widest text-emerald-400 flex items-center gap-2 border-b border-slate-800 pb-1.5">
-                        <i class="fa-solid fa-chart-pie"></i> RESUMO DO DIA
-                    </div>
-                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
-                        <div style="background: #1e293b;" class="p-2 sm:p-2.5 rounded-xl border border-slate-700">
-                            <span class="text-[9px] text-slate-400 uppercase block font-bold">Total Rotas</span>
-                            <span id="imgSumTotalRotas" class="text-sm sm:text-base font-black text-white">0</span>
-                        </div>
-                        <div style="background: #1e293b;" class="p-2 sm:p-2.5 rounded-xl border border-slate-700">
-                            <span class="text-[9px] text-slate-400 uppercase block font-bold">Total KM</span>
-                            <span id="imgSumTotalKm" class="text-sm sm:text-base font-black text-emerald-400">0.00 km</span>
-                        </div>
-                        <div style="background: #1e293b;" class="p-2 sm:p-2.5 rounded-xl border border-slate-700">
-                            <span class="text-[9px] text-slate-400 uppercase block font-bold">1ª Saída</span>
-                            <span id="imgSumPrimeiraSaida" class="text-xs font-bold text-white">--:--</span>
-                        </div>
-                        <div style="background: #1e293b;" class="p-2 sm:p-2.5 rounded-xl border border-slate-700">
-                            <span class="text-[9px] text-slate-400 uppercase block font-bold">Última Chegada</span>
-                            <span id="imgSumUltimaChegada" class="text-xs font-bold text-white">--:--</span>
+                    <div style="text-align: right;">
+                        <div style="font-size: 18px; font-weight: 900; letter-spacing: -0.5px; color: #ffffff; text-transform: uppercase;">RELATÓRIO DE ROTAS</div>
+                        <div style="font-size: 11px; font-weight: 700; color: #22c55e; letter-spacing: 1px; text-transform: uppercase; margin-top: 2px;">
+                            <i class="fa-solid fa-route" style="margin-right: 4px;"></i> CAMPO & LOGÍSTICA
                         </div>
                     </div>
                 </div>
+
+                <!-- LINHA DE DADOS (DATA, COLABORADOR, FROTA) -->
+                <div style="background: #ffffff; padding: 14px 20px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; text-align: center; border-bottom: 2px solid #cbd5e1;">
+                    <div style="background: #f8fafc; padding: 10px; border-radius: 10px; border: 1px solid #e2e8f0;">
+                        <span style="font-size: 9px; font-weight: 800; color: #64748b; text-transform: uppercase; display: block; margin-bottom: 3px;">Data do Relatório</span>
+                        <span id="imgReportDate" style="font-size: 13px; font-weight: 900; color: #0f172a;">03/11/2026</span>
+                    </div>
+                    <div style="background: #f8fafc; padding: 10px; border-radius: 10px; border: 1px solid #e2e8f0;">
+                        <span style="font-size: 9px; font-weight: 800; color: #64748b; text-transform: uppercase; display: block; margin-bottom: 3px;">Colaborador</span>
+                        <span id="imgReportCollab" style="font-size: 13px; font-weight: 900; color: #0f172a;">Fransualdo</span>
+                    </div>
+                    <div style="background: #f8fafc; padding: 10px; border-radius: 10px; border: 1px solid #e2e8f0;">
+                        <span style="font-size: 9px; font-weight: 800; color: #64748b; text-transform: uppercase; display: block; margin-bottom: 3px;">Frota</span>
+                        <span id="imgReportFleet" style="font-size: 13px; font-weight: 900; color: #0f172a;">336862</span>
+                    </div>
+                </div>
+
+                <!-- CONTAINER DINÂMICO DAS ROTAS -->
+                <div id="imgRoutesContainer" style="background: #f1f5f9; padding: 16px; display: flex; flex-direction: column; gap: 14px;"></div>
+
             </div>
         </div>
 
@@ -381,7 +365,7 @@
         </div>
     </div>
 
-    <!-- SCRIPT DA APLICAÇÃO SEGURA -->
+    <!-- SCRIPT DA APLICAÇÃO -->
     <script>
         let watchId = null;
         let timerInterval = null;
@@ -725,7 +709,7 @@
 
         function exportToCSV() {
             const history = JSON.parse(localStorage.getItem('agro_routes_history') || '[]');
-            if (history.length === 0) { showAlert('Sem dados.', 'error'); return; }
+            if (history.length === 0) { showAlert('Sem dados para exportar.', 'error'); return; }
             let csv = 'ID,Data,Colaborador,Frota,KM Inicial,KM Final,Manobra,Saida,Chegada,Duracao,Distancia\n';
             history.forEach(i => { csv += `${i.id},${i.data},${i.colaborador},${i.fleet},${i.kmStart},${i.kmFinal},"${i.destination}",${i.startTime},${i.endTime},${i.duration},${i.distance}\n`; });
             const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -734,76 +718,144 @@
             a.href = url; a.download = 'Relatorio_AgroRota.csv'; a.click();
         }
 
-        function gerarRelatorioparaimagem_preparar() {
+        function prepararDadosRelatorioVisual() {
             const history = JSON.parse(localStorage.getItem('agro_routes_history') || '[]');
             const colabAtivo = localStorage.getItem('agro_fixed_colaborador') || 'Geral';
-            if (history.length === 0) { showAlert('Sem rotas.', 'error'); return false; }
+            
+            if (history.length === 0) {
+                showAlert('Nenhuma rota registrada para gerar o relatório.', 'error');
+                return false;
+            }
+
             const rotas = history.filter(h => h.colaborador === colabAtivo);
             const rotasExibir = rotas.length > 0 ? rotas : history;
+            const ultimaRota = rotasExibir[rotasExibir.length - 1];
 
             document.getElementById('imgReportDate').innerText = new Date().toLocaleDateString('pt-BR');
             document.getElementById('imgReportCollab').innerText = colabAtivo;
-            document.getElementById('imgReportFleet').innerText = rotasExibir[rotasExibir.length - 1].fleet || '---';
+            document.getElementById('imgReportFleet').innerText = ultimaRota.fleet || '---';
 
             const container = document.getElementById('imgRoutesContainer');
             container.innerHTML = '';
-            let totalKm = 0;
 
             rotasExibir.forEach((r, idx) => {
-                totalKm += parseFloat(r.distance || 0);
                 const card = document.createElement('div');
                 card.style.background = '#ffffff';
-                card.className = "p-3 rounded-xl border border-slate-300 shadow-sm space-y-1 text-xs text-slate-800";
+                card.style.borderRadius = '12px';
+                card.style.overflow = 'hidden';
+                card.style.border = '1px solid #cbd5e1';
+                card.style.boxShadow = '0 2px 4px rgba(0,0,0,0.05)';
                 card.innerHTML = `
-                    <div class="flex justify-between font-bold border-b pb-1"><span style="color: #16a34a;">Rota #${idx + 1}</span><span>${r.distance} km</span></div>
-                    <div><strong>Manobra:</strong> ${r.destination} | <strong>Frota:</strong> ${r.fleet}</div>
+                    <div style="background: #0b132b; color: #ffffff; padding: 10px 16px; display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-weight: bold; font-size: 13px; color: #ffffff;">
+                            <i class="fa-solid fa-route" style="color: #22c55e; margin-right: 6px;"></i> Rota #${idx + 1}
+                        </span>
+                        <span style="font-size: 12px; font-weight: bold; color: #22c55e;">Concluída</span>
+                    </div>
+
+                    <div style="padding: 14px 16px; display: grid; grid-template-columns: 1.2fr 1fr 1fr; gap: 12px; align-items: center; border-bottom: 1px solid #e2e8f0;">
+                        <div>
+                            <span style="font-size: 9px; font-weight: 800; color: #64748b; text-transform: uppercase; display: block; margin-bottom: 2px;">Manobra</span>
+                            <span style="font-size: 13px; font-weight: 900; color: #0f172a;">${r.destination}</span>
+                        </div>
+                        <div>
+                            <span style="font-size: 9px; font-weight: 800; color: #64748b; text-transform: uppercase; display: block; margin-bottom: 2px;">Horários</span>
+                            <span style="font-size: 11px; font-weight: 700; color: #0f172a; display: block;">Saída: ${r.startTime}</span>
+                            <span style="font-size: 11px; font-weight: 700; color: #0f172a; display: block;">Chegada: ${r.endTime}</span>
+                        </div>
+                        <div>
+                            <span style="font-size: 9px; font-weight: 800; color: #64748b; text-transform: uppercase; display: block; margin-bottom: 2px;">Quilometragem</span>
+                            <span style="font-size: 11px; font-weight: 700; color: #0f172a; display: block;">Ini: ${r.kmStart} km</span>
+                            <span style="font-size: 11px; font-weight: 700; color: #0f172a; display: block;">Fin: ${r.kmFinal} km</span>
+                        </div>
+                    </div>
+
+                    <div style="padding: 10px 16px; background: #f8fafc; display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-size: 11px; font-weight: 800; color: #475569; text-transform: uppercase;">Total Percorrido:</span>
+                        <span style="font-size: 15px; font-weight: 900; color: #2563eb;">${r.distance} km</span>
+                    </div>
                 `;
                 container.appendChild(card);
             });
 
-            document.getElementById('imgSumTotalRotas').innerText = rotasExibir.length;
-            document.getElementById('imgSumTotalKm').innerText = totalKm.toFixed(2) + ' km';
-            document.getElementById('imgSumPrimeiraSaida').innerText = rotasExibir[0].startTime;
-            document.getElementById('imgSumUltimaChegada').innerText = rotasExibir[rotasExibir.length - 1].endTime;
             return true;
         }
 
         function gerarRelatorioImagem() {
-            if (gerarRelatorioparaimagem_preparar()) {
+            if (prepararDadosRelatorioVisual()) {
                 document.getElementById('modalRelatorioVisual').classList.remove('hidden');
             }
         }
 
-        function fecharModalVisual() { document.getElementById('modalRelatorioVisual').classList.add('hidden'); }
+        function fecharModalVisual() {
+            document.getElementById('modalRelatorioVisual').classList.add('hidden');
+        }
 
         function baixarImagemPronta() {
-            html2canvas(document.getElementById('reportCardToImage'), { scale: 2, backgroundColor: '#f8fafc' }).then(canvas => {
+            const card = document.getElementById('reportCardToImage');
+            showAlert('Gerando imagem do relatório...', 'info');
+
+            html2canvas(card, { 
+                scale: 2, 
+                backgroundColor: '#f1f5f9',
+                useCORS: true,
+                logging: false
+            }).then(canvas => {
                 const link = document.createElement('a');
-                link.download = 'Relatorio_AgroRota.png';
+                link.download = `Relatorio_AgroRota_${new Date().toISOString().slice(0,10)}.png`;
                 link.href = canvas.toDataURL('image/png');
                 link.click();
+                showAlert('Imagem baixada com sucesso!', 'success');
+            }).catch(err => {
+                console.error("Erro html2canvas:", err);
+                showAlert('Erro ao gerar imagem. Tente novamente.', 'error');
             });
         }
 
         function partilharImagemDireta() {
             baixarImagemPronta();
-            setTimeout(() => gerarRelatorioGestor(), 1000);
+            setTimeout(() => {
+                gerarRelatorioGestor();
+            }, 1200);
         }
 
         function gerarRelatorioGestor() {
             const history = JSON.parse(localStorage.getItem('agro_routes_history') || '[]');
-            const colab = localStorage.getItem('agro_fixed_colaborador') || 'Colab';
-            if (history.length === 0) return;
+            const colabAtivo = localStorage.getItem('agro_fixed_colaborador') || 'Colaborador';
+            
+            if (history.length === 0) {
+                showAlert('Sem dados para enviar no WhatsApp.', 'error');
+                return;
+            }
+
+            const rotas = history.filter(h => h.colaborador === colabAtivo);
+            const rotasExibir = rotas.length > 0 ? rotas : history;
             let totalKm = 0;
-            history.forEach(r => totalKm += parseFloat(r.distance || 0));
-            let texto = `*RELATÓRIO AGROROTA*\nColaborador: ${colab}\nTotal KM: ${totalKm.toFixed(2)} km`;
-            window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(texto)}`, '_blank');
+            rotasExibir.forEach(r => totalKm += parseFloat(r.distance || 0));
+
+            let texto = `*📊 RELATÓRIO DE ROTAS - AGROROTA GPS* 🚜\n\n`;
+            texto += `👤 *Colaborador:* ${colabAtivo}\n`;
+            texto += `📅 *Data:* ${new Date().toLocaleDateString('pt-BR')}\n`;
+            texto += `🚜 *Total de Rotas:* ${rotasExibir.length}\n`;
+            texto += `🛣️ *KM Total Percorrido:* ${totalKm.toFixed(2)} km\n\n`;
+
+            rotasExibir.forEach((r, idx) => {
+                texto += `*#${idx + 1} - ${r.destination}*\n`;
+                texto += `• Horários: ${r.startTime} às ${r.endTime}\n`;
+                texto += `• KM: ${r.kmStart} ➔ ${r.kmFinal} (${r.distance} km)\n\n`;
+            });
+
+            texto += `_Enviado via AgroRotas PWA_`;
+
+            const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(texto)}`;
+            window.open(url, '_blank');
         }
 
         function finalizarEDeixarDiaPronto() {
-            if (confirm("Finalizar o dia e limpar histórico?")) {
+            if (confirm("Deseja finalizar o relatório do dia e limpar os registros recentes para iniciar um novo dia?")) {
                 localStorage.removeItem('agro_routes_history');
                 loadHistory();
+                showAlert('Dia finalizado! Pronto para novos registros.', 'success');
             }
         }
 
@@ -812,7 +864,7 @@
             if (abrir) {
                 const history = JSON.parse(localStorage.getItem('agro_routes_history') || '[]');
                 const content = document.getElementById('modalPastasContent');
-                content.innerHTML = history.length === 0 ? '<div class="text-xs text-slate-500 text-center py-4">Vazio.</div>' : history.map(r => `<div class="bg-slate-800 p-2 rounded text-xs text-white">Data: ${r.data} - ${r.destination} (${r.distance} km)</div>`).join('');
+                content.innerHTML = history.length === 0 ? '<div class="text-xs text-slate-500 text-center py-4">Nenhuma pasta encontrada.</div>' : history.map(r => `<div class="bg-slate-800 p-2.5 rounded-xl text-xs text-white flex justify-between items-center"><div><strong>Data: ${r.data}</strong><br>${r.destination}</div><div class="text-agro-400 font-bold">${r.distance} km</div></div>`).join('');
                 m.classList.remove('hidden');
             } else {
                 m.classList.add('hidden');
@@ -824,7 +876,7 @@
             const msgEl = document.getElementById('alertMessage');
             if (!box || !msgEl) return;
             msgEl.innerText = msg;
-            box.className = `p-4 rounded-xl border flex items-start gap-3 transition-all ${type === 'error' ? 'bg-red-950 border-red-700 text-red-200' : 'bg-agro-950 border-agro-700 text-agro-200'}`;
+            box.className = `p-4 rounded-xl border flex items-start gap-3 transition-all ${type === 'error' ? 'bg-red-950 border-red-700 text-red-200' : type === 'info' ? 'bg-blue-950 border-blue-700 text-blue-200' : 'bg-agro-950 border-agro-700 text-agro-200'}`;
             box.classList.remove('hidden');
             setTimeout(() => box.classList.add('hidden'), 4000);
         }
