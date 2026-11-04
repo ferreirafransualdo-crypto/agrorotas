@@ -272,8 +272,8 @@
                 <i class="fa-brands fa-whatsapp text-xl"></i> Enviar Resumo via WhatsApp
               </button>
               
-              <button type="button" onclick="finalizarEDeixarDiaPronto()" class="w-full py-3 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-xl text-sm transition flex items-center justify-center gap-2 cursor-pointer shadow-lg">
-                <i class="fa-solid fa-box-archive"></i> Finalizar Relatório do Dia & Iniciar Novo Dia
+              <button type="button" onclick="finalizarDemandaDoDia()" class="w-full py-3 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-xl text-sm transition flex items-center justify-center gap-2 cursor-pointer shadow-lg">
+                <i class="fa-solid fa-folder-plus"></i> Finalizar Demanda do Dia & Arquivar na Pasta
               </button>
             </div>
         </div>
@@ -342,12 +342,12 @@
         </div>
     </div>
 
-    <!-- MODAL: Pastas de Manobras -->
+    <!-- MODAL: Pastas de Manobras por Data -->
     <div id="modalPastas" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-lg w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
             <div class="p-4 bg-slate-800 border-b border-slate-700 flex justify-between items-center">
                 <h3 class="font-bold text-base text-white flex items-center gap-2">
-                    <i class="fa-solid fa-folder-open text-amber-400"></i> Pastas de Manobras por Data
+                    <i class="fa-solid fa-folder-open text-amber-400"></i> Pastas de Manobras Arquivadas
                 </h3>
                 <button type="button" onclick="toggleModalPastas(false)" class="text-slate-400 hover:text-white text-lg p-1 cursor-pointer">
                     <i class="fa-solid fa-xmark"></i>
@@ -372,7 +372,6 @@
         let simInterval = null;
         let isSimulating = false;
         let isPaused = false;
-        let pastasAbertasModal = {};
 
         let activeRoute = {
             colaborador: '',
@@ -442,7 +441,7 @@
         }
 
         function logoutColaborador() {
-            if (confirm("Deseja sair e trocar de colaborador?")) {
+            if (confirm("Deseja sair e trocar de colaborador? Seus dados salvos continuam seguros.")) {
                 localStorage.removeItem('agro_fixed_colaborador');
                 document.getElementById('appPanel').classList.add('hidden');
                 document.getElementById('loginSection').classList.remove('hidden');
@@ -453,13 +452,17 @@
             const hist = JSON.parse(localStorage.getItem('agro_routes_history') || '[]');
             const ultimosDoColab = hist.filter(h => h.colaborador === colab);
             
+            // Tenta resgatar da última rota salva ou de preferência salva do usuário
+            const ultimaFrotaSalva = localStorage.getItem(`agro_last_fleet_${colab}`);
+            const ultimoKmSalvo = localStorage.getItem(`agro_last_km_${colab}`);
+
             if (ultimosDoColab.length > 0) {
                 const ultimaRota = ultimosDoColab[ultimosDoColab.length - 1];
-                document.getElementById('inputFleet').value = ultimaRota.fleet || '';
-                document.getElementById('inputKmStart').value = ultimaRota.kmFinal || '1000.0';
+                document.getElementById('inputFleet').value = ultimaFrotaSalva || ultimaRota.fleet || '';
+                document.getElementById('inputKmStart').value = ultimoKmSalvo || ultimaRota.kmFinal || '1000.0';
             } else {
-                document.getElementById('inputFleet').value = '';
-                document.getElementById('inputKmStart').value = '1000.0';
+                document.getElementById('inputFleet').value = ultimaFrotaSalva || '';
+                document.getElementById('inputKmStart').value = ultimoKmSalvo || '1000.0';
             }
         }
 
@@ -613,15 +616,19 @@
 
         function stopTracking() {
             if (!confirm("Deseja encerrar e salvar esta rota?")) return;
+            
+            // Para sensores e timers
             if (watchId !== null) navigator.geolocation.clearWatch(watchId);
             if (timerInterval) clearInterval(timerInterval);
             if (simInterval) clearInterval(simInterval);
 
             const kmFinal = activeRoute.kmStart + activeRoute.distanceKm;
             const agora = new Date();
+            const dataHoje = agora.toLocaleDateString('pt-BR');
+            
             const registro = {
                 id: Date.now(),
-                data: agora.toLocaleDateString('pt-BR'),
+                data: dataHoje,
                 colaborador: activeRoute.colaborador,
                 fleet: activeRoute.fleet,
                 kmStart: Number(activeRoute.kmStart).toFixed(1),
@@ -634,19 +641,30 @@
                 distance: activeRoute.distanceKm.toFixed(2)
             };
 
+            // Salva no histórico geral
             let history = JSON.parse(localStorage.getItem('agro_routes_history') || '[]');
             history.push(registro);
             localStorage.setItem('agro_routes_history', JSON.stringify(history));
+
+            // Salva preferências persistentes do usuário (frota e km) para não perder nunca
+            localStorage.setItem(`agro_last_fleet_${activeRoute.colaborador}`, activeRoute.fleet);
+            localStorage.setItem(`agro_last_km_${activeRoute.colaborador}`, kmFinal.toFixed(1));
+
+            // LIMPA COMPLETAMENTE O CACHE DA ROTA ATIVA
             localStorage.removeItem('agro_active_route');
 
+            // Reseta variáveis de estado
             isSimulating = false;
             isPaused = false;
+            activeRoute = { colaborador: '', fleet: '', kmStart: 0, destination: '', notes: '', startTime: null, elapsedSeconds: 0, distanceKm: 0, lastCoords: null, gpsPoints: 0 };
+
+            // Restaura interface
             document.getElementById('activeSection').classList.add('hidden');
             document.getElementById('formSection').classList.remove('hidden');
             document.getElementById('startRouteForm').reset();
             
-            // Mantém a frota e atualiza o KM Inicial com o KM Final gerado
-            document.getElementById('inputFleet').value = activeRoute.fleet;
+            // Mantém os dados prontos para a próxima rota
+            document.getElementById('inputFleet').value = registro.fleet;
             document.getElementById('inputKmStart').value = kmFinal.toFixed(1);
 
             loadHistory();
@@ -658,6 +676,8 @@
             if (timerInterval) clearInterval(timerInterval);
             if (simInterval) clearInterval(simInterval);
             localStorage.removeItem('agro_active_route');
+            isSimulating = false;
+            isPaused = false;
             document.getElementById('activeSection').classList.add('hidden');
             document.getElementById('formSection').classList.remove('hidden');
             showAlert('Aplicativo destravado com sucesso.', 'success');
@@ -692,7 +712,7 @@
                 div.innerHTML = `
                     <div>
                         <div class="font-bold text-white"><i class="fa-solid fa-location-dot text-agro-500 mr-1"></i> ${item.destination}</div>
-                        <div class="text-slate-400 mt-0.5">Frota: ${item.fleet} | KM Fim: ${item.kmFinal}</div>
+                        <div class="text-slate-400 mt-0.5">Data: ${item.data} | Frota: ${item.fleet} | KM Fim: ${item.kmFinal}</div>
                     </div>
                     <div class="text-right font-bold text-agro-400">${item.distance} KM</div>
                 `;
@@ -707,9 +727,10 @@
         }
 
         function clearHistory() {
-            if (confirm("Apagar histórico recente?")) {
+            if (confirm("Deseja apagar todo o histórico recente?")) {
                 localStorage.removeItem('agro_routes_history');
                 loadHistory();
+                showAlert('Histórico limpo com sucesso.', 'info');
             }
         }
 
@@ -825,7 +846,6 @@
             }, 1200);
         }
 
-        // RELATÓRIO FORMATADO EXATAMENTE NO PADRÃO SOLICITADO PARA O WHATSAPP
         function gerarRelatorioGestor() {
             const history = JSON.parse(localStorage.getItem('agro_routes_history') || '[]');
             const colabAtivo = localStorage.getItem('agro_fixed_colaborador') || 'Colaborador';
@@ -860,20 +880,59 @@
             window.open(url, '_blank');
         }
 
-        function finalizarEDeixarDiaPronto() {
-            if (confirm("Deseja finalizar o relatório do dia e limpar os registros recentes para iniciar um novo dia?")) {
+        // FINALIZAR DEMANDA DO DIA E ARQUIVAR NA PASTA POR DATA
+        function finalizarDemandaDoDia() {
+            const history = JSON.parse(localStorage.getItem('agro_routes_history') || '[]');
+            if (history.length === 0) {
+                showAlert('Não há rotas recentes para arquivar.', 'error');
+                return;
+            }
+
+            if (confirm("Deseja arquivar as manobras atuais em pastas por data e iniciar uma nova demanda?")) {
+                let pastas = JSON.parse(localStorage.getItem('agro_archived_folders') || '{}');
+                
+                history.forEach(r => {
+                    const dataFolder = r.data || new Date().toLocaleDateString('pt-BR');
+                    if (!pastas[dataFolder]) {
+                        pastas[dataFolder] = [];
+                    }
+                    pastas[dataFolder].push(r);
+                });
+
+                localStorage.setItem('agro_archived_folders', JSON.stringify(pastas));
                 localStorage.removeItem('agro_routes_history');
                 loadHistory();
-                showAlert('Dia finalizado! Pronto para novos registros.', 'success');
+                showAlert('Demanda arquivada com sucesso nas pastas por data!', 'success');
             }
         }
 
         function toggleModalPastas(abrir) {
             const m = document.getElementById('modalPastas');
             if (abrir) {
-                const history = JSON.parse(localStorage.getItem('agro_routes_history') || '[]');
+                const pastas = JSON.parse(localStorage.getItem('agro_archived_folders') || '{}');
                 const content = document.getElementById('modalPastasContent');
-                content.innerHTML = history.length === 0 ? '<div class="text-xs text-slate-500 text-center py-4">Nenhuma pasta encontrada.</div>' : history.map(r => `<div class="bg-slate-800 p-2.5 rounded-xl text-xs text-white flex justify-between items-center"><div><strong>Data: ${r.data}</strong><br>${r.destination}</div><div class="text-agro-400 font-bold">${r.distance} km</div></div>`).join('');
+                const datas = Object.keys(pastas);
+
+                if (datas.length === 0) {
+                    content.innerHTML = '<div class="text-xs text-slate-500 text-center py-6">Nenhuma pasta arquivada encontrada.</div>';
+                } else {
+                    content.innerHTML = datas.map(data => `
+                        <div class="bg-slate-800 border border-slate-700 rounded-xl p-3 space-y-2">
+                            <div class="flex justify-between items-center text-xs font-bold text-amber-400">
+                                <span><i class="fa-solid fa-folder-closed mr-1"></i> Pasta: ${data}</span>
+                                <span class="text-slate-400">${pastas[data].length} rota(s)</span>
+                            </div>
+                            <div class="space-y-1 pl-2 border-l border-slate-700">
+                                ${pastas[data].map((r, i) => `
+                                    <div class="text-[11px] text-slate-300 flex justify-between">
+                                        <span>#${i+1} ${r.destination} (${r.fleet})</span>
+                                        <span class="text-agro-400 font-semibold">${r.distance} km</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `).join('');
+                }
                 m.classList.remove('hidden');
             } else {
                 m.classList.add('hidden');
@@ -890,7 +949,7 @@
             setTimeout(() => box.classList.add('hidden'), 4000);
         }
 
-        function hideAlert() { document.getElementById('alertBox').classList.add('hidden'); }
+        function hideAlert() { document.getElementById('alertBox'].classList.add('hidden'); }
     </script>
 </body>
 </html>
