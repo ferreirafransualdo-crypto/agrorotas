@@ -407,7 +407,7 @@
 
     <!-- SCRIPT DA APLICAÇÃO -->
     <script>
-        const APP_VERSION = "2.3"; 
+        const APP_VERSION = "2.4"; 
 
         let timerInterval = null;
         let watchId = null;
@@ -494,7 +494,6 @@
                     document.getElementById('loginSection').classList.remove('hidden');
                     document.getElementById('appPanel').classList.add('hidden');
                     
-                    // Mostra o botão para limpar sessões antigas travadas se houver cache residual
                     const temSessaoAntiga = localStorage.getItem('agro_last_logged_user');
                     if (temSessaoAntiga) {
                         document.getElementById('btnTrocarUsuarioContainer').classList.remove('hidden');
@@ -938,34 +937,28 @@
             a.href = url; a.download = `Relatorio_${colabAtivo}.csv`; a.click();
         }
 
-        function prepararDadosRelatorioVisual() {
-            const colabAtivo = localStorage.getItem('agro_fixed_colaborador');
-            const history = JSON.parse(localStorage.getItem(`agro_routes_history_${colabAtivo}`) || '[]');
-            
-            if (history.length === 0) {
-                showAlert('Nenhuma rota registrada no seu perfil.', 'error');
-                return false;
-            }
+        function popularEstruturaRelatorioVisual(listaRotas, dataTitulo, nomeColaborador) {
+            if (!listaRotas || listaRotas.length === 0) return false;
 
-            const ultimaRota = history[history.length - 1];
+            const ultimaRota = listaRotas[listaRotas.length - 1];
 
-            document.getElementById('imgReportDate').innerText = new Date().toLocaleDateString('pt-BR');
-            document.getElementById('imgReportCollab').innerText = colabAtivo;
+            document.getElementById('imgReportDate').innerText = dataTitulo || new Date().toLocaleDateString('pt-BR');
+            document.getElementById('imgReportCollab').innerText = nomeColaborador;
             document.getElementById('imgReportFleet').innerText = ultimaRota.fleet || '---';
-            document.getElementById('imgReportTotalRoutes').innerText = history.length;
+            document.getElementById('imgReportTotalRoutes').innerText = listaRotas.length;
 
             let totalKmGeral = 0;
-            history.forEach(r => totalKmGeral += parseFloat(r.distance || 0));
+            listaRotas.forEach(r => totalKmGeral += parseFloat(r.distance || 0));
 
-            document.getElementById('summaryTotalRoutes').innerText = history.length;
+            document.getElementById('summaryTotalRoutes').innerText = listaRotas.length;
             document.getElementById('summaryTotalKm').innerText = `${totalKmGeral.toFixed(2)} km`;
-            document.getElementById('summaryFirstStart').innerText = history[0].startTime || '--:--';
-            document.getElementById('summaryLastEnd').innerText = history[history.length - 1].endTime || '--:--';
+            document.getElementById('summaryFirstStart').innerText = listaRotas[0].startTime || '--:--';
+            document.getElementById('summaryLastEnd').innerText = listaRotas[listaRotas.length - 1].endTime || '--:--';
 
             const container = document.getElementById('imgRoutesContainer');
             container.innerHTML = '';
 
-            history.forEach((r, idx) => {
+            listaRotas.forEach((r, idx) => {
                 const card = document.createElement('div');
                 card.style.background = '#ffffff';
                 card.style.borderRadius = '12px';
@@ -1005,8 +998,36 @@
         }
 
         function gerarRelatorioImagem() {
-            if (prepararDadosRelatorioVisual()) {
+            const colabAtivo = localStorage.getItem('agro_fixed_colaborador');
+            const history = JSON.parse(localStorage.getItem(`agro_routes_history_${colabAtivo}`) || '[]');
+            
+            if (history.length === 0) {
+                showAlert('Nenhuma rota registrada no seu perfil.', 'error');
+                return;
+            }
+
+            if (popularEstruturaRelatorioVisual(history, new Date().toLocaleDateString('pt-BR'), colabAtivo)) {
                 document.getElementById('modalRelatorioVisual').classList.remove('hidden');
+            }
+        }
+
+        function gerarEBaixarImagemPasta(dataPasta) {
+            const colabAtivo = localStorage.getItem('agro_fixed_colaborador');
+            const pastas = JSON.parse(localStorage.getItem(`agro_archived_folders_${colabAtivo}`) || '{}');
+            const rotasPasta = pastas[dataPasta];
+
+            if (!rotasPasta || rotasPasta.length === 0) {
+                showAlert('Nenhuma rota encontrada nesta pasta.', 'error');
+                return;
+            }
+
+            if (popularEstruturaRelatorioVisual(rotasPasta, dataPasta, colabAtivo)) {
+                document.getElementById('modalRelatorioVisual').classList.remove('hidden');
+                
+                // Dispara o download automático após um breve delay para garantir renderização
+                setTimeout(() => {
+                    baixarImagemPronta();
+                }, 400);
             }
         }
 
@@ -1173,9 +1194,14 @@
                                         </div>
                                     `).join('')}
 
-                                    <button type="button" onclick="enviarPastaWhatsApp('${data}')" class="w-full mt-2 py-2 bg-green-600 hover:bg-green-500 text-white font-bold rounded-lg text-xs flex items-center justify-center gap-2 cursor-pointer shadow-md">
-                                        <i class="fa-brands fa-whatsapp"></i> Enviar Relatório desta Pasta via WhatsApp
-                                    </button>
+                                    <div class="grid grid-cols-2 gap-2 mt-3">
+                                        <button type="button" onclick="gerarEBaixarImagemPasta('${data}')" class="py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-lg text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow-md">
+                                            <i class="fa-solid fa-image"></i> Baixar Imagem (PNG)
+                                        </button>
+                                        <button type="button" onclick="enviarPastaWhatsApp('${data}')" class="py-2 bg-green-600 hover:bg-green-500 text-white font-bold rounded-lg text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow-md">
+                                            <i class="fa-brands fa-whatsapp"></i> Enviar WhatsApp
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         `;
