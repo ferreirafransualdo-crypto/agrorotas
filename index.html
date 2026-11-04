@@ -452,7 +452,6 @@
             const hist = JSON.parse(localStorage.getItem('agro_routes_history') || '[]');
             const ultimosDoColab = hist.filter(h => h.colaborador === colab);
             
-            // Tenta resgatar da última rota salva ou de preferência salva do usuário
             const ultimaFrotaSalva = localStorage.getItem(`agro_last_fleet_${colab}`);
             const ultimoKmSalvo = localStorage.getItem(`agro_last_km_${colab}`);
 
@@ -614,67 +613,74 @@
             }
         }
 
+        // FUNÇÃO DE ENCERRAMENTO COM PROTEÇÃO CONTRA TRAVAMENTOS
         function stopTracking() {
             if (!confirm("Deseja encerrar e salvar esta rota?")) return;
             
-            // Para sensores e timers
-            if (watchId !== null) navigator.geolocation.clearWatch(watchId);
-            if (timerInterval) clearInterval(timerInterval);
-            if (simInterval) clearInterval(simInterval);
+            try {
+                // Parar imediatamente todos os timers e rastreadores ativos
+                if (watchId !== null) { navigator.geolocation.clearWatch(watchId); watchId = null; }
+                if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+                if (simInterval) { clearInterval(simInterval); simInterval = null; }
 
-            const kmFinal = activeRoute.kmStart + activeRoute.distanceKm;
-            const agora = new Date();
-            const dataHoje = agora.toLocaleDateString('pt-BR');
-            
-            const registro = {
-                id: Date.now(),
-                data: dataHoje,
-                colaborador: activeRoute.colaborador,
-                fleet: activeRoute.fleet,
-                kmStart: Number(activeRoute.kmStart).toFixed(1),
-                kmFinal: Number(kmFinal).toFixed(1),
-                destination: activeRoute.destination,
-                notes: activeRoute.notes || '',
-                startTime: new Date(activeRoute.startTime).toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'}),
-                endTime: agora.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'}),
-                duration: document.getElementById('liveTimer').innerText,
-                distance: activeRoute.distanceKm.toFixed(2)
-            };
+                const kmStartNum = parseFloat(activeRoute.kmStart) || 0;
+                const distanceNum = parseFloat(activeRoute.distanceKm) || 0;
+                const kmFinal = kmStartNum + distanceNum;
+                const agora = new Date();
+                const dataHoje = agora.toLocaleDateString('pt-BR');
+                
+                const registro = {
+                    id: Date.now(),
+                    data: dataHoje,
+                    colaborador: activeRoute.colaborador || localStorage.getItem('agro_fixed_colaborador') || 'Colaborador',
+                    fleet: activeRoute.fleet || '---',
+                    kmStart: kmStartNum.toFixed(1),
+                    kmFinal: kmFinal.toFixed(1),
+                    destination: activeRoute.destination || 'Manobra sem nome',
+                    notes: activeRoute.notes || '',
+                    startTime: activeRoute.startTime ? new Date(activeRoute.startTime).toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'}) : agora.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'}),
+                    endTime: agora.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'}),
+                    duration: document.getElementById('liveTimer').innerText || '00:00:00',
+                    distance: distanceNum.toFixed(2)
+                };
 
-            // Salva no histórico geral
-            let history = JSON.parse(localStorage.getItem('agro_routes_history') || '[]');
-            history.push(registro);
-            localStorage.setItem('agro_routes_history', JSON.stringify(history));
+                // Guardar no histórico principal
+                let history = JSON.parse(localStorage.getItem('agro_routes_history') || '[]');
+                history.push(registro);
+                localStorage.setItem('agro_routes_history', JSON.stringify(history));
 
-            // Salva preferências persistentes do usuário (frota e km) para não perder nunca
-            localStorage.setItem(`agro_last_fleet_${activeRoute.colaborador}`, activeRoute.fleet);
-            localStorage.setItem(`agro_last_km_${activeRoute.colaborador}`, kmFinal.toFixed(1));
+                // Atualizar atalhos de navegação
+                localStorage.setItem(`agro_last_fleet_${registro.colaborador}`, registro.fleet);
+                localStorage.setItem(`agro_last_km_${registro.colaborador}`, kmFinal.toFixed(1));
 
-            // LIMPA COMPLETAMENTE O CACHE DA ROTA ATIVA
-            localStorage.removeItem('agro_active_route');
+                // Atualizar campos do formulário para a próxima manobra
+                document.getElementById('inputFleet').value = registro.fleet;
+                document.getElementById('inputKmStart').value = kmFinal.toFixed(1);
 
-            // Reseta variáveis de estado
-            isSimulating = false;
-            isPaused = false;
-            activeRoute = { colaborador: '', fleet: '', kmStart: 0, destination: '', notes: '', startTime: null, elapsedSeconds: 0, distanceKm: 0, lastCoords: null, gpsPoints: 0 };
+            } catch (err) {
+                console.error("Erro ao gravar dados da rota:", err);
+            } finally {
+                // Força a limpeza da rota ativa para nunca bloquear a interface
+                localStorage.removeItem('agro_active_route');
+                isSimulating = false;
+                isPaused = false;
+                activeRoute = { colaborador: '', fleet: '', kmStart: 0, destination: '', notes: '', startTime: null, elapsedSeconds: 0, distanceKm: 0, lastCoords: null, gpsPoints: 0 };
 
-            // Restaura interface
-            document.getElementById('activeSection').classList.add('hidden');
-            document.getElementById('formSection').classList.remove('hidden');
-            document.getElementById('startRouteForm').reset();
-            
-            // Mantém os dados prontos para a próxima rota
-            document.getElementById('inputFleet').value = registro.fleet;
-            document.getElementById('inputKmStart').value = kmFinal.toFixed(1);
+                // Ocultar painel ativo e voltar ao formulário principal
+                document.getElementById('activeSection').classList.add('hidden');
+                document.getElementById('formSection').classList.remove('hidden');
+                document.getElementById('startRouteForm').reset();
 
-            loadHistory();
-            showAlert('Rota encerrada e salva com sucesso!', 'success');
+                // Recarrega lista e notifica o utilizador
+                loadHistory();
+                showAlert('Rota encerrada e salva com sucesso!', 'success');
+            }
         }
 
         function forcarDestraveGeral() {
-            if (watchId !== null) navigator.geolocation.clearWatch(watchId);
-            if (timerInterval) clearInterval(timerInterval);
-            if (simInterval) clearInterval(simInterval);
+            if (watchId !== null) { navigator.geolocation.clearWatch(watchId); watchId = null; }
+            if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+            if (simInterval) { clearInterval(simInterval); simInterval = null; }
             localStorage.removeItem('agro_active_route');
             isSimulating = false;
             isPaused = false;
@@ -880,7 +886,6 @@
             window.open(url, '_blank');
         }
 
-        // FINALIZAR DEMANDA DO DIA E ARQUIVAR NA PASTA POR DATA
         function finalizarDemandaDoDia() {
             const history = JSON.parse(localStorage.getItem('agro_routes_history') || '[]');
             if (history.length === 0) {
@@ -949,7 +954,7 @@
             setTimeout(() => box.classList.add('hidden'), 4000);
         }
 
-        function hideAlert() { document.getElementById('alertBox'].classList.add('hidden'); }
+        function hideAlert() { document.getElementById('alertBox').classList.add('hidden'); }
     </script>
 </body>
 </html>
