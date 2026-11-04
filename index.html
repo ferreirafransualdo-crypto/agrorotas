@@ -112,7 +112,7 @@
                 </button>
 
                 <button type="button" onclick="forcarDestraveTotal()" class="w-full py-2.5 bg-red-900/60 hover:bg-red-800 text-red-200 font-semibold rounded-xl text-xs transition border border-red-700/50 cursor-pointer flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-triangle-exclamation"></i> 🔄 Limpar Cache e Destravar
+                    <i class="fa-solid fa-triangle-exclamation"></i> 🔄 Limpar Cache e Resetar
                 </button>
             </form>
         </section>
@@ -371,8 +371,8 @@
 
     <!-- SCRIPT DA APLICAÇÃO -->
     <script>
-        let watchId = null;
         let timerInterval = null;
+        let gpsInterval = null;
         let simInterval = null;
         let isSimulating = false;
         let isPaused = false;
@@ -401,17 +401,19 @@
         };
 
         function verificarSessaoAtiva() {
-            const colabAtivo = localStorage.getItem('agro_fixed_colaborador');
-            if (colabAtivo) {
-                document.getElementById('currentCollabLabel').innerText = colabAtivo;
-                document.getElementById('loginSection').classList.add('hidden');
-                document.getElementById('appPanel').classList.remove('hidden');
-                carregarDadosSessaoColaborador(colabAtivo);
-                loadHistory();
-            } else {
-                document.getElementById('loginSection').classList.remove('hidden');
-                document.getElementById('appPanel').classList.add('hidden');
-            }
+            try {
+                const colabAtivo = localStorage.getItem('agro_fixed_colaborador');
+                if (colabAtivo) {
+                    document.getElementById('currentCollabLabel').innerText = colabAtivo;
+                    document.getElementById('loginSection').classList.add('hidden');
+                    document.getElementById('appPanel').classList.remove('hidden');
+                    carregarDadosSessaoColaborador(colabAtivo);
+                    loadHistory();
+                } else {
+                    document.getElementById('loginSection').classList.remove('hidden');
+                    document.getElementById('appPanel').classList.add('hidden');
+                }
+            } catch(e) { console.error(e); }
         }
 
         function validarLoginColaborador() {
@@ -453,36 +455,37 @@
         }
 
         function forcarDestraveTotal() {
-            if (watchId !== null) { navigator.geolocation.clearWatch(watchId); watchId = null; }
-            if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
-            if (simInterval) { clearInterval(simInterval); simInterval = null; }
+            pararTodosOsTimers();
             localStorage.removeItem('agro_active_route');
+            localStorage.removeItem('agro_fixed_colaborador');
             isSimulating = false;
             isPaused = false;
-            document.getElementById('activeSection').classList.add('hidden');
-            document.getElementById('formSection').classList.remove('hidden');
-            document.getElementById('loginSection').classList.remove('hidden');
-            document.getElementById('appPanel').classList.add('hidden');
-            localStorage.removeItem('agro_fixed_colaborador');
-            alert('Cache limpo e aplicativo destravado com sucesso!');
             location.reload();
         }
 
-        function carregarDadosSessaoColaborador(colab) {
-            const hist = JSON.parse(localStorage.getItem('agro_routes_history') || '[]');
-            const ultimosDoColab = hist.filter(h => h.colaborador === colab);
-            
-            const ultimaFrotaSalva = localStorage.getItem(`agro_last_fleet_${colab}`);
-            const ultimoKmSalvo = localStorage.getItem(`agro_last_km_${colab}`);
+        function pararTodosOsTimers() {
+            if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+            if (gpsInterval) { clearInterval(gpsInterval); gpsInterval = null; }
+            if (simInterval) { clearInterval(simInterval); simInterval = null; }
+        }
 
-            if (ultimosDoColab.length > 0) {
-                const ultimaRota = ultimosDoColab[ultimosDoColab.length - 1];
-                document.getElementById('inputFleet').value = ultimaFrotaSalva || ultimaRota.fleet || '';
-                document.getElementById('inputKmStart').value = ultimoKmSalvo || ultimaRota.kmFinal || '1000.0';
-            } else {
-                document.getElementById('inputFleet').value = ultimaFrotaSalva || '';
-                document.getElementById('inputKmStart').value = ultimoKmSalvo || '1000.0';
-            }
+        function carregarDadosSessaoColaborador(colab) {
+            try {
+                const hist = JSON.parse(localStorage.getItem('agro_routes_history') || '[]');
+                const ultimosDoColab = hist.filter(h => h.colaborador === colab);
+                
+                const ultimaFrotaSalva = localStorage.getItem(`agro_last_fleet_${colab}`);
+                const ultimoKmSalvo = localStorage.getItem(`agro_last_km_${colab}`);
+
+                if (ultimosDoColab.length > 0) {
+                    const ultimaRota = ultimosDoColab[ultimosDoColab.length - 1];
+                    document.getElementById('inputFleet').value = ultimaFrotaSalva || ultimaRota.fleet || '';
+                    document.getElementById('inputKmStart').value = ultimoKmSalvo || ultimaRota.kmFinal || '1000.0';
+                } else {
+                    document.getElementById('inputFleet').value = ultimaFrotaSalva || '';
+                    document.getElementById('inputKmStart').value = ultimoKmSalvo || '1000.0';
+                }
+            } catch(e) { console.error(e); }
         }
 
         function verificarRotaEmAndamentoSalva() {
@@ -490,7 +493,7 @@
             if (salva) {
                 try {
                     activeRoute = JSON.parse(salva);
-                    if (!activeRoute.destination || !activeRoute.fleet) {
+                    if (!activeRoute || !activeRoute.destination || !activeRoute.fleet) {
                         localStorage.removeItem('agro_active_route');
                         return;
                     }
@@ -545,60 +548,62 @@
         }
 
         function iniciarTimerUI() {
-            if (timerInterval) clearInterval(timerInterval);
+            pararTodosOsTimers();
             timerInterval = setInterval(() => {
                 if (!isPaused) {
                     activeRoute.elapsedSeconds++;
                     const hrs = String(Math.floor(activeRoute.elapsedSeconds / 3600)).padStart(2, '0');
                     const mins = String(Math.floor((activeRoute.elapsedSeconds % 3600) / 60)).padStart(2, '0');
                     const secs = String(activeRoute.elapsedSeconds % 60).padStart(2, '0');
-                    document.getElementById('liveTimer').innerText = `${hrs}:${mins}:${secs}`;
-                    document.getElementById('liveKmCurrent').innerText = (activeRoute.kmStart + activeRoute.distanceKm).toFixed(1);
-                    localStorage.setItem('agro_active_route', JSON.stringify(activeRoute));
+                    
+                    const liveTimerEl = document.getElementById('liveTimer');
+                    const liveKmEl = document.getElementById('liveKmCurrent');
+                    if (liveTimerEl) liveTimerEl.innerText = `${hrs}:${mins}:${secs}`;
+                    if (liveKmEl) liveKmEl.innerText = (activeRoute.kmStart + activeRoute.distanceKm).toFixed(1);
                 }
             }, 1000);
         }
 
+        // GPS em Polling Suave (Evita travamentos de WatchPosition)
         function iniciarGPSReal() {
             const badge = document.getElementById('gpsStatusBadge');
-            badge.className = "flex items-center gap-2 px-3 py-1 rounded-full bg-amber-900/80 border border-amber-500 text-amber-300 text-xs font-semibold";
-            badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span><span>Buscando GPS...</span>';
+            badge.className = "flex items-center gap-2 px-3 py-1 rounded-full bg-agro-900/80 border border-agro-500/50 text-agro-300 text-xs font-semibold";
+            badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-agro-400 animate-pulse"></span><span>GPS Ativo</span>';
 
             if ("geolocation" in navigator) {
-                watchId = navigator.geolocation.watchPosition(
-                    (pos) => {
-                        badge.className = "flex items-center gap-2 px-3 py-1 rounded-full bg-agro-900/80 border border-agro-500/50 text-agro-300 text-xs font-semibold";
-                        badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-agro-400 animate-pulse"></span><span>GPS Conectado</span>';
+                gpsInterval = setInterval(() => {
+                    if (isPaused || isSimulating) return;
 
-                        const lat = pos.coords.latitude;
-                        const lng = pos.coords.longitude;
-                        const speed = ((pos.coords.speed || 0) * 3.6).toFixed(0);
-                        document.getElementById('liveSpeed').innerText = `${speed} km/h`;
-                        document.getElementById('liveGpsAccuracy').innerText = `Precisão: ±${pos.coords.accuracy.toFixed(0)}m`;
-
-                        const novaCoord = { lat, lng };
-                        if (activeRoute.lastCoords && !isPaused && !isSimulating) {
-                            const R = 6371e3;
-                            const dLat = (lat - activeRoute.lastCoords.lat) * Math.PI / 180;
-                            const dLon = (lng - activeRoute.lastCoords.lng) * Math.PI / 180;
-                            const a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(activeRoute.lastCoords.lat * Math.PI / 180) * Math.cos(lat * Math.PI / 180) * Math.sin(dLon/2) * Math.sin(dLon/2);
-                            const dist = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+                    navigator.geolocation.getCurrentPosition(
+                        (pos) => {
+                            const lat = pos.coords.latitude;
+                            const lng = pos.coords.longitude;
+                            const speed = ((pos.coords.speed || 0) * 3.6).toFixed(0);
                             
-                            if (dist > 4 && dist < 1500) {
-                                activeRoute.distanceKm += dist / 1000;
-                                activeRoute.gpsPoints++;
-                                document.getElementById('liveDistance').innerText = activeRoute.distanceKm.toFixed(2);
-                                document.getElementById('gpsPointsCount').innerText = activeRoute.gpsPoints;
+                            document.getElementById('liveSpeed').innerText = `${speed} km/h`;
+                            document.getElementById('liveGpsAccuracy').innerText = `Precisão: ±${pos.coords.accuracy.toFixed(0)}m`;
+
+                            const novaCoord = { lat, lng };
+                            if (activeRoute.lastCoords) {
+                                const R = 6371e3;
+                                const dLat = (lat - activeRoute.lastCoords.lat) * Math.PI / 180;
+                                const dLon = (lng - activeRoute.lastCoords.lng) * Math.PI / 180;
+                                const a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(activeRoute.lastCoords.lat * Math.PI / 180) * Math.cos(lat * Math.PI / 180) * Math.sin(dLon/2) * Math.sin(dLon/2);
+                                const dist = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+                                
+                                if (dist > 3 && dist < 2000) {
+                                    activeRoute.distanceKm += dist / 1000;
+                                    activeRoute.gpsPoints++;
+                                    document.getElementById('liveDistance').innerText = activeRoute.distanceKm.toFixed(2);
+                                    document.getElementById('gpsPointsCount').innerText = activeRoute.gpsPoints;
+                                }
                             }
-                        }
-                        activeRoute.lastCoords = novaCoord;
-                    },
-                    (err) => {
-                        badge.className = "flex items-center gap-2 px-3 py-1 rounded-full bg-red-900/80 border border-red-500 text-red-300 text-xs font-semibold";
-                        badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-red-400"></span><span>GPS Indisponível</span>';
-                    },
-                    { enableHighAccuracy: true, maximumAge: 3000, timeout: 15000 }
-                );
+                            activeRoute.lastCoords = novaCoord;
+                        },
+                        (err) => {},
+                        { enableHighAccuracy: true, timeout: 4000, maximumAge: 2000 }
+                    );
+                }, 4000);
             }
         }
 
@@ -640,11 +645,9 @@
         function stopTracking() {
             if (!confirm("Deseja encerrar e salvar esta rota?")) return;
             
-            try {
-                if (watchId !== null) { navigator.geolocation.clearWatch(watchId); watchId = null; }
-                if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
-                if (simInterval) { clearInterval(simInterval); simInterval = null; }
+            pararTodosOsTimers();
 
+            try {
                 const kmStartNum = parseFloat(activeRoute.kmStart) || 0;
                 const distanceNum = parseFloat(activeRoute.distanceKm) || 0;
                 const kmFinal = kmStartNum + distanceNum;
@@ -694,9 +697,7 @@
         }
 
         function forcarDestraveGeral() {
-            if (watchId !== null) { navigator.geolocation.clearWatch(watchId); watchId = null; }
-            if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
-            if (simInterval) { clearInterval(simInterval); simInterval = null; }
+            pararTodosOsTimers();
             localStorage.removeItem('agro_active_route');
             isSimulating = false;
             isPaused = false;
@@ -715,37 +716,39 @@
         }
 
         function loadHistory() {
-            const history = JSON.parse(localStorage.getItem('agro_routes_history') || '[]');
-            const container = document.getElementById('historyList');
-            const datalist = document.getElementById('destinationList');
-            container.innerHTML = '';
-            datalist.innerHTML = '';
-            const destinationsSet = new Set();
+            try {
+                const history = JSON.parse(localStorage.getItem('agro_routes_history') || '[]');
+                const container = document.getElementById('historyList');
+                const datalist = document.getElementById('destinationList');
+                container.innerHTML = '';
+                datalist.innerHTML = '';
+                const destinationsSet = new Set();
 
-            if (history.length === 0) {
-                container.innerHTML = '<div class="text-xs text-slate-500 text-center py-4">Nenhuma rota registrada.</div>';
-                return;
-            }
+                if (history.length === 0) {
+                    container.innerHTML = '<div class="text-xs text-slate-500 text-center py-4">Nenhuma rota registrada.</div>';
+                    return;
+                }
 
-            history.slice().reverse().forEach((item) => {
-                destinationsSet.add(item.destination);
-                const div = document.createElement('div');
-                div.className = "bg-slate-900 border border-slate-800 p-3 rounded-xl flex justify-between items-center text-xs";
-                div.innerHTML = `
-                    <div>
-                        <div class="font-bold text-white"><i class="fa-solid fa-location-dot text-agro-500 mr-1"></i> ${item.destination}</div>
-                        <div class="text-slate-400 mt-0.5">Data: ${item.data} | Frota: ${item.fleet} | KM Fim: ${item.kmFinal}</div>
-                    </div>
-                    <div class="text-right font-bold text-agro-400">${item.distance} KM</div>
-                `;
-                container.appendChild(div);
-            });
+                history.slice().reverse().forEach((item) => {
+                    destinationsSet.add(item.destination);
+                    const div = document.createElement('div');
+                    div.className = "bg-slate-900 border border-slate-800 p-3 rounded-xl flex justify-between items-center text-xs";
+                    div.innerHTML = `
+                        <div>
+                            <div class="font-bold text-white"><i class="fa-solid fa-location-dot text-agro-500 mr-1"></i> ${item.destination}</div>
+                            <div class="text-slate-400 mt-0.5">Data: ${item.data} | Frota: ${item.fleet} | KM Fim: ${item.kmFinal}</div>
+                        </div>
+                        <div class="text-right font-bold text-agro-400">${item.distance} KM</div>
+                    `;
+                    container.appendChild(div);
+                });
 
-            destinationsSet.forEach(dest => {
-                const opt = document.createElement('option');
-                opt.value = dest;
-                datalist.appendChild(opt);
-            });
+                destinationsSet.forEach(dest => {
+                    const opt = document.createElement('option');
+                    opt.value = dest;
+                    datalist.appendChild(opt);
+                });
+            } catch(e) { console.error(e); }
         }
 
         function clearHistory() {
@@ -845,7 +848,7 @@
             showAlert('Gerando imagem do relatório...', 'info');
 
             html2canvas(card, { 
-                scale: 2, 
+                scale: 1.5, 
                 backgroundColor: '#f1f5f9',
                 useCORS: true,
                 logging: false
@@ -970,7 +973,7 @@
             setTimeout(() => box.classList.add('hidden'), 4000);
         }
 
-        function hideAlert() { document.getElementById('alertBox'].classList.add('hidden'); }
+        function hideAlert() { document.getElementById('alertBox').classList.add('hidden'); }
     </script>
 </body>
 </html>
