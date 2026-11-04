@@ -148,7 +148,7 @@
                         <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Veículo / Frota *</label>
                         <div class="relative">
                             <i class="fa-solid fa-truck absolute left-3 top-3.5 text-slate-500"></i>
-                            <input type="text" id="inputFleet" required placeholder="Ex: 336862" class="input-agro placeholder-slate-500">
+                            <input type="text" id="inputFleet" required placeholder="Ex: 336862" class="input-agro placeholder-slate-500 font-bold">
                         </div>
                     </div>
 
@@ -157,7 +157,7 @@
                             <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">KM Inicial (Automático) *</label>
                             <div class="relative">
                                 <i class="fa-solid fa-gauge-high absolute left-3 top-3.5 text-slate-500"></i>
-                                <input type="number" step="0.1" id="inputKmStart" required placeholder="Ex: 124500" class="input-agro placeholder-slate-500 font-semibold text-lg bg-slate-800/80 text-agro-400">
+                                <input type="number" step="0.1" id="inputKmStart" required placeholder="Ex: 19745.0" class="input-agro placeholder-slate-500 font-semibold text-lg bg-slate-800/80 text-agro-400">
                             </div>
                         </div>
 
@@ -165,7 +165,7 @@
                             <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Tipo de Manobra / Destino *</label>
                             <div class="relative">
                                 <i class="fa-solid fa-location-dot absolute left-3 top-3.5 text-slate-500"></i>
-                                <input type="text" id="inputDestination" required placeholder="Ex: Maqnelson / Fazenda Santo Antônio" list="destinationList" class="input-agro placeholder-slate-500">
+                                <input type="text" id="inputDestination" required placeholder="Ex: Posto de combustivel" list="destinationList" class="input-agro placeholder-slate-500">
                                 <datalist id="destinationList"></datalist>
                             </div>
                         </div>
@@ -280,7 +280,7 @@
 
     </main>
 
-    <!-- MODAL DO RELATÓRIO VISUAL (COM O CABEÇALHO MANIDO DO AGROROTA GPS) -->
+    <!-- MODAL DO RELATÓRIO VISUAL -->
     <div id="modalRelatorioVisual" class="fixed inset-0 bg-slate-950/95 backdrop-blur-md z-50 hidden flex flex-col items-center justify-start p-2 sm:p-4 overflow-y-auto">
         <div class="w-full max-w-lg flex justify-between items-center mb-3 text-white">
             <span class="text-sm font-bold flex items-center gap-2 text-emerald-400"><i class="fa-solid fa-circle-check"></i> Relatório Pronto</span>
@@ -288,7 +288,7 @@
         </div>
 
         <div class="w-full max-w-lg overflow-x-auto rounded-2xl shadow-2xl">
-            <!-- CARD DE IMPRESSÃO COM CABEÇALHO AGROROTA GPS -->
+            <!-- CARD DE IMPRESSÃO -->
             <div id="reportCardToImage" style="width: 100%; min-width: 480px; background-color: #f1f5f9; color: #0f172a; border-radius: 16px; overflow: hidden; font-family: 'Inter', sans-serif; border: 4px solid #0b132b;">
                 
                 <!-- CABEÇALHO DO AGROROTA GPS -->
@@ -451,11 +451,14 @@
 
         function carregarDadosSessaoColaborador(colab) {
             const hist = JSON.parse(localStorage.getItem('agro_routes_history') || '[]');
-            const ultimos = hist.filter(h => h.colaborador === colab);
-            if (ultimos.length > 0) {
-                document.getElementById('inputFleet').value = ultimos[ultimos.length - 1].fleet || '';
-                document.getElementById('inputKmStart').value = ultimos[ultimos.length - 1].kmFinal || '';
+            const ultimosDoColab = hist.filter(h => h.colaborador === colab);
+            
+            if (ultimosDoColab.length > 0) {
+                const ultimaRota = ultimosDoColab[ultimosDoColab.length - 1];
+                document.getElementById('inputFleet').value = ultimaRota.fleet || '';
+                document.getElementById('inputKmStart').value = ultimaRota.kmFinal || '1000.0';
             } else {
+                document.getElementById('inputFleet').value = '';
                 document.getElementById('inputKmStart').value = '1000.0';
             }
         }
@@ -641,6 +644,9 @@
             document.getElementById('activeSection').classList.add('hidden');
             document.getElementById('formSection').classList.remove('hidden');
             document.getElementById('startRouteForm').reset();
+            
+            // Mantém a frota e atualiza o KM Inicial com o KM Final gerado
+            document.getElementById('inputFleet').value = activeRoute.fleet;
             document.getElementById('inputKmStart').value = kmFinal.toFixed(1);
 
             loadHistory();
@@ -819,6 +825,7 @@
             }, 1200);
         }
 
+        // RELATÓRIO FORMATADO EXATAMENTE NO PADRÃO SOLICITADO PARA O WHATSAPP
         function gerarRelatorioGestor() {
             const history = JSON.parse(localStorage.getItem('agro_routes_history') || '[]');
             const colabAtivo = localStorage.getItem('agro_fixed_colaborador') || 'Colaborador';
@@ -830,22 +837,24 @@
 
             const rotas = history.filter(h => h.colaborador === colabAtivo);
             const rotasExibir = rotas.length > 0 ? rotas : history;
-            let totalKm = 0;
-            rotasExibir.forEach(r => totalKm += parseFloat(r.distance || 0));
+            let totalKmGeral = 0;
+            rotasExibir.forEach(r => totalKmGeral += parseFloat(r.distance || 0));
 
             let texto = `*📊 RELATÓRIO DE ROTAS - AGROROTA GPS* 🚜\n\n`;
-            texto += `👤 *Colaborador:* ${colabAtivo}\n`;
-            texto += `📅 *Data:* ${new Date().toLocaleDateString('pt-BR')}\n`;
-            texto += `🚜 *Total de Rotas:* ${rotasExibir.length}\n`;
-            texto += `🛣️ *KM Total Percorrido:* ${totalKm.toFixed(2)} km\n\n`;
 
             rotasExibir.forEach((r, idx) => {
-                texto += `*#${idx + 1} - ${r.destination}*\n`;
-                texto += `• Horários: ${r.startTime} às ${r.endTime}\n`;
-                texto += `• KM: ${r.kmStart} ➔ ${r.kmFinal} (${r.distance} km)\n\n`;
+                texto += `*Rota #${idx + 1}*\n`;
+                texto += `👤 *Colaborador:* ${r.colaborador}\n`;
+                texto += `🚗 *Frota:* ${r.fleet}\n`;
+                texto += `⚙️ *Manobra:* ${r.destination}\n`;
+                texto += `⏰ *Saída:* ${r.startTime} | *Chegada:* ${r.endTime}\n`;
+                texto += `- KM Inicial: ${r.kmStart} km\n`;
+                texto += `- KM Final: ${r.kmFinal} km\n`;
+                texto += `- Total Percorrido: *${r.distance} KM*\n\n`;
             });
 
-            texto += `_Enviado via AgroRotas PWA_`;
+            texto += `🛣️ *KM TOTAL DO DIA:* *${totalKmGeral.toFixed(2)} KM*\n\n`;
+            texto += `_Enviado via AgroRota GPS_`;
 
             const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(texto)}`;
             window.open(url, '_blank');
