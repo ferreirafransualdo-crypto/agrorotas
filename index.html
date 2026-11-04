@@ -299,44 +299,71 @@
         </div>
 
         <div class="w-full max-w-md flex justify-center">
-            <!-- CARD DE IMPRESSÃO RESPONSIVO -->
+            <!-- CARD DE IMPRESSÃO RESPONSIVO IDÊNTICO À FOTO -->
             <div id="reportCardToImage" style="background-color: #f1f5f9; color: #0f172a; border-radius: 16px; overflow: hidden; font-family: 'Inter', sans-serif; border: 3px solid #0b132b; width: 100%;">
                 
-                <!-- CABEÇALHO DO AGROROTA GPS -->
+                <!-- CABEÇALHO DO AGROROTA GPS (Sem o subtítulo Delta Sucroenergia) -->
                 <div style="background: #090d16; color: #ffffff; padding: 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 4px solid #16a34a;">
                     <div style="display: flex; align-items: center; gap: 10px;">
                         <div style="background: #16a34a; color: #ffffff; width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 900;">
                             <i class="fa-solid fa-truck-ramp-box"></i>
                         </div>
                         <div>
-                            <div style="font-size: 18px; font-weight: 900; line-height: 1.1; color: #ffffff;">AgroRota GPS</div>
-                            <div style="font-size: 10px; font-weight: 600; color: #94a3b8;">Controle de Frota</div>
+                            <div style="font-size: 17px; font-weight: 900; line-height: 1.1; color: #ffffff;">Relatório de Rotas</div>
                         </div>
                     </div>
                     <div style="text-align: right;">
-                        <div style="font-size: 14px; font-weight: 900; color: #ffffff; text-transform: uppercase;">RELATÓRIO</div>
-                        <div style="font-size: 10px; font-weight: 700; color: #22c55e; text-transform: uppercase;">CAMPO & LOGÍSTICA</div>
+                        <div style="font-size: 8px; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px;">DATA DO RELATÓRIO</div>
+                        <div id="imgReportDate" style="font-size: 13px; font-weight: 900; color: #22c55e; margin-top: 2px;">03/11/2026</div>
                     </div>
                 </div>
 
-                <!-- LINHA DE DADOS -->
+                <!-- LINHA DE 3 DADOS: COLABORADOR, FROTA, TOTAL DE ROTAS -->
                 <div style="background: #ffffff; padding: 10px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; text-align: center; border-bottom: 2px solid #cbd5e1;">
                     <div style="background: #f8fafc; padding: 6px; border-radius: 8px; border: 1px solid #e2e8f0;">
-                        <span style="font-size: 8px; font-weight: 800; color: #64748b; text-transform: uppercase; display: block;">Data</span>
-                        <span id="imgReportDate" style="font-size: 11px; font-weight: 900; color: #0f172a;">---</span>
-                    </div>
-                    <div style="background: #f8fafc; padding: 6px; border-radius: 8px; border: 1px solid #e2e8f0;">
-                        <span style="font-size: 8px; font-weight: 800; color: #64748b; text-transform: uppercase; display: block;">Colaborador</span>
+                        <span style="font-size: 8px; font-weight: 800; color: #64748b; text-transform: uppercase; display: block;">COLABORADOR</span>
                         <span id="imgReportCollab" style="font-size: 11px; font-weight: 900; color: #0f172a;">---</span>
                     </div>
                     <div style="background: #f8fafc; padding: 6px; border-radius: 8px; border: 1px solid #e2e8f0;">
-                        <span style="font-size: 8px; font-weight: 800; color: #64748b; text-transform: uppercase; display: block;">Frota</span>
+                        <span style="font-size: 8px; font-weight: 800; color: #64748b; text-transform: uppercase; display: block;">FROTA</span>
                         <span id="imgReportFleet" style="font-size: 11px; font-weight: 900; color: #0f172a;">---</span>
+                    </div>
+                    <div style="background: #f8fafc; padding: 6px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                        <span style="font-size: 8px; font-weight: 800; color: #64748b; text-transform: uppercase; display: block;">TOTAL DE ROTAS</span>
+                        <span id="imgReportTotalRoutes" style="font-size: 11px; font-weight: 900; color: #0f172a;">0</span>
                     </div>
                 </div>
 
                 <!-- CONTAINER DINÂMICO DAS ROTAS -->
-                <div id="imgRoutesContainer" style="background: #f1f5f9; padding: 12px; display: flex; flex-direction: column; gap: 10px;"></div>
+                <div id="imgRoutesContainer" style="background: #f1f5f9; padding: 10px; display: flex; flex-direction: column; gap: 8px;"></div>
+
+                <!-- BLOCO DE RESUMO DO DIA -->
+                <div style="background: #090d16; margin: 10px; border-radius: 12px; overflow: hidden; border: 1px solid #1e293b;">
+                    <div style="padding: 10px 14px; background: linear-gradient(90deg, #0b132b 0%, #14532d 100%); display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #16a34a;">
+                        <span style="font-weight: 900; font-size: 12px; color: #ffffff; text-transform: uppercase; letter-spacing: 0.5px;">
+                            <i class="fa-solid fa-chart-pie" style="color: #22c55e; margin-right: 6px;"></i> Resumo do Dia
+                        </span>
+                        <div style="width: 16px; height: 3px; background: #22c55e; border-radius: 2px;"></div>
+                    </div>
+                    <div style="background: #ffffff; padding: 10px; display: grid; grid-template-columns: 1fr 1.2fr 1.2fr 1.2fr; gap: 4px; text-align: center;">
+                        <div style="background: #f8fafc; padding: 6px 2px; border-radius: 6px; border: 1px solid #e2e8f0;">
+                            <span style="font-size: 7px; font-weight: 800; color: #64748b; text-transform: uppercase; display: block;">Total de Rotas</span>
+                            <span id="summaryTotalRoutes" style="font-size: 11px; font-weight: 900; color: #0f172a;">0</span>
+                        </div>
+                        <div style="background: #f8fafc; padding: 6px 2px; border-radius: 6px; border: 1px solid #e2e8f0;">
+                            <span style="font-size: 7px; font-weight: 800; color: #64748b; text-transform: uppercase; display: block;">Total Percorrido</span>
+                            <span id="summaryTotalKm" style="font-size: 10px; font-weight: 900; color: #2563eb;">0 km</span>
+                        </div>
+                        <div style="background: #f8fafc; padding: 6px 2px; border-radius: 6px; border: 1px solid #e2e8f0;">
+                            <span style="font-size: 7px; font-weight: 800; color: #64748b; text-transform: uppercase; display: block;">Primeira Saída</span>
+                            <span id="summaryFirstStart" style="font-size: 10px; font-weight: 900; color: #0f172a;">--:--</span>
+                        </div>
+                        <div style="background: #f8fafc; padding: 6px 2px; border-radius: 6px; border: 1px solid #e2e8f0;">
+                            <span style="font-size: 7px; font-weight: 800; color: #64748b; text-transform: uppercase; display: block;">Última Chegada</span>
+                            <span id="summaryLastEnd" style="font-size: 10px; font-weight: 900; color: #0f172a;">--:--</span>
+                        </div>
+                    </div>
+                </div>
 
             </div>
         </div>
@@ -804,6 +831,16 @@
             document.getElementById('imgReportDate').innerText = new Date().toLocaleDateString('pt-BR');
             document.getElementById('imgReportCollab').innerText = colabAtivo;
             document.getElementById('imgReportFleet').innerText = ultimaRota.fleet || '---';
+            document.getElementById('imgReportTotalRoutes').innerText = history.length;
+
+            // Preenche o resumo do dia
+            let totalKmGeral = 0;
+            history.forEach(r => totalKmGeral += parseFloat(r.distance || 0));
+
+            document.getElementById('summaryTotalRoutes').innerText = history.length;
+            document.getElementById('summaryTotalKm').innerText = `${totalKmGeral.toFixed(2)} km`;
+            document.getElementById('summaryFirstStart').innerText = history[0].startTime || '--:--';
+            document.getElementById('summaryLastEnd').innerText = history[history.length - 1].endTime || '--:--';
 
             const container = document.getElementById('imgRoutesContainer');
             container.innerHTML = '';
@@ -816,33 +853,29 @@
                 card.style.border = '1px solid #cbd5e1';
                 card.style.boxShadow = '0 2px 4px rgba(0,0,0,0.05)';
                 card.innerHTML = `
-                    <div style="background: #0b132b; color: #ffffff; padding: 10px 14px; display: flex; justify-content: space-between; align-items: center;">
-                        <span style="font-weight: bold; font-size: 12px; color: #ffffff;">
-                            <i class="fa-solid fa-route" style="color: #22c55e; margin-right: 6px;"></i> Rota #${idx + 1}
+                    <div style="background: #0b132b; color: #ffffff; padding: 8px 12px; display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-weight: 900; font-size: 11px; color: #ffffff;">
+                            Rota #${idx + 1}
                         </span>
-                        <span style="font-size: 11px; font-weight: bold; color: #22c55e;">Concluída</span>
                     </div>
 
-                    <div style="padding: 12px 14px; display: grid; grid-template-columns: 1.2fr 1fr 1fr; gap: 8px; align-items: center; border-bottom: 1px solid #e2e8f0;">
+                    <div style="padding: 10px 12px; display: grid; grid-template-columns: 1.2fr 1fr 1fr 1fr; gap: 4px; align-items: center; border-bottom: 1px solid #e2e8f0;">
                         <div>
-                            <span style="font-size: 8px; font-weight: 800; color: #64748b; text-transform: uppercase; display: block; margin-bottom: 2px;">Manobra</span>
-                            <span style="font-size: 12px; font-weight: 900; color: #0f172a;">${r.destination}</span>
+                            <span style="font-size: 7px; font-weight: 800; color: #64748b; text-transform: uppercase; display: block;">Manobra:</span>
+                            <span style="font-size: 10px; font-weight: 900; color: #0f172a;">${r.destination}</span>
                         </div>
                         <div>
-                            <span style="font-size: 8px; font-weight: 800; color: #64748b; text-transform: uppercase; display: block; margin-bottom: 2px;">Horários</span>
-                            <span style="font-size: 10px; font-weight: 700; color: #0f172a; display: block;">Saída: ${r.startTime}</span>
-                            <span style="font-size: 10px; font-weight: 700; color: #0f172a; display: block;">Chegada: ${r.endTime}</span>
+                            <span style="font-size: 7px; font-weight: 800; color: #64748b; text-transform: uppercase; display: block;">Saída: ${r.startTime}</span>
+                            <span style="font-size: 7px; font-weight: 800; color: #64748b; text-transform: uppercase; display: block;">Chegada: ${r.endTime}</span>
                         </div>
                         <div>
-                            <span style="font-size: 8px; font-weight: 800; color: #64748b; text-transform: uppercase; display: block; margin-bottom: 2px;">Quilometragem</span>
-                            <span style="font-size: 10px; font-weight: 700; color: #0f172a; display: block;">Ini: ${r.kmStart} km</span>
-                            <span style="font-size: 10px; font-weight: 700; color: #0f172a; display: block;">Fin: ${r.kmFinal} km</span>
+                            <span style="font-size: 7px; font-weight: 800; color: #64748b; text-transform: uppercase; display: block;">KM Ini: ${r.kmStart}</span>
+                            <span style="font-size: 7px; font-weight: 800; color: #64748b; text-transform: uppercase; display: block;">KM Fin: ${r.kmFinal}</span>
                         </div>
-                    </div>
-
-                    <div style="padding: 8px 14px; background: #f8fafc; display: flex; justify-content: space-between; align-items: center;">
-                        <span style="font-size: 10px; font-weight: 800; color: #475569; text-transform: uppercase;">Total Percorrido:</span>
-                        <span style="font-size: 14px; font-weight: 900; color: #2563eb;">${r.distance} km</span>
+                        <div style="text-align: right;">
+                            <span style="font-size: 7px; font-weight: 800; color: #64748b; text-transform: uppercase; display: block;">Total Percorrido:</span>
+                            <span style="font-size: 11px; font-weight: 900; color: #2563eb;">${r.distance} km</span>
+                        </div>
                     </div>
                 `;
                 container.appendChild(card);
