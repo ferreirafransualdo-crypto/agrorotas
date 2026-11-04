@@ -39,6 +39,13 @@
         .input-agro:focus { border-color: #22c55e; }
         .btn-agro { background-color: #16a34a; color: white; font-weight: bold; border-radius: 0.75rem; padding: 1rem; width: 100%; text-align: center; display: flex; align-items: center; justify-content: center; gap: 0.5rem; cursor: pointer; border: none; }
         .btn-agro:hover { background-color: #22c55e; }
+        
+        #reportCardToImage {
+            width: 100% !important;
+            max-width: 420px !important;
+            margin: 0 auto;
+            box-sizing: border-box;
+        }
     </style>
 </head>
 <body class="bg-slate-900 text-slate-100 font-sans min-h-screen flex flex-col justify-between pb-8">
@@ -285,62 +292,60 @@
     </main>
 
     <!-- MODAL DO RELATÓRIO VISUAL -->
-    <div id="modalRelatorioVisual" class="fixed inset-0 bg-slate-950/95 backdrop-blur-md z-50 hidden flex flex-col items-center justify-start p-2 sm:p-4 overflow-y-auto">
-        <div class="w-full max-w-lg flex justify-between items-center mb-3 text-white">
+    <div id="modalRelatorioVisual" class="fixed inset-0 bg-slate-950/95 backdrop-blur-md z-50 hidden flex flex-col items-center justify-start p-3 overflow-y-auto">
+        <div class="w-full max-w-md flex justify-between items-center mb-3 text-white">
             <span class="text-sm font-bold flex items-center gap-2 text-emerald-400"><i class="fa-solid fa-circle-check"></i> Relatório Pronto</span>
             <button type="button" onclick="fecharModalVisual()" class="text-slate-300 hover:text-white bg-slate-800 px-3 py-1.5 rounded-lg text-xs cursor-pointer font-bold"><i class="fa-solid fa-xmark mr-1"></i> Fechar</button>
         </div>
 
-        <div class="w-full max-w-lg overflow-x-auto rounded-2xl shadow-2xl">
-            <!-- CARD DE IMPRESSÃO -->
-            <div id="reportCardToImage" style="width: 100%; min-width: 480px; background-color: #f1f5f9; color: #0f172a; border-radius: 16px; overflow: hidden; font-family: 'Inter', sans-serif; border: 4px solid #0b132b;">
+        <div class="w-full max-w-md flex justify-center">
+            <!-- CARD DE IMPRESSÃO RESPONSIVO -->
+            <div id="reportCardToImage" style="background-color: #f1f5f9; color: #0f172a; border-radius: 16px; overflow: hidden; font-family: 'Inter', sans-serif; border: 3px solid #0b132b; width: 100%;">
                 
                 <!-- CABEÇALHO DO AGROROTA GPS -->
-                <div style="background: #090d16; color: #ffffff; padding: 20px 24px; display: flex; justify-content: space-between; align-items: center; border-bottom: 4px solid #16a34a;">
-                    <div style="display: flex; align-items: center; gap: 14px;">
-                        <div style="background: #16a34a; color: #ffffff; width: 46px; height: 46px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 900; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
+                <div style="background: #090d16; color: #ffffff; padding: 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 4px solid #16a34a;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <div style="background: #16a34a; color: #ffffff; width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 900;">
                             <i class="fa-solid fa-truck-ramp-box"></i>
                         </div>
                         <div>
-                            <div style="font-size: 22px; font-weight: 900; letter-spacing: -0.5px; line-height: 1.1; color: #ffffff;">AgroRota GPS</div>
-                            <div style="font-size: 11px; font-weight: 600; color: #94a3b8; letter-spacing: 0.5px;">Controle de Frota & Logística</div>
+                            <div style="font-size: 18px; font-weight: 900; line-height: 1.1; color: #ffffff;">AgroRota GPS</div>
+                            <div style="font-size: 10px; font-weight: 600; color: #94a3b8;">Controle de Frota</div>
                         </div>
                     </div>
                     <div style="text-align: right;">
-                        <div style="font-size: 18px; font-weight: 900; letter-spacing: -0.5px; color: #ffffff; text-transform: uppercase;">RELATÓRIO DE ROTAS</div>
-                        <div style="font-size: 11px; font-weight: 700; color: #22c55e; letter-spacing: 1px; text-transform: uppercase; margin-top: 2px;">
-                            <i class="fa-solid fa-route" style="margin-right: 4px;"></i> CAMPO & LOGÍSTICA
-                        </div>
+                        <div style="font-size: 14px; font-weight: 900; color: #ffffff; text-transform: uppercase;">RELATÓRIO</div>
+                        <div style="font-size: 10px; font-weight: 700; color: #22c55e; text-transform: uppercase;">CAMPO & LOGÍSTICA</div>
                     </div>
                 </div>
 
-                <!-- LINHA DE DADOS (DATA, COLABORADOR, FROTA) -->
-                <div style="background: #ffffff; padding: 14px 20px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; text-align: center; border-bottom: 2px solid #cbd5e1;">
-                    <div style="background: #f8fafc; padding: 10px; border-radius: 10px; border: 1px solid #e2e8f0;">
-                        <span style="font-size: 9px; font-weight: 800; color: #64748b; text-transform: uppercase; display: block; margin-bottom: 3px;">Data do Relatório</span>
-                        <span id="imgReportDate" style="font-size: 13px; font-weight: 900; color: #0f172a;">03/11/2026</span>
+                <!-- LINHA DE DADOS -->
+                <div style="background: #ffffff; padding: 10px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; text-align: center; border-bottom: 2px solid #cbd5e1;">
+                    <div style="background: #f8fafc; padding: 6px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                        <span style="font-size: 8px; font-weight: 800; color: #64748b; text-transform: uppercase; display: block;">Data</span>
+                        <span id="imgReportDate" style="font-size: 11px; font-weight: 900; color: #0f172a;">---</span>
                     </div>
-                    <div style="background: #f8fafc; padding: 10px; border-radius: 10px; border: 1px solid #e2e8f0;">
-                        <span style="font-size: 9px; font-weight: 800; color: #64748b; text-transform: uppercase; display: block; margin-bottom: 3px;">Colaborador</span>
-                        <span id="imgReportCollab" style="font-size: 13px; font-weight: 900; color: #0f172a;">Fransualdo</span>
+                    <div style="background: #f8fafc; padding: 6px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                        <span style="font-size: 8px; font-weight: 800; color: #64748b; text-transform: uppercase; display: block;">Colaborador</span>
+                        <span id="imgReportCollab" style="font-size: 11px; font-weight: 900; color: #0f172a;">---</span>
                     </div>
-                    <div style="background: #f8fafc; padding: 10px; border-radius: 10px; border: 1px solid #e2e8f0;">
-                        <span style="font-size: 9px; font-weight: 800; color: #64748b; text-transform: uppercase; display: block; margin-bottom: 3px;">Frota</span>
-                        <span id="imgReportFleet" style="font-size: 13px; font-weight: 900; color: #0f172a;">336862</span>
+                    <div style="background: #f8fafc; padding: 6px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                        <span style="font-size: 8px; font-weight: 800; color: #64748b; text-transform: uppercase; display: block;">Frota</span>
+                        <span id="imgReportFleet" style="font-size: 11px; font-weight: 900; color: #0f172a;">---</span>
                     </div>
                 </div>
 
                 <!-- CONTAINER DINÂMICO DAS ROTAS -->
-                <div id="imgRoutesContainer" style="background: #f1f5f9; padding: 16px; display: flex; flex-direction: column; gap: 14px;"></div>
+                <div id="imgRoutesContainer" style="background: #f1f5f9; padding: 12px; display: flex; flex-direction: column; gap: 10px;"></div>
 
             </div>
         </div>
 
-        <div class="w-full max-w-lg grid grid-cols-2 gap-3 mt-3 pb-4">
-            <button type="button" onclick="baixarImagemPronta()" class="py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-black rounded-xl text-xs sm:text-sm flex items-center justify-center gap-2 cursor-pointer shadow-xl">
+        <div class="w-full max-w-md grid grid-cols-2 gap-3 mt-4 pb-4">
+            <button type="button" onclick="baixarImagemPronta()" class="py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-black rounded-xl text-xs flex items-center justify-center gap-2 cursor-pointer shadow-xl">
                 <i class="fa-solid fa-download text-base"></i> Baixar Imagem (PNG)
             </button>
-            <button type="button" onclick="partilharImagemDireta()" class="py-3 bg-green-600 hover:bg-green-500 text-white font-black rounded-xl text-xs sm:text-sm flex items-center justify-center gap-2 cursor-pointer shadow-xl">
+            <button type="button" onclick="partilharImagemDireta()" class="py-3 bg-green-600 hover:bg-green-500 text-white font-black rounded-xl text-xs flex items-center justify-center gap-2 cursor-pointer shadow-xl">
                 <i class="fa-brands fa-whatsapp text-lg"></i> Enviar ao Gestor
             </button>
         </div>
@@ -811,33 +816,33 @@
                 card.style.border = '1px solid #cbd5e1';
                 card.style.boxShadow = '0 2px 4px rgba(0,0,0,0.05)';
                 card.innerHTML = `
-                    <div style="background: #0b132b; color: #ffffff; padding: 10px 16px; display: flex; justify-content: space-between; align-items: center;">
-                        <span style="font-weight: bold; font-size: 13px; color: #ffffff;">
+                    <div style="background: #0b132b; color: #ffffff; padding: 10px 14px; display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-weight: bold; font-size: 12px; color: #ffffff;">
                             <i class="fa-solid fa-route" style="color: #22c55e; margin-right: 6px;"></i> Rota #${idx + 1}
                         </span>
-                        <span style="font-size: 12px; font-weight: bold; color: #22c55e;">Concluída</span>
+                        <span style="font-size: 11px; font-weight: bold; color: #22c55e;">Concluída</span>
                     </div>
 
-                    <div style="padding: 14px 16px; display: grid; grid-template-columns: 1.2fr 1fr 1fr; gap: 12px; align-items: center; border-bottom: 1px solid #e2e8f0;">
+                    <div style="padding: 12px 14px; display: grid; grid-template-columns: 1.2fr 1fr 1fr; gap: 8px; align-items: center; border-bottom: 1px solid #e2e8f0;">
                         <div>
-                            <span style="font-size: 9px; font-weight: 800; color: #64748b; text-transform: uppercase; display: block; margin-bottom: 2px;">Manobra</span>
-                            <span style="font-size: 13px; font-weight: 900; color: #0f172a;">${r.destination}</span>
+                            <span style="font-size: 8px; font-weight: 800; color: #64748b; text-transform: uppercase; display: block; margin-bottom: 2px;">Manobra</span>
+                            <span style="font-size: 12px; font-weight: 900; color: #0f172a;">${r.destination}</span>
                         </div>
                         <div>
-                            <span style="font-size: 9px; font-weight: 800; color: #64748b; text-transform: uppercase; display: block; margin-bottom: 2px;">Horários</span>
-                            <span style="font-size: 11px; font-weight: 700; color: #0f172a; display: block;">Saída: ${r.startTime}</span>
-                            <span style="font-size: 11px; font-weight: 700; color: #0f172a; display: block;">Chegada: ${r.endTime}</span>
+                            <span style="font-size: 8px; font-weight: 800; color: #64748b; text-transform: uppercase; display: block; margin-bottom: 2px;">Horários</span>
+                            <span style="font-size: 10px; font-weight: 700; color: #0f172a; display: block;">Saída: ${r.startTime}</span>
+                            <span style="font-size: 10px; font-weight: 700; color: #0f172a; display: block;">Chegada: ${r.endTime}</span>
                         </div>
                         <div>
-                            <span style="font-size: 9px; font-weight: 800; color: #64748b; text-transform: uppercase; display: block; margin-bottom: 2px;">Quilometragem</span>
-                            <span style="font-size: 11px; font-weight: 700; color: #0f172a; display: block;">Ini: ${r.kmStart} km</span>
-                            <span style="font-size: 11px; font-weight: 700; color: #0f172a; display: block;">Fin: ${r.kmFinal} km</span>
+                            <span style="font-size: 8px; font-weight: 800; color: #64748b; text-transform: uppercase; display: block; margin-bottom: 2px;">Quilometragem</span>
+                            <span style="font-size: 10px; font-weight: 700; color: #0f172a; display: block;">Ini: ${r.kmStart} km</span>
+                            <span style="font-size: 10px; font-weight: 700; color: #0f172a; display: block;">Fin: ${r.kmFinal} km</span>
                         </div>
                     </div>
 
-                    <div style="padding: 10px 16px; background: #f8fafc; display: flex; justify-content: space-between; align-items: center;">
-                        <span style="font-size: 11px; font-weight: 800; color: #475569; text-transform: uppercase;">Total Percorrido:</span>
-                        <span style="font-size: 15px; font-weight: 900; color: #2563eb;">${r.distance} km</span>
+                    <div style="padding: 8px 14px; background: #f8fafc; display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-size: 10px; font-weight: 800; color: #475569; text-transform: uppercase;">Total Percorrido:</span>
+                        <span style="font-size: 14px; font-weight: 900; color: #2563eb;">${r.distance} km</span>
                     </div>
                 `;
                 container.appendChild(card);
@@ -858,20 +863,26 @@
 
         function baixarImagemPronta() {
             const card = document.getElementById('reportCardToImage');
-            showAlert('Gerando imagem do relatório...', 'info');
+            showAlert('Gerando imagem otimizada para o celular...', 'info');
+
+            card.style.width = '420px';
 
             html2canvas(card, { 
-                scale: 1.5, 
+                scale: 2, 
                 backgroundColor: '#f1f5f9',
                 useCORS: true,
+                allowTaint: true,
                 logging: false
             }).then(canvas => {
+                card.style.width = '100%';
+
                 const link = document.createElement('a');
                 link.download = `Relatorio_AgroRota_${new Date().toISOString().slice(0,10)}.png`;
                 link.href = canvas.toDataURL('image/png');
                 link.click();
                 showAlert('Imagem baixada com sucesso!', 'success');
             }).catch(err => {
+                card.style.width = '100%';
                 console.error("Erro html2canvas:", err);
                 showAlert('Erro ao gerar imagem. Tente novamente.', 'error');
             });
@@ -942,7 +953,6 @@
             }
         }
 
-        // FUNÇÃO DE PASTAS EXPANSÍVEIS (ACORDEÃO)
         function toggleModalPastas(abrir) {
             const m = document.getElementById('modalPastas');
             if (abrir) {
@@ -960,7 +970,6 @@
 
                         return `
                             <div class="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden transition">
-                                <!-- Cabeçalho da Pasta (Clicável para abrir/fechar) -->
                                 <button type="button" onclick="alternarAcordeaoPasta('pastaContent_${index}', 'icon_${index}')" class="w-full p-3 bg-slate-800 hover:bg-slate-755 flex justify-between items-center text-xs font-bold text-amber-400 cursor-pointer text-left">
                                     <span class="flex items-center gap-2">
                                         <i id="icon_${index}" class="fa-solid fa-folder text-amber-500"></i> 
@@ -972,7 +981,6 @@
                                     </div>
                                 </button>
 
-                                <!-- Conteúdo Interno da Pasta (Oculto por padrão) -->
                                 <div id="pastaContent_${index}" class="hidden p-3 bg-slate-900/90 border-t border-slate-700/60 space-y-2">
                                     ${pastas[data].map((r, i) => `
                                         <div class="bg-slate-800/80 p-2.5 rounded-lg border border-slate-700 text-[11px] space-y-1">
@@ -1001,7 +1009,6 @@
             }
         }
 
-        // Alterna visualmente o acordeão da pasta
         function alternarAcordeaoPasta(contentId, iconId) {
             const el = document.getElementById(contentId);
             const icon = document.getElementById(iconId);
@@ -1014,7 +1021,6 @@
             }
         }
 
-        // Envia o resumo de uma pasta específica arquivada via WhatsApp
         function enviarPastaWhatsApp(dataPasta) {
             const colabAtivo = localStorage.getItem('agro_fixed_colaborador');
             const pastas = JSON.parse(localStorage.getItem(`agro_archived_folders_${colabAtivo}`) || '{}');
