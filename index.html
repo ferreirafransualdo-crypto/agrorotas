@@ -427,8 +427,8 @@
         window.onload = function() {
             try {
                 verificarStatusConexao();
-                window.addEventListener('online', atualizarStatusConexao);
-                window.addEventListener('offline', atualizarStatusConexao);
+                window.addEventListener('online', verificarStatusConexao);
+                window.addEventListener('offline', verificarStatusConexao);
 
                 verificarSessaoAtiva();
                 verificarRotaEmAndamentoSalva();
@@ -443,14 +443,14 @@
             const dot = document.getElementById('netDot');
             const text = document.getElementById('netText');
             if (navigator.onLine) {
-                dot.className = "w-2 h-2 rounded-full bg-emerald-400";
-                text.innerText = "Online";
-                badge.className = "flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-950/80 border border-emerald-500/50 text-emerald-300 text-[10px] font-medium";
+                if(dot) dot.className = "w-2 h-2 rounded-full bg-emerald-400";
+                if(text) text.innerText = "Online";
+                if(badge) badge.className = "flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-950/80 border border-emerald-500/50 text-emerald-300 text-[10px] font-medium";
                 sincronizarDadosPendentes();
             } else {
-                dot.className = "w-2 h-2 rounded-full bg-amber-400 animate-pulse";
-                text.innerText = "Offline (Modo Cache)";
-                badge.className = "flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-950/80 border border-amber-500/50 text-amber-300 text-[10px] font-medium";
+                if(dot) dot.className = "w-2 h-2 rounded-full bg-amber-400 animate-pulse";
+                if(text) text.innerText = "Offline (Modo Cache)";
+                if(badge) badge.className = "flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-950/80 border border-amber-500/50 text-amber-300 text-[10px] font-medium";
             }
         }
 
@@ -643,11 +643,12 @@
             }, 1000);
         }
 
-        // 🛡️ GPS COM FILTROS DE PRECISÃO E RUÍDO ESTÁTICOS
         function iniciarGPSReal() {
             const badge = document.getElementById('gpsStatusBadge');
-            badge.className = "flex items-center gap-2 px-3 py-1 rounded-full bg-agro-900/80 border border-agro-500/50 text-agro-300 text-xs font-semibold";
-            badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-agro-400 animate-pulse"></span><span>GPS Ativo (Filtro Antirruído)</span>';
+            if (badge) {
+                badge.className = "flex items-center gap-2 px-3 py-1 rounded-full bg-agro-900/80 border border-agro-500/50 text-agro-300 text-xs font-semibold";
+                badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-agro-400 animate-pulse"></span><span>GPS Ativo (Filtro Antirruído)</span>';
+            }
 
             if ("geolocation" in navigator) {
                 gpsInterval = setInterval(() => {
@@ -657,20 +658,21 @@
                         (pos) => {
                             const lat = pos.coords.latitude;
                             const lng = pos.coords.longitude;
-                            const accuracy = pos.coords.accuracy; // Precisão em metros
+                            const accuracy = pos.coords.accuracy; 
                             const speed = ((pos.coords.speed || 0) * 3.6).toFixed(0);
                             
-                            document.getElementById('liveSpeed').innerText = `${speed} km/h`;
-                            document.getElementById('liveGpsAccuracy').innerText = `Precisão: ±${accuracy.toFixed(0)}m`;
+                            const speedEl = document.getElementById('liveSpeed');
+                            const accEl = document.getElementById('liveGpsAccuracy');
+                            if (speedEl) speedEl.innerText = `${speed} km/h`;
+                            if (accEl) accEl.innerText = `Precisão: ±${accuracy.toFixed(0)}m`;
 
-                            // 1️⃣ FILTRO DE PRECISÃO: Descarta pontos com sinal fraco (erro maior que 25 metros)
                             if (accuracy > 25) {
                                 return; 
                             }
 
                             const novaCoord = { lat, lng };
                             if (activeRoute.lastCoords) {
-                                const R = 6371e3; // Raio da Terra em metros
+                                const R = 6371e3; 
                                 const dLat = (lat - activeRoute.lastCoords.lat) * Math.PI / 180;
                                 const dLon = (lng - activeRoute.lastCoords.lng) * Math.PI / 180;
                                 const a = Math.sin(dLat/2) * Math.sin(dLat/2) + 
@@ -679,17 +681,16 @@
                                           Math.sin(dLon/2) * Math.sin(dLon/2);
                                 const dist = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
                                 
-                                // 2️⃣ FILTRO DE DISTÂNCIA MÍNIMA: Só computa se moveu mais que 6 metros (evita KM fantasma parado)
-                                // 3️⃣ FILTRO DE SALTO MÁXIMO: Ignora falhas de satélite acima de 500 metros em um único pulso
                                 if (dist >= 6 && dist < 500) {
                                     activeRoute.distanceKm += dist / 1000;
                                     activeRoute.gpsPoints++;
-                                    document.getElementById('liveDistance').innerText = activeRoute.distanceKm.toFixed(2);
-                                    document.getElementById('gpsPointsCount').innerText = activeRoute.gpsPoints;
-                                    activeRoute.lastCoords = novaCoord; // Atualiza ponto de referência real
+                                    const distEl = document.getElementById('liveDistance');
+                                    const ptsEl = document.getElementById('gpsPointsCount');
+                                    if (distEl) distEl.innerText = activeRoute.distanceKm.toFixed(2);
+                                    if (ptsEl) ptsEl.innerText = activeRoute.gpsPoints;
+                                    activeRoute.lastCoords = novaCoord; 
                                 }
                             } else {
-                                // Primeiro ponto válido fixado
                                 activeRoute.lastCoords = novaCoord;
                             }
                         },
@@ -704,21 +705,28 @@
             isSimulating = !isSimulating;
             const btn = document.getElementById('simMotionBtn');
             if (isSimulating) {
-                btn.className = "text-xs bg-agro-700 text-white px-2.5 py-1 rounded-lg transition cursor-pointer font-bold animate-pulse";
-                btn.innerHTML = '<i class="fa-solid fa-gamepad mr-1"></i> Simulando...';
+                if (btn) {
+                    btn.className = "text-xs bg-agro-700 text-white px-2.5 py-1 rounded-lg transition cursor-pointer font-bold animate-pulse";
+                    btn.innerHTML = '<i class="fa-solid fa-gamepad mr-1"></i> Simulando...';
+                }
                 if (simInterval) clearInterval(simInterval);
                 simInterval = setInterval(() => {
                     if (!isPaused) {
                         activeRoute.distanceKm += 0.05;
                         activeRoute.gpsPoints++;
-                        document.getElementById('liveDistance').innerText = activeRoute.distanceKm.toFixed(2);
-                        document.getElementById('liveSpeed').innerText = `${Math.floor(Math.random() * 15 + 10)} km/h`;
-                        document.getElementById('gpsPointsCount').innerText = activeRoute.gpsPoints;
+                        const distEl = document.getElementById('liveDistance');
+                        const speedEl = document.getElementById('liveSpeed');
+                        const ptsEl = document.getElementById('gpsPointsCount');
+                        if (distEl) distEl.innerText = activeRoute.distanceKm.toFixed(2);
+                        if (speedEl) speedEl.innerText = `${Math.floor(Math.random() * 15 + 10)} km/h`;
+                        if (ptsEl) ptsEl.innerText = activeRoute.gpsPoints;
                     }
                 }, 1500);
             } else {
-                btn.className = "text-xs bg-slate-700 hover:bg-slate-600 text-slate-200 px-2.5 py-1 rounded-lg transition cursor-pointer";
-                btn.innerHTML = '<i class="fa-solid fa-gamepad mr-1"></i> Simular Movimento';
+                if (btn) {
+                    btn.className = "text-xs bg-slate-700 hover:bg-slate-600 text-slate-200 px-2.5 py-1 rounded-lg transition cursor-pointer";
+                    btn.innerHTML = '<i class="fa-solid fa-gamepad mr-1"></i> Simular Movimento';
+                }
                 if (simInterval) clearInterval(simInterval);
             }
         }
@@ -727,11 +735,15 @@
             isPaused = !isPaused;
             const btn = document.getElementById('pauseBtn');
             if (isPaused) {
-                btn.className = "py-2.5 bg-agro-600 hover:bg-agro-500 text-white font-bold rounded-xl text-xs transition flex items-center justify-center gap-2 cursor-pointer";
-                btn.innerHTML = '<i class="fa-solid fa-play"></i> RETOMAR ROTA';
+                if (btn) {
+                    btn.className = "py-2.5 bg-agro-600 hover:bg-agro-500 text-white font-bold rounded-xl text-xs transition flex items-center justify-center gap-2 cursor-pointer";
+                    btn.innerHTML = '<i class="fa-solid fa-play"></i> RETOMAR ROTA';
+                }
             } else {
-                btn.className = "py-2.5 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-xl text-xs transition flex items-center justify-center gap-2 cursor-pointer";
-                btn.innerHTML = '<i class="fa-solid fa-pause"></i> PAUSAR ROTA';
+                if (btn) {
+                    btn.className = "py-2.5 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-xl text-xs transition flex items-center justify-center gap-2 cursor-pointer";
+                    btn.innerHTML = '<i class="fa-solid fa-pause"></i> PAUSAR ROTA';
+                }
             }
         }
 
@@ -822,6 +834,7 @@
                 const history = JSON.parse(localStorage.getItem(`agro_routes_history_${colabAtivo}`) || '[]');
                 const container = document.getElementById('historyList');
                 const datalist = document.getElementById('destinationList');
+                if(!container || !datalist) return;
                 container.innerHTML = '';
                 datalist.innerHTML = '';
                 const destinationsSet = new Set();
@@ -1175,7 +1188,10 @@
             setTimeout(() => box.classList.add('hidden'), 4000);
         }
 
-        function hideAlert() { document.getElementById('alertBox'].classList.add('hidden'); }
+        function hideAlert() { 
+            const box = document.getElementById('alertBox');
+            if(box) box.classList.add('hidden'); 
+        }
     </script>
 </body>
 </html>
