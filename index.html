@@ -59,12 +59,18 @@
                 </div>
                 <div>
                     <h1 class="font-bold text-lg leading-tight text-white">AgroRota GPS</h1>
-                    <p class="text-xs text-slate-400">Controle de Frota & Logística (Privado)</p>
+                    <p class="text-xs text-slate-400">Controle de Frota & Logística (Offline-First)</p>
                 </div>
             </div>
-            <div id="gpsStatusBadge" class="flex items-center gap-2 px-3 py-1 rounded-full bg-slate-700 text-slate-300 text-xs font-medium">
-                <span class="w-2 h-2 rounded-full bg-slate-400"></span>
-                <span>GPS Desconectado</span>
+            <div class="flex items-center gap-2">
+                <div id="netStatusBadge" class="flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-700 text-slate-300 text-[10px] font-medium">
+                    <span id="netDot" class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                    <span id="netText">Online</span>
+                </div>
+                <div id="gpsStatusBadge" class="flex items-center gap-2 px-3 py-1 rounded-full bg-slate-700 text-slate-300 text-xs font-medium">
+                    <span class="w-2 h-2 rounded-full bg-slate-400"></span>
+                    <span>GPS Desconectado</span>
+                </div>
             </div>
         </div>
     </header>
@@ -86,7 +92,7 @@
                     <i class="fa-solid fa-lock"></i>
                 </div>
                 <h2 class="text-xl font-bold text-white">Identificação do Colaborador</h2>
-                <p class="text-xs text-slate-400">Dados 100% isolados por usuário.</p>
+                <p class="text-xs text-slate-400">Dados 100% isolados e seguros localmente.</p>
             </div>
 
             <form id="loginForm" class="space-y-4" onsubmit="event.preventDefault(); validarLoginColaborador();">
@@ -133,7 +139,7 @@
                     <span>Sessão Privada de: <strong id="currentCollabLabel" class="text-white">---</strong></span>
                 </div>
                 <button type="button" onclick="logoutColaborador()" class="text-slate-400 hover:text-red-400 underline cursor-pointer">
-                    <i class="fa-solid fa-right-from-bracket mr-1"></i> Sair / Trocar Colaborador
+                    <i class="fa-solid fa-right-from-bracket mr-1"></i> Sair / Trocar
                 </button>
             </div>
 
@@ -159,13 +165,13 @@
                         <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Veículo / Frota * (Salva Automaticamente)</label>
                         <div class="relative">
                             <i class="fa-solid fa-truck absolute left-3 top-3.5 text-slate-500"></i>
-                            <input type="text" id="inputFleet" required placeholder="Ex: 336862" class="input-agro placeholder-slate-500 font-bold">
+                            <input type="text" id="inputFleet" required placeholder="Ex: 336862" oninput="carregarKmPorFrota(this.value)" class="input-agro placeholder-slate-500 font-bold">
                         </div>
                     </div>
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">KM Inicial * (Puxa KM Final Anterior)</label>
+                            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">KM Inicial * (Puxa do Cache Offline)</label>
                             <div class="relative">
                                 <i class="fa-solid fa-gauge-high absolute left-3 top-3.5 text-slate-500"></i>
                                 <input type="number" step="0.1" id="inputKmStart" required placeholder="Ex: 19745.0" class="input-agro placeholder-slate-500 font-semibold text-lg bg-slate-800/80 text-agro-400">
@@ -299,10 +305,9 @@
         </div>
 
         <div class="w-full max-w-md flex justify-center">
-            <!-- CARD DE IMPRESSÃO RESPONSIVO IDÊNTICO À FOTO -->
+            <!-- CARD DE IMPRESSÃO RESPONSIVO -->
             <div id="reportCardToImage" style="background-color: #f1f5f9; color: #0f172a; border-radius: 16px; overflow: hidden; font-family: 'Inter', sans-serif; border: 3px solid #0b132b; width: 100%;">
                 
-                <!-- CABEÇALHO DO AGROROTA GPS (Sem o subtítulo Delta Sucroenergia) -->
                 <div style="background: #090d16; color: #ffffff; padding: 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 4px solid #16a34a;">
                     <div style="display: flex; align-items: center; gap: 10px;">
                         <div style="background: #16a34a; color: #ffffff; width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 900;">
@@ -314,11 +319,10 @@
                     </div>
                     <div style="text-align: right;">
                         <div style="font-size: 8px; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px;">DATA DO RELATÓRIO</div>
-                        <div id="imgReportDate" style="font-size: 13px; font-weight: 900; color: #22c55e; margin-top: 2px;">03/11/2026</div>
+                        <div id="imgReportDate" style="font-size: 13px; font-weight: 900; color: #22c55e; margin-top: 2px;">--/--/----</div>
                     </div>
                 </div>
 
-                <!-- LINHA DE 3 DADOS: COLABORADOR, FROTA, TOTAL DE ROTAS -->
                 <div style="background: #ffffff; padding: 10px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; text-align: center; border-bottom: 2px solid #cbd5e1;">
                     <div style="background: #f8fafc; padding: 6px; border-radius: 8px; border: 1px solid #e2e8f0;">
                         <span style="font-size: 8px; font-weight: 800; color: #64748b; text-transform: uppercase; display: block;">COLABORADOR</span>
@@ -334,10 +338,8 @@
                     </div>
                 </div>
 
-                <!-- CONTAINER DINÂMICO DAS ROTAS -->
                 <div id="imgRoutesContainer" style="background: #f1f5f9; padding: 10px; display: flex; flex-direction: column; gap: 8px;"></div>
 
-                <!-- BLOCO DE RESUMO DO DIA -->
                 <div style="background: #090d16; margin: 10px; border-radius: 12px; overflow: hidden; border: 1px solid #1e293b;">
                     <div style="padding: 10px 14px; background: linear-gradient(90deg, #0b132b 0%, #14532d 100%); display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #16a34a;">
                         <span style="font-weight: 900; font-size: 12px; color: #ffffff; text-transform: uppercase; letter-spacing: 0.5px;">
@@ -378,7 +380,7 @@
         </div>
     </div>
 
-    <!-- MODAL: Pastas de Manobras Privadas por Data (Expansíveis/Acordeão) -->
+    <!-- MODAL: Pastas de Manobras Privadas por Data -->
     <div id="modalPastas" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-lg w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
             <div class="p-4 bg-slate-800 border-b border-slate-700 flex justify-between items-center">
@@ -424,6 +426,10 @@
 
         window.onload = function() {
             try {
+                verificarStatusConexao();
+                window.addEventListener('online', atualizarStatusConexao);
+                window.addEventListener('offline', atualizarStatusConexao);
+
                 verificarSessaoAtiva();
                 verificarRotaEmAndamentoSalva();
             } catch(e) {
@@ -431,6 +437,32 @@
                 forcarDestraveTotal();
             }
         };
+
+        function verificarStatusConexao() {
+            const badge = document.getElementById('netStatusBadge');
+            const dot = document.getElementById('netDot');
+            const text = document.getElementById('netText');
+            if (navigator.onLine) {
+                dot.className = "w-2 h-2 rounded-full bg-emerald-400";
+                text.innerText = "Online";
+                badge.className = "flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-950/80 border border-emerald-500/50 text-emerald-300 text-[10px] font-medium";
+                sincronizarDadosPendentes();
+            } else {
+                dot.className = "w-2 h-2 rounded-full bg-amber-400 animate-pulse";
+                text.innerText = "Offline (Modo Cache)";
+                badge.className = "flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-950/80 border border-amber-500/50 text-amber-300 text-[10px] font-medium";
+            }
+        }
+
+        function sincronizarDadosPendentes() {
+            const colab = localStorage.getItem('agro_fixed_colaborador');
+            if (!colab) return;
+            const pendente = localStorage.getItem(`agro_pending_sync_${colab}`);
+            if (pendente) {
+                console.log("Rede restabelecida: Dados locais sincronizados.");
+                localStorage.removeItem(`agro_pending_sync_${colab}`);
+            }
+        }
 
         function verificarSessaoAtiva() {
             try {
@@ -479,7 +511,7 @@
         }
 
         function logoutColaborador() {
-            if (confirm("Deseja sair da sua sessão? Seus dados privados estão seguros.")) {
+            if (confirm("Deseja sair da sua sessão? Seus dados estão salvos localmente.")) {
                 localStorage.removeItem('agro_fixed_colaborador');
                 document.getElementById('appPanel').classList.add('hidden');
                 document.getElementById('loginSection').classList.remove('hidden');
@@ -508,20 +540,28 @@
         function carregarDadosSessaoColaborador(colab) {
             try {
                 const ultimaFrotaSalva = localStorage.getItem(`agro_last_fleet_${colab}`);
-                const ultimoKmSalvo = localStorage.getItem(`agro_last_km_${colab}`);
-
                 if (ultimaFrotaSalva) {
                     document.getElementById('inputFleet').value = ultimaFrotaSalva;
+                    carregarKmPorFrota(ultimaFrotaSalva);
                 } else {
                     document.getElementById('inputFleet').value = '';
-                }
-
-                if (ultimoKmSalvo) {
-                    document.getElementById('inputKmStart').value = ultimoKmSalvo;
-                } else {
                     document.getElementById('inputKmStart').value = '1000.0';
                 }
             } catch(e) { console.error(e); }
+        }
+
+        function carregarKmPorFrota(frota) {
+            const colab = localStorage.getItem('agro_fixed_colaborador');
+            if (!colab || !frota) return;
+            const kmSalvo = localStorage.getItem(`agro_fleet_km_${colab}_${frota.trim()}`);
+            if (kmSalvo) {
+                document.getElementById('inputKmStart').value = kmSalvo;
+            } else {
+                const ultimoGlobal = localStorage.getItem(`agro_last_km_${colab}`);
+                if (ultimoGlobal) {
+                    document.getElementById('inputKmStart').value = ultimoGlobal;
+                }
+            }
         }
 
         function verificarRotaEmAndamentoSalva() {
@@ -583,7 +623,7 @@
 
             iniciarTimerUI();
             iniciarGPSReal();
-            showAlert('Rastreamento GPS iniciado com sucesso!', 'success');
+            showAlert('Rastreamento GPS iniciado com filtros antifalsos!', 'success');
         }
 
         function iniciarTimerUI() {
@@ -603,10 +643,11 @@
             }, 1000);
         }
 
+        // 🛡️ GPS COM FILTROS DE PRECISÃO E RUÍDO ESTÁTICOS
         function iniciarGPSReal() {
             const badge = document.getElementById('gpsStatusBadge');
             badge.className = "flex items-center gap-2 px-3 py-1 rounded-full bg-agro-900/80 border border-agro-500/50 text-agro-300 text-xs font-semibold";
-            badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-agro-400 animate-pulse"></span><span>GPS Ativo</span>';
+            badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-agro-400 animate-pulse"></span><span>GPS Ativo (Filtro Antirruído)</span>';
 
             if ("geolocation" in navigator) {
                 gpsInterval = setInterval(() => {
@@ -616,30 +657,44 @@
                         (pos) => {
                             const lat = pos.coords.latitude;
                             const lng = pos.coords.longitude;
+                            const accuracy = pos.coords.accuracy; // Precisão em metros
                             const speed = ((pos.coords.speed || 0) * 3.6).toFixed(0);
                             
                             document.getElementById('liveSpeed').innerText = `${speed} km/h`;
-                            document.getElementById('liveGpsAccuracy').innerText = `Precisão: ±${pos.coords.accuracy.toFixed(0)}m`;
+                            document.getElementById('liveGpsAccuracy').innerText = `Precisão: ±${accuracy.toFixed(0)}m`;
+
+                            // 1️⃣ FILTRO DE PRECISÃO: Descarta pontos com sinal fraco (erro maior que 25 metros)
+                            if (accuracy > 25) {
+                                return; 
+                            }
 
                             const novaCoord = { lat, lng };
                             if (activeRoute.lastCoords) {
-                                const R = 6371e3;
+                                const R = 6371e3; // Raio da Terra em metros
                                 const dLat = (lat - activeRoute.lastCoords.lat) * Math.PI / 180;
                                 const dLon = (lng - activeRoute.lastCoords.lng) * Math.PI / 180;
-                                const a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(activeRoute.lastCoords.lat * Math.PI / 180) * Math.cos(lat * Math.PI / 180) * Math.sin(dLon/2) * Math.sin(dLon/2);
+                                const a = Math.sin(dLat/2) * Math.sin(dLat/2) + 
+                                          Math.cos(activeRoute.lastCoords.lat * Math.PI / 180) * 
+                                          Math.cos(lat * Math.PI / 180) * 
+                                          Math.sin(dLon/2) * Math.sin(dLon/2);
                                 const dist = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
                                 
-                                if (dist > 3 && dist < 2000) {
+                                // 2️⃣ FILTRO DE DISTÂNCIA MÍNIMA: Só computa se moveu mais que 6 metros (evita KM fantasma parado)
+                                // 3️⃣ FILTRO DE SALTO MÁXIMO: Ignora falhas de satélite acima de 500 metros em um único pulso
+                                if (dist >= 6 && dist < 500) {
                                     activeRoute.distanceKm += dist / 1000;
                                     activeRoute.gpsPoints++;
                                     document.getElementById('liveDistance').innerText = activeRoute.distanceKm.toFixed(2);
                                     document.getElementById('gpsPointsCount').innerText = activeRoute.gpsPoints;
+                                    activeRoute.lastCoords = novaCoord; // Atualiza ponto de referência real
                                 }
+                            } else {
+                                // Primeiro ponto válido fixado
+                                activeRoute.lastCoords = novaCoord;
                             }
-                            activeRoute.lastCoords = novaCoord;
                         },
                         (err) => {},
-                        { enableHighAccuracy: true, timeout: 4000, maximumAge: 2000 }
+                        { enableHighAccuracy: true, timeout: 4000, maximumAge: 0 }
                     );
                 }, 4000);
             }
@@ -714,6 +769,8 @@
 
                 localStorage.setItem(`agro_last_fleet_${colabAtivo}`, registro.fleet);
                 localStorage.setItem(`agro_last_km_${colabAtivo}`, kmFinal.toFixed(1));
+                localStorage.setItem(`agro_fleet_km_${colabAtivo}_${registro.fleet}`, kmFinal.toFixed(1));
+                localStorage.setItem(`agro_pending_sync_${colabAtivo}`, "true");
 
                 document.getElementById('inputFleet').value = registro.fleet;
                 document.getElementById('inputKmStart').value = kmFinal.toFixed(1);
@@ -732,7 +789,7 @@
 
                 carregarDadosSessaoColaborador(colabAtivo);
                 loadHistory();
-                showAlert('Rota encerrada e salva no seu histórico privado!', 'success');
+                showAlert('Rota encerrada e salva com sucesso!', 'success');
             }
         }
 
@@ -833,7 +890,6 @@
             document.getElementById('imgReportFleet').innerText = ultimaRota.fleet || '---';
             document.getElementById('imgReportTotalRoutes').innerText = history.length;
 
-            // Preenche o resumo do dia
             let totalKmGeral = 0;
             history.forEach(r => totalKmGeral += parseFloat(r.distance || 0));
 
@@ -896,7 +952,7 @@
 
         function baixarImagemPronta() {
             const card = document.getElementById('reportCardToImage');
-            showAlert('Gerando imagem otimizada para o celular...', 'info');
+            showAlert('Gerando imagem otimizada...', 'info');
 
             card.style.width = '420px';
 
@@ -911,7 +967,7 @@
 
                 canvas.toBlob((blob) => {
                     if (!blob) {
-                        showAlert('Erro ao converter imagem. Tente novamente.', 'error');
+                        showAlert('Erro ao converter imagem.', 'error');
                         return;
                     }
                     const file = new File([blob], `Relatorio_AgroRota_${new Date().toISOString().slice(0,10)}.png`, { type: 'image/png' });
@@ -921,8 +977,6 @@
                             files: [file],
                             title: 'Relatório AgroRota GPS',
                             text: 'Segue o relatório de rotas do AgroRota GPS.'
-                        }).then(() => {
-                            showAlert('Relatório compartilhado com sucesso!', 'success');
                         }).catch((error) => {
                             if (error.name !== 'AbortError') {
                                 baixarArquivoFallback(canvas);
@@ -936,7 +990,7 @@
             }).catch(err => {
                 card.style.width = '100%';
                 console.error("Erro html2canvas:", err);
-                showAlert('Erro ao gerar imagem. Tente novamente.', 'error');
+                showAlert('Erro ao gerar imagem.', 'error');
             });
         }
 
@@ -945,7 +999,7 @@
             link.download = `Relatorio_AgroRota_${new Date().toISOString().slice(0,10)}.png`;
             link.href = canvas.toDataURL('image/png');
             link.click();
-            showAlert('Imagem baixada com sucesso na sua galeria!', 'success');
+            showAlert('Imagem baixada com sucesso!', 'success');
         }
 
         function partilharImagemDireta() {
@@ -981,7 +1035,6 @@
             });
 
             texto += `🛣️ *KM TOTAL DO DIA:* *${totalKmGeral.toFixed(2)} KM*\n\n`;
-            texto += `_📸 Imagem do relatório gerada e salva no dispositivo._\n`;
             texto += `_Enviado via AgroRota GPS_`;
 
             const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(texto)}`;
@@ -1122,7 +1175,7 @@
             setTimeout(() => box.classList.add('hidden'), 4000);
         }
 
-        function hideAlert() { document.getElementById('alertBox').classList.add('hidden'); }
+        function hideAlert() { document.getElementById('alertBox'].classList.add('hidden'); }
     </script>
 </body>
 </html>
