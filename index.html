@@ -110,6 +110,10 @@
                 <button type="submit" class="btn-agro shadow-lg text-base">
                     <i class="fa-solid fa-right-to-bracket"></i> ENTRAR NAS MANOBRAS
                 </button>
+
+                <button type="button" onclick="forcarDestraveTotal()" class="w-full py-2.5 bg-red-900/60 hover:bg-red-800 text-red-200 font-semibold rounded-xl text-xs transition border border-red-700/50 cursor-pointer flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-triangle-exclamation"></i> 🔄 Limpar Cache e Destravar
+                </button>
             </form>
         </section>
 
@@ -392,7 +396,7 @@
                 verificarRotaEmAndamentoSalva();
             } catch(e) {
                 console.error("Erro no carregamento:", e);
-                forcarDestraveGeral();
+                forcarDestraveTotal();
             }
         };
 
@@ -448,6 +452,22 @@
             }
         }
 
+        function forcarDestraveTotal() {
+            if (watchId !== null) { navigator.geolocation.clearWatch(watchId); watchId = null; }
+            if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+            if (simInterval) { clearInterval(simInterval); simInterval = null; }
+            localStorage.removeItem('agro_active_route');
+            isSimulating = false;
+            isPaused = false;
+            document.getElementById('activeSection').classList.add('hidden');
+            document.getElementById('formSection').classList.remove('hidden');
+            document.getElementById('loginSection').classList.remove('hidden');
+            document.getElementById('appPanel').classList.add('hidden');
+            localStorage.removeItem('agro_fixed_colaborador');
+            alert('Cache limpo e aplicativo destravado com sucesso!');
+            location.reload();
+        }
+
         function carregarDadosSessaoColaborador(colab) {
             const hist = JSON.parse(localStorage.getItem('agro_routes_history') || '[]');
             const ultimosDoColab = hist.filter(h => h.colaborador === colab);
@@ -470,6 +490,10 @@
             if (salva) {
                 try {
                     activeRoute = JSON.parse(salva);
+                    if (!activeRoute.destination || !activeRoute.fleet) {
+                        localStorage.removeItem('agro_active_route');
+                        return;
+                    }
                     document.getElementById('formSection').classList.add('hidden');
                     document.getElementById('activeSection').classList.remove('hidden');
                     document.getElementById('liveDestination').innerText = activeRoute.destination;
@@ -613,12 +637,10 @@
             }
         }
 
-        // FUNÇÃO DE ENCERRAMENTO COM PROTEÇÃO CONTRA TRAVAMENTOS
         function stopTracking() {
             if (!confirm("Deseja encerrar e salvar esta rota?")) return;
             
             try {
-                // Parar imediatamente todos os timers e rastreadores ativos
                 if (watchId !== null) { navigator.geolocation.clearWatch(watchId); watchId = null; }
                 if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
                 if (simInterval) { clearInterval(simInterval); simInterval = null; }
@@ -636,7 +658,7 @@
                     fleet: activeRoute.fleet || '---',
                     kmStart: kmStartNum.toFixed(1),
                     kmFinal: kmFinal.toFixed(1),
-                    destination: activeRoute.destination || 'Manobra sem nome',
+                    destination: activeRoute.destination || 'Manobra',
                     notes: activeRoute.notes || '',
                     startTime: activeRoute.startTime ? new Date(activeRoute.startTime).toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'}) : agora.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'}),
                     endTime: agora.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'}),
@@ -644,34 +666,28 @@
                     distance: distanceNum.toFixed(2)
                 };
 
-                // Guardar no histórico principal
                 let history = JSON.parse(localStorage.getItem('agro_routes_history') || '[]');
                 history.push(registro);
                 localStorage.setItem('agro_routes_history', JSON.stringify(history));
 
-                // Atualizar atalhos de navegação
                 localStorage.setItem(`agro_last_fleet_${registro.colaborador}`, registro.fleet);
                 localStorage.setItem(`agro_last_km_${registro.colaborador}`, kmFinal.toFixed(1));
 
-                // Atualizar campos do formulário para a próxima manobra
                 document.getElementById('inputFleet').value = registro.fleet;
                 document.getElementById('inputKmStart').value = kmFinal.toFixed(1);
 
             } catch (err) {
-                console.error("Erro ao gravar dados da rota:", err);
+                console.error("Erro ao gravar:", err);
             } finally {
-                // Força a limpeza da rota ativa para nunca bloquear a interface
                 localStorage.removeItem('agro_active_route');
                 isSimulating = false;
                 isPaused = false;
                 activeRoute = { colaborador: '', fleet: '', kmStart: 0, destination: '', notes: '', startTime: null, elapsedSeconds: 0, distanceKm: 0, lastCoords: null, gpsPoints: 0 };
 
-                // Ocultar painel ativo e voltar ao formulário principal
                 document.getElementById('activeSection').classList.add('hidden');
                 document.getElementById('formSection').classList.remove('hidden');
                 document.getElementById('startRouteForm').reset();
 
-                // Recarrega lista e notifica o utilizador
                 loadHistory();
                 showAlert('Rota encerrada e salva com sucesso!', 'success');
             }
@@ -954,7 +970,7 @@
             setTimeout(() => box.classList.add('hidden'), 4000);
         }
 
-        function hideAlert() { document.getElementById('alertBox').classList.add('hidden'); }
+        function hideAlert() { document.getElementById('alertBox'].classList.add('hidden'); }
     </script>
 </body>
 </html>
