@@ -418,7 +418,7 @@
 
     <!-- SCRIPT DA APLICAÇÃO -->
     <script>
-        const APP_VERSION = "2.7"; 
+        const APP_VERSION = "2.9"; 
 
         let timerInterval = null;
         let watchId = null;
@@ -674,7 +674,6 @@
             showAlert('Rastreamento GPS iniciado com sucesso!', 'success');
         }
 
-        // FUNÇÃO CORRIGIDA/ADICIONADA PARA EDITAR O DESTINO ATIVO
         function renomearDestinoAtivo() {
             const colab = localStorage.getItem('agro_fixed_colaborador');
             if (!colab) return;
@@ -683,11 +682,54 @@
             if (novoDestino && novoDestino.trim() !== '') {
                 activeRoute.destination = novoDestino.trim();
                 document.getElementById('liveDestination').innerText = activeRoute.destination;
-                
-                // Atualiza no localStorage
                 localStorage.setItem(`agro_active_route_${colab}`, JSON.stringify(activeRoute));
                 showAlert('Destino atualizado com sucesso!', 'success');
             }
+        }
+
+        function editarRotaHistorico(idRota) {
+            const colabAtivo = localStorage.getItem('agro_fixed_colaborador');
+            let history = JSON.parse(localStorage.getItem(`agro_routes_history_${colabAtivo}`) || '[]');
+            const index = history.findIndex(r => r.id === idRota);
+            
+            if (index === -1) {
+                showAlert('Rota não encontrada.', 'error');
+                return;
+            }
+
+            const rota = history[index];
+            const novoDestino = prompt("Editar Destino / Manobra:", rota.destination);
+            if (novoDestino === null) return;
+
+            const novaFrota = prompt("Editar Frota / Veículo:", rota.fleet);
+            if (novaFrota === null) return;
+
+            const novaDistancia = prompt("Editar Distância Percorrida (KM):", rota.distance);
+            if (novaDistancia === null || isNaN(novaDistancia)) return;
+
+            rota.destination = novoDestino.trim() !== '' ? novoDestino.trim() : rota.destination;
+            rota.fleet = novaFrota.trim() !== '' ? novaFrota.trim() : rota.fleet;
+            const distNum = parseFloat(novaDistancia);
+            rota.distance = distNum.toFixed(2);
+            rota.kmFinal = (parseFloat(rota.kmStart) + distNum).toFixed(1);
+
+            history[index] = rota;
+            localStorage.setItem(`agro_routes_history_${colabAtivo}`, JSON.stringify(history));
+            loadHistory();
+            showAlert('Rota editada com sucesso!', 'success');
+        }
+
+        // NOVA FUNÇÃO: Excluir uma rota individualmente do histórico
+        function excluirRotaHistorico(idRota) {
+            if (!confirm("Deseja realmente excluir esta rota do histórico?")) return;
+
+            const colabAtivo = localStorage.getItem('agro_fixed_colaborador');
+            let history = JSON.parse(localStorage.getItem(`agro_routes_history_${colabAtivo}`) || '[]');
+            history = history.filter(r => r.id !== idRota);
+
+            localStorage.setItem(`agro_routes_history_${colabAtivo}`, JSON.stringify(history));
+            loadHistory();
+            showAlert('Rota excluída com sucesso!', 'info');
         }
 
         function iniciarTimerUI() {
@@ -904,11 +946,19 @@
                     const div = document.createElement('div');
                     div.className = "bg-slate-900 border border-slate-800 p-3 rounded-xl flex justify-between items-center text-xs";
                     div.innerHTML = `
-                        <div>
+                        <div class="flex-1 pr-2">
                             <div class="font-bold text-white"><i class="fa-solid fa-location-dot text-agro-500 mr-1"></i> ${item.destination}</div>
                             <div class="text-slate-400 mt-0.5">Data: ${item.data} | Frota: ${item.fleet} | KM Fim: ${item.kmFinal}</div>
                         </div>
-                        <div class="text-right font-bold text-agro-400">${item.distance} KM</div>
+                        <div class="flex items-center gap-2">
+                            <div class="text-right font-bold text-agro-400 mr-1">${item.distance} KM</div>
+                            <button type="button" onclick="editarRotaHistorico(${item.id})" class="p-2 bg-slate-800 hover:bg-slate-700 text-amber-400 rounded-lg transition cursor-pointer" title="Editar Rota">
+                                <i class="fa-solid fa-pen text-xs"></i>
+                            </button>
+                            <button type="button" onclick="excluirRotaHistorico(${item.id})" class="p-2 bg-slate-800 hover:bg-red-950 text-red-400 rounded-lg transition cursor-pointer" title="Excluir Rota">
+                                <i class="fa-solid fa-trash text-xs"></i>
+                            </button>
+                        </div>
                     `;
                     container.appendChild(div);
                 });
