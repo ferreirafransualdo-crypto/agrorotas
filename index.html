@@ -150,15 +150,21 @@
             </div>
 
             <div class="card-agro space-y-4 border-amber-500/30">
-                <div class="flex justify-between items-center border-b border-slate-700 pb-3">
+                <div class="flex flex-wrap justify-between items-center gap-2 border-b border-slate-700 pb-3">
                     <h3 class="text-lg font-bold text-slate-200 flex items-center gap-2">
                         <i class="fa-solid fa-satellite-dish text-amber-400 animate-pulse"></i> Monitoramento da Equipe
                     </h3>
-                    <button type="button" onclick="carregarListaColaboradoresCoordenador()" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-xs font-semibold rounded-lg text-slate-200 transition cursor-pointer">
-                        <i class="fa-solid fa-rotate-right mr-1"></i> Atualizar
-                    </button>
+                    <div class="flex gap-2">
+                        <label class="px-3 py-1.5 bg-blue-700 hover:bg-blue-600 text-xs font-bold rounded-lg text-white transition cursor-pointer flex items-center gap-1.5">
+                            <i class="fa-solid fa-file-import"></i> Carregar Backup / Dados
+                            <input type="file" id="importCoordFile" accept=".json" onchange="ingestaoBackupCoordenador(event)" class="hidden">
+                        </label>
+                        <button type="button" onclick="carregarListaColaboradoresCoordenador()" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-xs font-semibold rounded-lg text-slate-200 transition cursor-pointer">
+                            <i class="fa-solid fa-rotate-right mr-1"></i> Atualizar
+                        </button>
+                    </div>
                 </div>
-                <p class="text-xs text-slate-400">Clique em qualquer colaborador para abrir o **Perfil Completo** com frotas, histórico e demandas separadas por data:</p>
+                <p class="text-xs text-slate-400">Clique em qualquer colaborador para ver o **Perfil Completo** com frotas e demandas separadas por data:</p>
                 
                 <div id="coordinatorCollabList" class="space-y-3"></div>
             </div>
@@ -483,7 +489,7 @@
 
     <!-- SCRIPT DA APLICAÇÃO -->
     <script>
-        const APP_VERSION = "3.6"; 
+        const APP_VERSION = "3.7"; 
 
         let timerInterval = null;
         let watchId = null;
@@ -675,7 +681,7 @@
             showAlert('Sessão limpa. Escolha o novo perfil.', 'info');
         }
 
-        // CARREGA A LISTA DE TODOS OS COLABORADORES PARA O JOSÉ ELTON
+        // CARREGA A LISTA DE TODOS OS COLABORADORES PARA O JOSÉ ELTON E DETECTA A FROTA CORRETA
         function carregarListaColaboradoresCoordenador() {
             const container = document.getElementById('coordinatorCollabList');
             if (!container) return;
@@ -688,6 +694,14 @@
 
                 let totalRotas = history.length;
                 let totalKmGeral = 0;
+                let frotaIdentificada = localStorage.getItem(`agro_last_fleet_${nome}`) || '---';
+
+                if (rotaEmAndamento && rotaEmAndamento.fleet) {
+                    frotaIdentificada = rotaEmAndamento.fleet;
+                } else if (history.length > 0 && history[history.length - 1].fleet) {
+                    frotaIdentificada = history[history.length - 1].fleet;
+                }
+
                 history.forEach(r => totalKmGeral += parseFloat(r.distance || 0));
 
                 Object.values(pastas).forEach(listaPasta => {
@@ -709,7 +723,7 @@
                                 <h4 class="font-bold text-white text-sm">${nome}</h4>
                                 ${rotaEmAndamento ? '<span class="px-2 py-0.5 bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[9px] font-bold rounded-full animate-pulse">Em Andamento</span>' : ''}
                             </div>
-                            <p class="text-[11px] text-slate-400 mt-0.5">Rotas: ${totalRotas} | Total: ${totalKmGeral.toFixed(2)} KM</p>
+                            <p class="text-[11px] text-slate-400 mt-0.5">Frota Atual: <strong class="text-amber-400">${frotaIdentificada}</strong> | Rotas: ${totalRotas} | Total: ${totalKmGeral.toFixed(2)} KM</p>
                         </div>
                     </div>
                     <div class="text-xs text-amber-400 font-bold flex items-center gap-1">
@@ -720,7 +734,35 @@
             });
         }
 
-        // PERFIL COMPLETO SEPARADO POR DATA PARA QUALQUER COLABORADOR SELECIONADO
+        // INGESTÃO DE BACKUP ENVIADO PELOS COLABORADORES PARA O JOSÉ ELTON
+        function ingestaoBackupCoordenador(event) {
+            const arquivo = event.target.files[0];
+            if (!arquivo) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const dados = JSON.parse(e.target.result);
+                    if (!dados.colaborador) throw new Error('Arquivo incompatível');
+
+                    const colab = dados.colaborador;
+
+                    if (dados.history) localStorage.setItem(`agro_routes_history_${colab}`, dados.history);
+                    if (dados.folders) localStorage.setItem(`agro_archived_folders_${colab}`, dados.folders);
+                    if (dados.lastFleet) localStorage.setItem(`agro_last_fleet_${colab}`, dados.lastFleet);
+                    if (dados.lastKm) localStorage.setItem(`agro_last_km_${colab}`, dados.lastKm);
+                    if (dados.pin) localStorage.setItem(`agro_pin_${colab}`, dados.pin);
+
+                    carregarListaColaboradoresCoordenador();
+                    showAlert(`Dados de ${colab} carregados com sucesso!`, 'success');
+                } catch (err) {
+                    showAlert('Erro ao ler o arquivo de dados do colaborador.', 'error');
+                }
+            };
+            reader.readAsText(arquivo);
+        }
+
+        // PERFIL COMPLETO SEPARADO POR DATA COM FROTA SEMPRE IDENTIFICADA
         function abrirPerfilColaborador(nomeColaborador) {
             colaboradorSelecionadoAtual = nomeColaborador;
             document.getElementById('modalCollabName').innerText = `Perfil de ${nomeColaborador}`;
@@ -728,6 +770,7 @@
             const rotaEmAndamento = JSON.parse(localStorage.getItem(`agro_active_route_${nomeColaborador}`) || 'null');
             const history = JSON.parse(localStorage.getItem(`agro_routes_history_${nomeColaborador}`) || '[]');
             const pastas = JSON.parse(localStorage.getItem(`agro_archived_folders_${nomeColaborador}`) || '{}');
+            const ultimaFrotaGeral = localStorage.getItem(`agro_last_fleet_${nomeColaborador}`) || 'Não informada';
 
             // Agrupar todas as rotas (histórico + pastas) por data
             const rotasPorData = {};
@@ -779,15 +822,16 @@
                         </div>
                         <div class="text-xs text-white font-semibold">Destino: ${rotaEmAndamento.destination}</div>
                         <div class="text-[11px] text-amber-200/80 flex justify-between">
-                            <span>Frota: <strong>${rotaEmAndamento.fleet}</strong></span>
+                            <span>Frota: <strong class="text-white">${rotaEmAndamento.fleet || ultimaFrotaGeral}</strong></span>
                             <span>KM Ini: ${rotaEmAndamento.kmStart}</span>
                         </div>
                     </div>
                 `;
             } else {
                 html += `
-                    <div class="bg-slate-800/40 border border-slate-800 p-2.5 rounded-xl text-center text-xs text-slate-400">
-                        Nenhuma manobra ativa no momento.
+                    <div class="bg-slate-800/40 border border-slate-800 p-2.5 rounded-xl text-center text-xs text-slate-400 flex justify-between items-center">
+                        <span>Nenhuma manobra ativa no momento.</span>
+                        <span class="text-amber-400 font-bold">Frota: ${ultimaFrotaGeral}</span>
                     </div>
                 `;
             }
@@ -814,6 +858,7 @@
                     `;
 
                     lista.forEach((r, i) => {
+                        const frotaItem = r.fleet || ultimaFrotaGeral;
                         html += `
                             <div class="bg-slate-900/90 p-2.5 rounded-lg border border-slate-800 text-xs space-y-1">
                                 <div class="flex justify-between items-center font-bold text-white">
@@ -821,7 +866,7 @@
                                     <span class="text-agro-400">${r.distance} KM</span>
                                 </div>
                                 <div class="text-[11px] text-slate-400 flex justify-between">
-                                    <span>Frota: <strong class="text-slate-200">${r.fleet}</strong></span>
+                                    <span>Frota: <strong class="text-amber-300">${frotaItem}</strong></span>
                                     <span>${r.startTime} - ${r.endTime}</span>
                                 </div>
                                 <div class="text-[10px] text-slate-400">KM Ini: ${r.kmStart} | KM Fin: ${r.kmFinal}</div>
@@ -971,6 +1016,8 @@
             };
 
             localStorage.setItem(`agro_active_route_${colab}`, JSON.stringify(activeRoute));
+            localStorage.setItem(`agro_last_fleet_${colab}`, fleet);
+
             document.getElementById('formSection').classList.add('hidden');
             document.getElementById('activeSection').classList.remove('hidden');
             document.getElementById('liveDestination').innerText = destination;
@@ -1588,7 +1635,7 @@
             if (!box || !msgEl) return;
             msgEl.innerText = msg;
             box.className = `p-4 rounded-xl border flex items-start gap-3 transition-all ${type === 'error' ? 'bg-red-950 border-red-700 text-red-200' : type === 'info' ? 'bg-blue-950 border-blue-700 text-blue-200' : 'bg-agro-950 border-agro-700 text-agro-200'}`;
-            box.classList.add('hidden');
+            box.classList.remove('hidden');
             setTimeout(() => box.classList.add('hidden'), 4000);
         }
 
