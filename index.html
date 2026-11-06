@@ -224,7 +224,7 @@
                 <div id="coordRankingList" class="space-y-1.5 w-full text-left"></div>
             </div>
 
-            <!-- PASTAS DOS COLABORADORES (ALINHADAS RIGOROSAMENTE À ESQUERDA) -->
+            <!-- PASTAS DOS COLABORADORES -->
             <div class="card-agro space-y-4 border-amber-500/30 text-left">
                 <div class="flex flex-wrap justify-between items-center gap-2 border-b border-slate-700 pb-3">
                     <h3 class="text-base font-bold text-slate-200 flex items-center gap-2">
@@ -240,7 +240,6 @@
                     </div>
                 </div>
                 
-                <!-- Container principal das pastas alinhado à esquerda -->
                 <div id="coordinatorCollabFoldersList" class="flex flex-col items-stretch w-full space-y-3 text-left"></div>
             </div>
         </div>
@@ -633,7 +632,7 @@
 
     <!-- SCRIPT DA APLICAÇÃO -->
     <script>
-        const APP_VERSION = "8.7"; 
+        const APP_VERSION = "8.8"; 
 
         let timerInterval = null;
         let watchId = null;
@@ -967,7 +966,6 @@
                     alertaInativo = true;
                 }
 
-                // Renderizando a Pasta perfeitamente alinhada à esquerda com largura total 100%
                 const folderCard = document.createElement('div');
                 folderCard.className = "bg-slate-900 border border-slate-800 rounded-xl overflow-hidden transition w-full text-left";
 
@@ -1065,7 +1063,6 @@
                 container.appendChild(folderCard);
             });
 
-            // Atualiza KPIs do Topo
             const finGeral = calcularFinanceiroKm(totalEquipeKm);
             document.getElementById('kpiTotalKm').innerText = `${totalEquipeKm.toFixed(1)} KM`;
             document.getElementById('kpiTotalLiters').innerText = `${finGeral.litros} L`;
@@ -1770,16 +1767,17 @@
             document.getElementById('modalRelatorioVisual').classList.add('hidden');
         }
 
+        // FUNÇÃO DE GERAÇÃO E COMPARTILHAMENTO DE IMAGEM CORRIGIDA
         function baixarImagemPronta() {
             const card = document.getElementById('reportCardToImage');
-            showAlert('Gerando imagem...', 'info');
+            showAlert('Gerando imagem do relatório...', 'info');
             card.style.width = '420px';
 
             html2canvas(card, { 
                 scale: 2, 
                 backgroundColor: '#f1f5f9', 
                 useCORS: true, 
-                allowTaint: false, 
+                allowTaint: true, 
                 logging: false 
             }).then(canvas => {
                 card.style.width = '100%';
@@ -1789,8 +1787,19 @@
                         return;
                     }
                     const file = new File([blob], `Relatorio_AgroRota_${new Date().toISOString().slice(0,10)}.png`, { type: 'image/png' });
+                    
                     if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                        navigator.share({ files: [file], title: 'Relatório AgroRota', text: 'Segue o relatório de rotas.' }).catch(() => { baixarArquivoFallback(canvas); });
+                        navigator.share({ 
+                            files: [file], 
+                            title: 'Relatório AgroRota', 
+                            text: 'Segue o relatório de rotas da operação.' 
+                        }).then(() => {
+                            showAlert('Imagem compartilhada com sucesso!', 'success');
+                        }).catch((error) => {
+                            if (error.name !== 'AbortError') {
+                                baixarArquivoFallback(canvas);
+                            }
+                        });
                     } else {
                         baixarArquivoFallback(canvas);
                     }
@@ -1798,7 +1807,7 @@
             }).catch(err => {
                 card.style.width = '100%';
                 console.error("Erro html2canvas:", err);
-                showAlert('Não foi possível gerar a imagem automaticamente. Utilize o resumo do WhatsApp.', 'error');
+                showAlert('Falha ao gerar imagem. Use o botão do WhatsApp.', 'error');
             });
         }
 
@@ -1812,16 +1821,16 @@
 
         function partilharImagemDireta() {
             baixarImagemPronta();
-            setTimeout(() => { gerarelatorioGestor(); }, 1500);
         }
 
+        // FUNÇÃO DE WHATSAPP CORRIGIDA COM SEGURANÇA E ENCODE
         function gerarelatorioGestor() {
-            const colabAtivo = localStorage.getItem('agro_fixed_colaborador');
+            const colabAtivo = localStorage.getItem('agro_fixed_colaborador') || 'Colaborador';
             let history = [];
             try { history = JSON.parse(localStorage.getItem(`agro_routes_history_${colabAtivo}`) || '[]'); } catch(e){}
             
             if (history.length === 0) {
-                showAlert('Sem dados para o WhatsApp.', 'error');
+                showAlert('Sem dados de rotas recentes para enviar.', 'error');
                 return;
             }
 
@@ -1833,14 +1842,17 @@
                 if(r) {
                     texto += `*Rota #${idx + 1}*\n`;
                     texto += `👤 ${r.colaborador || colabAtivo} | 🚗 ${r.fleet || 'Fiorino Álcool'}\n`;
-                    texto += `⚙️ ${r.destination || 'Manobra'}\n`;
-                    texto += `⏰ ${r.startTime || '--:--'} - ${r.endTime || '--:--'} | 🛣️ *${r.distance || '0.00'} KM*\n\n`;
+                    texto += `⚙️ Destino: ${r.destination || 'Manobra'}\n`;
+                    texto += `⏰ ${r.startTime || '--:--'} às ${r.endTime || '--:--'} | 🛣️ *${r.distance || '0.00'} KM*\n\n`;
                 }
             });
             texto += `🛣️ *KM TOTAL DO DIA:* *${totalKmGeral.toFixed(2)} KM*\n\n_Enviado via AgroRota GPS_`;
 
             const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(texto)}`;
-            window.open(url, '_blank');
+            const win = window.open(url, '_blank');
+            if (!win) {
+                window.location.href = url;
+            }
         }
 
         function finalizarDemandaDoDia() {
@@ -1993,7 +2005,7 @@
             if (!box || !msgEl) return;
             msgEl.innerText = msg;
             box.className = `p-4 rounded-xl border flex items-start gap-3 transition-all ${type === 'error' ? 'bg-red-950 border-red-700 text-red-200' : type === 'info' ? 'bg-blue-950 border-blue-700 text-blue-200' : 'bg-agro-950 border-agro-700 text-agro-200'}`;
-            box.classList.add('hidden');
+            box.classList.remove('hidden');
             setTimeout(() => box.classList.add('hidden'), 4000);
         }
 
