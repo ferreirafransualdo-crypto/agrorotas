@@ -158,7 +158,7 @@
                         <i class="fa-solid fa-rotate-right mr-1"></i> Atualizar
                     </button>
                 </div>
-                <p class="text-xs text-slate-400">Clique em um colaborador para abrir o **Perfil Completo** com frotas, KM percorridos e demandas:</p>
+                <p class="text-xs text-slate-400">Clique em qualquer colaborador para abrir o **Perfil Completo** com frotas, histórico e demandas separadas por data:</p>
                 
                 <div id="coordinatorCollabList" class="space-y-3"></div>
             </div>
@@ -352,7 +352,7 @@
                     </div>
                     <div>
                         <h3 id="modalCollabName" class="font-bold text-sm text-white">Perfil do Colaborador</h3>
-                        <p class="text-[10px] text-slate-400">Painel de Acompanhamento da Gestão</p>
+                        <p class="text-[10px] text-slate-400">Demandas Organizadas por Data</p>
                     </div>
                 </div>
                 <button type="button" onclick="fecharModalPerfil()" class="text-slate-400 hover:text-white text-base p-1.5 cursor-pointer">
@@ -483,7 +483,7 @@
 
     <!-- SCRIPT DA APLICAÇÃO -->
     <script>
-        const APP_VERSION = "3.5"; 
+        const APP_VERSION = "3.6"; 
 
         let timerInterval = null;
         let watchId = null;
@@ -675,7 +675,7 @@
             showAlert('Sessão limpa. Escolha o novo perfil.', 'info');
         }
 
-        // CARREGA A LISTA DE COLABORADORES PARA O JOSÉ ELTON COM CONSOLIDAÇÃO DE DADOS
+        // CARREGA A LISTA DE TODOS OS COLABORADORES PARA O JOSÉ ELTON
         function carregarListaColaboradoresCoordenador() {
             const container = document.getElementById('coordinatorCollabList');
             if (!container) return;
@@ -720,7 +720,7 @@
             });
         }
 
-        // ABRIR O PERFIL COMPLETO DO COLABORADOR COM DEMANDAS E FROTAS UNIFICADAS
+        // PERFIL COMPLETO SEPARADO POR DATA PARA QUALQUER COLABORADOR SELECIONADO
         function abrirPerfilColaborador(nomeColaborador) {
             colaboradorSelecionadoAtual = nomeColaborador;
             document.getElementById('modalCollabName').innerText = `Perfil de ${nomeColaborador}`;
@@ -729,25 +729,38 @@
             const history = JSON.parse(localStorage.getItem(`agro_routes_history_${nomeColaborador}`) || '[]');
             const pastas = JSON.parse(localStorage.getItem(`agro_archived_folders_${nomeColaborador}`) || '{}');
 
-            // Unificar histórico recente + pastas arquivadas para visualização do gestor
-            let todasAsRotas = [...history];
+            // Agrupar todas as rotas (histórico + pastas) por data
+            const rotasPorData = {};
+            
+            history.forEach(r => {
+                const dataKey = r.data || new Date().toLocaleDateString('pt-BR');
+                if (!rotasPorData[dataKey]) rotasPorData[dataKey] = [];
+                if (!rotasPorData[dataKey].some(item => item.id === r.id)) rotasPorData[dataKey].push(r);
+            });
+
             Object.keys(pastas).forEach(dataKey => {
+                if (!rotasPorData[dataKey]) rotasPorData[dataKey] = [];
                 pastas[dataKey].forEach(r => {
-                    if (!todasAsRotas.some(item => item.id === r.id)) {
-                        todasAsRotas.push(r);
+                    if (!rotasPorData[dataKey].some(item => item.id === r.id)) {
+                        rotasPorData[dataKey].push(r);
                     }
                 });
             });
 
+            let totalRotasGeral = 0;
             let totalKmGeral = 0;
-            todasAsRotas.forEach(r => totalKmGeral += parseFloat(r.distance || 0));
+
+            Object.values(rotasPorData).forEach(lista => {
+                totalRotasGeral += lista.length;
+                lista.forEach(r => totalKmGeral += parseFloat(r.distance || 0));
+            });
 
             const content = document.getElementById('modalPerfilContent');
             let html = `
                 <div class="grid grid-cols-2 gap-2 text-center">
                     <div class="bg-slate-800 p-2.5 rounded-xl border border-slate-700">
                         <span class="text-[10px] uppercase font-bold text-slate-400">Total de Rotas</span>
-                        <div class="text-lg font-black text-white mt-0.5">${todasAsRotas.length}</div>
+                        <div class="text-lg font-black text-white mt-0.5">${totalRotasGeral}</div>
                     </div>
                     <div class="bg-slate-800 p-2.5 rounded-xl border border-slate-700">
                         <span class="text-[10px] uppercase font-bold text-slate-400">KM Total Rodado</span>
@@ -779,29 +792,45 @@
                 `;
             }
 
-            // Histórico de Demandas Unificadas
-            html += `<div class="font-bold text-xs text-slate-300 pt-2 border-t border-slate-800">📋 Demandas Realizadas & Histórico:</div>`;
+            // Demandas Separadas por Data
+            html += `<div class="font-bold text-xs text-slate-300 pt-2 border-t border-slate-800">📅 Demandas Separadas por Data:</div>`;
 
-            if (todasAsRotas.length === 0) {
+            const datasChaves = Object.keys(rotasPorData);
+            if (datasChaves.length === 0) {
                 html += `<div class="text-xs text-slate-500 text-center py-2">Nenhuma demanda registrada ainda.</div>`;
             } else {
-                html += `<div class="space-y-2">`;
-                todasAsRotas.slice().reverse().forEach((r, idx) => {
+                datasChaves.sort().reverse().forEach(dataKey => {
+                    const lista = rotasPorData[dataKey];
+                    let totalKmData = 0;
+                    lista.forEach(r => totalKmData += parseFloat(r.distance || 0));
+
                     html += `
-                        <div class="bg-slate-800/80 border border-slate-700/80 p-2.5 rounded-xl text-xs space-y-1">
-                            <div class="flex justify-between items-center font-bold text-white">
-                                <span><i class="fa-solid fa-location-dot text-agro-500 mr-1"></i> ${r.destination}</span>
-                                <span class="text-agro-400">${r.distance} KM</span>
+                        <div class="bg-slate-800/70 border border-slate-700 rounded-xl overflow-hidden space-y-1">
+                            <div class="px-3 py-2 bg-slate-800 flex justify-between items-center text-xs font-bold text-amber-400">
+                                <span><i class="fa-solid fa-calendar-day mr-1"></i> Data: ${dataKey}</span>
+                                <span class="text-slate-200">${lista.length} rota(s) | ${totalKmData.toFixed(2)} KM</span>
                             </div>
-                            <div class="text-[11px] text-slate-400 flex justify-between">
-                                <span>Frota: <strong class="text-slate-200">${r.fleet}</strong> | Data: ${r.data}</span>
-                                <span>${r.startTime} - ${r.endTime}</span>
-                            </div>
-                            <div class="text-[10px] text-slate-400 pt-0.5">KM Ini: ${r.kmStart} | KM Fin: ${r.kmFinal}</div>
-                        </div>
+                            <div class="p-2 space-y-2">
                     `;
+
+                    lista.forEach((r, i) => {
+                        html += `
+                            <div class="bg-slate-900/90 p-2.5 rounded-lg border border-slate-800 text-xs space-y-1">
+                                <div class="flex justify-between items-center font-bold text-white">
+                                    <span><i class="fa-solid fa-location-dot text-agro-500 mr-1"></i> #${i+1}: ${r.destination}</span>
+                                    <span class="text-agro-400">${r.distance} KM</span>
+                                </div>
+                                <div class="text-[11px] text-slate-400 flex justify-between">
+                                    <span>Frota: <strong class="text-slate-200">${r.fleet}</strong></span>
+                                    <span>${r.startTime} - ${r.endTime}</span>
+                                </div>
+                                <div class="text-[10px] text-slate-400">KM Ini: ${r.kmStart} | KM Fin: ${r.kmFinal}</div>
+                            </div>
+                        `;
+                    });
+
+                    html += `</div></div>`;
                 });
-                html += `</div>`;
             }
 
             content.innerHTML = html;
@@ -1559,7 +1588,7 @@
             if (!box || !msgEl) return;
             msgEl.innerText = msg;
             box.className = `p-4 rounded-xl border flex items-start gap-3 transition-all ${type === 'error' ? 'bg-red-950 border-red-700 text-red-200' : type === 'info' ? 'bg-blue-950 border-blue-700 text-blue-200' : 'bg-agro-950 border-agro-700 text-agro-200'}`;
-            box.classList.remove('hidden');
+            box.classList.add('hidden');
             setTimeout(() => box.classList.add('hidden'), 4000);
         }
 
