@@ -483,7 +483,7 @@
 
     <!-- SCRIPT DA APLICAÇÃO -->
     <script>
-        const APP_VERSION = "3.4"; 
+        const APP_VERSION = "3.5"; 
 
         let timerInterval = null;
         let watchId = null;
@@ -502,7 +502,6 @@
                 const tipoSessao = localStorage.getItem('agro_session_type');
                 if (tipoSessao === 'coordenador') {
                     carregarListaColaboradoresCoordenador();
-                    showAlert(`Nova manobra sincronizada de ${event.data.colaborador}!`, 'info');
                 }
             }
         };
@@ -676,7 +675,7 @@
             showAlert('Sessão limpa. Escolha o novo perfil.', 'info');
         }
 
-        // MONITORAÇÃO DA EQUIPE PARA O JOSÉ ELTON
+        // CARREGA A LISTA DE COLABORADORES PARA O JOSÉ ELTON COM CONSOLIDAÇÃO DE DADOS
         function carregarListaColaboradoresCoordenador() {
             const container = document.getElementById('coordinatorCollabList');
             if (!container) return;
@@ -685,9 +684,16 @@
             LISTA_COLABORADORES.forEach(nome => {
                 const rotaEmAndamento = JSON.parse(localStorage.getItem(`agro_active_route_${nome}`) || 'null');
                 const history = JSON.parse(localStorage.getItem(`agro_routes_history_${nome}`) || '[]');
-                
+                const pastas = JSON.parse(localStorage.getItem(`agro_archived_folders_${nome}`) || '{}');
+
+                let totalRotas = history.length;
                 let totalKmGeral = 0;
                 history.forEach(r => totalKmGeral += parseFloat(r.distance || 0));
+
+                Object.values(pastas).forEach(listaPasta => {
+                    totalRotas += listaPasta.length;
+                    listaPasta.forEach(r => totalKmGeral += parseFloat(r.distance || 0));
+                });
 
                 const div = document.createElement('div');
                 div.className = "bg-slate-900 border border-slate-800 hover:border-slate-700 p-3.5 rounded-xl transition cursor-pointer flex justify-between items-center";
@@ -703,7 +709,7 @@
                                 <h4 class="font-bold text-white text-sm">${nome}</h4>
                                 ${rotaEmAndamento ? '<span class="px-2 py-0.5 bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[9px] font-bold rounded-full animate-pulse">Em Andamento</span>' : ''}
                             </div>
-                            <p class="text-[11px] text-slate-400 mt-0.5">Rotas: ${history.length} | Total: ${totalKmGeral.toFixed(2)} KM</p>
+                            <p class="text-[11px] text-slate-400 mt-0.5">Rotas: ${totalRotas} | Total: ${totalKmGeral.toFixed(2)} KM</p>
                         </div>
                     </div>
                     <div class="text-xs text-amber-400 font-bold flex items-center gap-1">
@@ -714,7 +720,7 @@
             });
         }
 
-        // ABRIR O MODAL DE PERFIL INDIVIDUAL DO COLABORADOR
+        // ABRIR O PERFIL COMPLETO DO COLABORADOR COM DEMANDAS E FROTAS UNIFICADAS
         function abrirPerfilColaborador(nomeColaborador) {
             colaboradorSelecionadoAtual = nomeColaborador;
             document.getElementById('modalCollabName').innerText = `Perfil de ${nomeColaborador}`;
@@ -723,15 +729,25 @@
             const history = JSON.parse(localStorage.getItem(`agro_routes_history_${nomeColaborador}`) || '[]');
             const pastas = JSON.parse(localStorage.getItem(`agro_archived_folders_${nomeColaborador}`) || '{}');
 
+            // Unificar histórico recente + pastas arquivadas para visualização do gestor
+            let todasAsRotas = [...history];
+            Object.keys(pastas).forEach(dataKey => {
+                pastas[dataKey].forEach(r => {
+                    if (!todasAsRotas.some(item => item.id === r.id)) {
+                        todasAsRotas.push(r);
+                    }
+                });
+            });
+
             let totalKmGeral = 0;
-            history.forEach(r => totalKmGeral += parseFloat(r.distance || 0));
+            todasAsRotas.forEach(r => totalKmGeral += parseFloat(r.distance || 0));
 
             const content = document.getElementById('modalPerfilContent');
             let html = `
                 <div class="grid grid-cols-2 gap-2 text-center">
                     <div class="bg-slate-800 p-2.5 rounded-xl border border-slate-700">
                         <span class="text-[10px] uppercase font-bold text-slate-400">Total de Rotas</span>
-                        <div class="text-lg font-black text-white mt-0.5">${history.length}</div>
+                        <div class="text-lg font-black text-white mt-0.5">${todasAsRotas.length}</div>
                     </div>
                     <div class="bg-slate-800 p-2.5 rounded-xl border border-slate-700">
                         <span class="text-[10px] uppercase font-bold text-slate-400">KM Total Rodado</span>
@@ -763,14 +779,14 @@
                 `;
             }
 
-            // Histórico de Demandas Recentes
-            html += `<div class="font-bold text-xs text-slate-300 pt-2 border-t border-slate-800">📋 Demandas Recentes & Histórico:</div>`;
+            // Histórico de Demandas Unificadas
+            html += `<div class="font-bold text-xs text-slate-300 pt-2 border-t border-slate-800">📋 Demandas Realizadas & Histórico:</div>`;
 
-            if (history.length === 0) {
-                html += `<div class="text-xs text-slate-500 text-center py-2">Nenhum histórico recente gravado.</div>`;
+            if (todasAsRotas.length === 0) {
+                html += `<div class="text-xs text-slate-500 text-center py-2">Nenhuma demanda registrada ainda.</div>`;
             } else {
                 html += `<div class="space-y-2">`;
-                history.slice().reverse().forEach((r, idx) => {
+                todasAsRotas.slice().reverse().forEach((r, idx) => {
                     html += `
                         <div class="bg-slate-800/80 border border-slate-700/80 p-2.5 rounded-xl text-xs space-y-1">
                             <div class="flex justify-between items-center font-bold text-white">
