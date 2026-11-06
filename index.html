@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AgroRota GPS - Logística & Gestão</title>
+    <title>AgroRota GPS - Logística & Gestão Financeira</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Font Awesome Icons -->
@@ -163,19 +163,39 @@
                 </select>
             </div>
 
-            <!-- DASHBOARD KPIS -->
-            <div class="grid grid-cols-3 gap-2.5">
-                <div class="bg-slate-800/90 border border-slate-700 rounded-xl p-3 text-center">
-                    <span class="text-[9px] uppercase tracking-wider font-bold text-slate-400 block">Em Campo</span>
-                    <div id="kpiActiveCount" class="text-xl font-black text-amber-400 mt-1">0</div>
+            <!-- CONFIGURAÇÃO DE COMBUSTÍVEL DA FROTA -->
+            <div class="bg-slate-800/80 border border-emerald-500/30 rounded-xl p-3.5 space-y-2">
+                <div class="flex justify-between items-center text-xs">
+                    <span class="font-bold text-emerald-400 flex items-center gap-1.5">
+                        <i class="fa-solid fa-gas-station"></i> Parâmetros de Combustível da Frota
+                    </span>
+                    <button type="button" onclick="configurarParametrosCombustivel()" class="text-[10px] bg-emerald-950 border border-emerald-700 hover:bg-emerald-900 text-emerald-300 px-2 py-1 rounded-lg font-bold cursor-pointer">
+                        <i class="fa-solid fa-sliders mr-1"></i> Ajustar Preço/Consumo
+                    </button>
                 </div>
-                <div class="bg-slate-800/90 border border-slate-700 rounded-xl p-3 text-center">
-                    <span class="text-[9px] uppercase tracking-wider font-bold text-slate-400 block">Manobras</span>
-                    <div id="kpiTotalRoutes" class="text-xl font-black text-white mt-1">0</div>
+                <div class="grid grid-cols-2 gap-2 text-[11px] text-slate-300 bg-slate-900/60 p-2 rounded-lg border border-slate-800">
+                    <div>Consumo Médio: <strong id="paramKmL" class="text-white">8.5 KM/L</strong></div>
+                    <div class="text-right">Preço/Litro: <strong id="paramPriceL" class="text-emerald-400">R$ 5,89</strong></div>
                 </div>
+            </div>
+
+            <!-- DASHBOARD FINANCIALS & KPIS -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                 <div class="bg-slate-800/90 border border-slate-700 rounded-xl p-3 text-center">
                     <span class="text-[9px] uppercase tracking-wider font-bold text-slate-400 block">KM Total</span>
-                    <div id="kpiTotalKm" class="text-xl font-black text-agro-400 mt-1">0.0 KM</div>
+                    <div id="kpiTotalKm" class="text-lg font-black text-white mt-0.5">0.0 KM</div>
+                </div>
+                <div class="bg-slate-800/90 border border-slate-700 rounded-xl p-3 text-center">
+                    <span class="text-[9px] uppercase tracking-wider font-bold text-slate-400 block">Litros Estimados</span>
+                    <div id="kpiTotalLiters" class="text-lg font-black text-amber-400 mt-0.5">0.0 L</div>
+                </div>
+                <div class="bg-slate-800/90 border border-slate-700 rounded-xl p-3 text-center">
+                    <span class="text-[9px] uppercase tracking-wider font-bold text-slate-400 block">Custo de Frota</span>
+                    <div id="kpiTotalCost" class="text-lg font-black text-red-400 mt-0.5">R$ 0,00</div>
+                </div>
+                <div class="bg-slate-800/90 border border-emerald-500/40 rounded-xl p-3 text-center bg-emerald-950/20">
+                    <span class="text-[9px] uppercase tracking-wider font-bold text-emerald-400 block">Economia Est.</span>
+                    <div id="kpiSavedCost" class="text-lg font-black text-emerald-400 mt-0.5">R$ 0,00</div>
                 </div>
             </div>
 
@@ -196,10 +216,10 @@
                 </div>
             </div>
 
-            <!-- RANKING DE PRODUTIVIDADE -->
+            <!-- RANKING DE PRODUTIVIDADE & CUSTO -->
             <div class="card-agro space-y-3 border-agro-500/30">
                 <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
-                    <i class="fa-solid fa-trophy text-amber-400"></i> Ranking de Produtividade (KM)
+                    <i class="fa-solid fa-trophy text-amber-400"></i> Ranking de Produtividade & Custo
                 </h3>
                 <div id="coordRankingList" class="space-y-1.5"></div>
             </div>
@@ -643,7 +663,7 @@
 
     <!-- SCRIPT DA APLICAÇÃO -->
     <script>
-        const APP_VERSION = "6.0"; 
+        const APP_VERSION = "7.0"; 
 
         let timerInterval = null;
         let watchId = null;
@@ -672,6 +692,7 @@
             try {
                 gerenciarMigracaoVersao();
                 verificarStatusConexao();
+                carregarParametrosCombustivelUI();
                 window.addEventListener('online', verificarStatusConexao);
                 window.addEventListener('offline', verificarStatusConexao);
                 verificarSessaoAtiva();
@@ -825,8 +846,51 @@
         }
 
         // ==========================================
-        // PAINEL DO COORDENADOR AVANÇADO (VERSÃO 6.0)
+        // PARÂMETROS & CÁLCULOS DE COMBUSTÍVEL (V7.0)
         // ==========================================
+        function carregarParametrosCombustivelUI() {
+            const kmL = localStorage.getItem('agro_fuel_km_l') || '8.5';
+            const priceL = localStorage.getItem('agro_fuel_price') || '5.89';
+            if(document.getElementById('paramKmL')) document.getElementById('paramKmL').innerText = `${kmL} KM/L`;
+            if(document.getElementById('paramPriceL')) document.getElementById('paramPriceL').innerText = `R$ ${parseFloat(priceL).toFixed(2).replace('.', ',')}`;
+        }
+
+        function configurarParametrosCombustivel() {
+            const kmLAtual = localStorage.getItem('agro_fuel_km_l') || '8.5';
+            const priceLAtual = localStorage.getItem('agro_fuel_price') || '5.89';
+
+            const novoKmL = prompt("Digite o consumo médio da frota (KM por Litro):", kmLAtual);
+            if (!novoKmL || isNaN(novoKmL) || parseFloat(novoKmL) <= 0) return;
+
+            const novoPrice = prompt("Digite o preço médio do combustível (R$ por Litro):", priceLAtual);
+            if (!novoPrice || isNaN(novoPrice) || parseFloat(novoPrice) <= 0) return;
+
+            localStorage.setItem('agro_fuel_km_l', parseFloat(novoKmL));
+            localStorage.setItem('agro_fuel_price', parseFloat(novoPrice));
+
+            carregarParametrosCombustivelUI();
+            carregarListaColaboradoresCoordenador();
+            showAlert('Parâmetros de combustível salvos!', 'success');
+        }
+
+        function calcularFinanceiroKm(kmTotal) {
+            const kmL = parseFloat(localStorage.getItem('agro_fuel_km_l') || '8.5');
+            const priceL = parseFloat(localStorage.getItem('agro_fuel_price') || '5.89');
+
+            const litros = kmL > 0 ? (kmTotal / kmL) : 0;
+            const custoTotal = litros * priceL;
+            
+            // Estimativa de Economia (12% de otimização em relação a rotas sem controle)
+            const custoSemOtimizacao = custoTotal * 1.12;
+            const economiaEst = custoSemOtimizacao - custoTotal;
+
+            return {
+                litros: litros.toFixed(1),
+                custoTotal: custoTotal.toFixed(2),
+                economiaEst: economiaEst.toFixed(2)
+            };
+        }
+
         function filtrarDataPorPeriodo(dataStr, tipoFiltro) {
             if (tipoFiltro === 'todos') return true;
             if (!dataStr) return false;
@@ -890,7 +954,6 @@
                     frotaIdentificada = history[history.length - 1].fleet;
                 }
 
-                // Filtrando histórico pelo período selecionado
                 history.forEach(r => {
                     if (r && filtrarDataPorPeriodo(r.data, periodFilter)) {
                         totalRotasColab++;
@@ -898,7 +961,6 @@
                     }
                 });
 
-                // Filtrando pastas arquivadas pelo período selecionado
                 Object.keys(pastas).forEach(dataKey => {
                     if (filtrarDataPorPeriodo(dataKey, periodFilter) && Array.isArray(pastas[dataKey])) {
                         pastas[dataKey].forEach(r => {
@@ -912,9 +974,16 @@
 
                 totalEquipeKm += totalKmColab;
                 totalEquipeRotas += totalRotasColab;
-                dadosRanking.push({ nome, km: totalKmColab, rotas: totalRotasColab });
 
-                // Alerta de inatividade (ex: sem rotas e sem manobra ativa no filtro de hoje)
+                const colabFin = calcularFinanceiroKm(totalKmColab);
+
+                dadosRanking.push({ 
+                    nome, 
+                    km: totalKmColab, 
+                    rotas: totalRotasColab,
+                    custo: colabFin.custoTotal
+                });
+
                 let alertaInativo = false;
                 if (periodFilter === 'hoje' && !rotaEmAndamento && totalRotasColab === 0) {
                     alertaInativo = true;
@@ -945,14 +1014,18 @@
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-2 bg-slate-800/60 p-2.5 rounded-lg border border-slate-800 text-xs">
+                    <div class="grid grid-cols-3 gap-2 bg-slate-800/60 p-2.5 rounded-lg border border-slate-800 text-xs text-center">
                         <div>
-                            <span class="text-[9px] uppercase tracking-wider text-slate-400 block font-semibold">Total Manobras</span>
-                            <span class="font-bold text-white text-sm">${totalRotasColab}</span>
+                            <span class="text-[8px] uppercase tracking-wider text-slate-400 block font-semibold">Manobras</span>
+                            <span class="font-bold text-white">${totalRotasColab}</span>
                         </div>
-                        <div class="text-right">
-                            <span class="text-[9px] uppercase tracking-wider text-slate-400 block font-semibold">KM Acumulado</span>
-                            <span class="font-bold text-agro-400 text-sm">${totalKmColab.toFixed(2)} KM</span>
+                        <div>
+                            <span class="text-[8px] uppercase tracking-wider text-slate-400 block font-semibold">KM Total</span>
+                            <span class="font-bold text-agro-400">${totalKmColab.toFixed(1)} KM</span>
+                        </div>
+                        <div>
+                            <span class="text-[8px] uppercase tracking-wider text-slate-400 block font-semibold">Custo Est.</span>
+                            <span class="font-bold text-red-400">R$ ${parseFloat(colabFin.custoTotal).toFixed(2).replace('.', ',')}</span>
                         </div>
                     </div>
 
@@ -968,15 +1041,17 @@
                 container.appendChild(card);
             });
 
-            // Atualiza os KPIs no topo
-            document.getElementById('kpiActiveCount').innerText = operadoresEmCampo;
-            document.getElementById('kpiTotalRoutes').innerText = totalEquipeRotas;
+            // Atualiza os KPIs Financeiros e Operacionais do Topo
+            const finGeral = calcularFinanceiroKm(totalEquipeKm);
             document.getElementById('kpiTotalKm').innerText = `${totalEquipeKm.toFixed(1)} KM`;
+            document.getElementById('kpiTotalLiters').innerText = `${finGeral.litros} L`;
+            document.getElementById('kpiTotalCost').innerText = `R$ ${parseFloat(finGeral.custoTotal).toFixed(2).replace('.', ',')}`;
+            document.getElementById('kpiSavedCost').innerText = `R$ ${parseFloat(finGeral.economiaEst).toFixed(2).replace('.', ',')}`;
 
-            // Atualiza a Barra de Meta de KM
+            // Atualiza a Barra de Meta
             atualizarBarraMetaKm(totalEquipeKm);
 
-            // Atualiza o Ranking de Produtividade
+            // Atualiza o Ranking de Produtividade e Custos
             dadosRanking.sort((a, b) => b.km - a.km);
             dadosRanking.forEach((item, index) => {
                 const medalhas = ['🥇', '🥈', '🥉', '4º', '5º', '6º'];
@@ -990,8 +1065,8 @@
                         <span class="font-bold text-white">${item.nome}</span>
                     </div>
                     <div class="text-right">
-                        <strong class="text-agro-400">${item.km.toFixed(2)} KM</strong> 
-                        <span class="text-[10px] text-slate-400">(${item.rotas} rotas)</span>
+                        <strong class="text-agro-400 mr-2">${item.km.toFixed(1)} KM</strong> 
+                        <span class="text-red-400 font-semibold">(R$ ${parseFloat(item.custo).toFixed(2).replace('.', ',')})</span>
                     </div>
                 `;
                 rankingContainer.appendChild(rankRow);
@@ -1019,8 +1094,9 @@
         }
 
         function exportarRelatorioGeralCoordenador() {
-            let csv = 'Colaborador,Data,Frota,KM Inicial,KM Final,Manobra,Saida,Chegada,Distancia\n';
-            let totalGeralExport = 0;
+            let csv = 'Colaborador,Data,Frota,KM Inicial,KM Final,Manobra,Saida,Chegada,Distancia,Litros_Estimados,Custo_Estimado_R$\n';
+            const kmL = parseFloat(localStorage.getItem('agro_fuel_km_l') || '8.5');
+            const priceL = parseFloat(localStorage.getItem('agro_fuel_price') || '5.89');
 
             LISTA_COLABORADORES.forEach(nome => {
                 let history = [];
@@ -1031,8 +1107,10 @@
 
                 history.forEach(r => {
                     if (r) {
-                        csv += `${nome},${r.data || ''},${r.fleet || ''},${r.kmStart || 0},${r.kmFinal || 0},"${r.destination || ''}",${r.startTime || ''},${r.endTime || ''},${r.distance || 0}\n`;
-                        totalGeralExport += parseFloat(r.distance || 0);
+                        const dist = parseFloat(r.distance || 0);
+                        const lit = kmL > 0 ? (dist / kmL) : 0;
+                        const cust = lit * priceL;
+                        csv += `${nome},${r.data || ''},${r.fleet || ''},${r.kmStart || 0},${r.kmFinal || 0},"${r.destination || ''}",${r.startTime || ''},${r.endTime || ''},${dist},${lit.toFixed(2)},${cust.toFixed(2)}\n`;
                     }
                 });
 
@@ -1040,8 +1118,10 @@
                     if (Array.isArray(lista)) {
                         lista.forEach(r => {
                             if (r) {
-                                csv += `${nome},${r.data || ''},${r.fleet || ''},${r.kmStart || 0},${r.kmFinal || 0},"${r.destination || ''}",${r.startTime || ''},${r.endTime || ''},${r.distance || 0}\n`;
-                                totalGeralExport += parseFloat(r.distance || 0);
+                                const dist = parseFloat(r.distance || 0);
+                                const lit = kmL > 0 ? (dist / kmL) : 0;
+                                const cust = lit * priceL;
+                                csv += `${nome},${r.data || ''},${r.fleet || ''},${r.kmStart || 0},${r.kmFinal || 0},"${r.destination || ''}",${r.startTime || ''},${r.endTime || ''},${dist},${lit.toFixed(2)},${cust.toFixed(2)}\n`;
                             }
                         });
                     }
@@ -1052,9 +1132,9 @@
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `Relatorio_Geral_Equipe_${new Date().toISOString().slice(0,10)}.csv`;
+            a.download = `Relatorio_Geral_Custos_Equipe_${new Date().toISOString().slice(0,10)}.csv`;
             a.click();
-            showAlert('Planilha consolidada gerada com sucesso!', 'success');
+            showAlert('Planilha financeira e operacional gerada!', 'success');
         }
 
         function ingestaoBackupCoordenador(event) {
@@ -1134,16 +1214,22 @@
                 }
             });
 
+            const finPerfil = calcularFinanceiroKm(totalKmGeral);
+
             const content = document.getElementById('modalPerfilContent');
             let html = `
-                <div class="grid grid-cols-2 gap-2 text-center">
-                    <div class="bg-slate-800 p-2.5 rounded-xl border border-slate-700">
-                        <span class="text-[10px] uppercase font-bold text-slate-400">Total de Rotas</span>
-                        <div class="text-lg font-black text-white mt-0.5">${totalRotasGeral}</div>
+                <div class="grid grid-cols-3 gap-2 text-center">
+                    <div class="bg-slate-800 p-2 rounded-xl border border-slate-700">
+                        <span class="text-[9px] uppercase font-bold text-slate-400">Total Rotas</span>
+                        <div class="text-base font-black text-white mt-0.5">${totalRotasGeral}</div>
                     </div>
-                    <div class="bg-slate-800 p-2.5 rounded-xl border border-slate-700">
-                        <span class="text-[10px] uppercase font-bold text-slate-400">KM Total Rodado</span>
-                        <div class="text-lg font-black text-agro-400 mt-0.5">${totalKmGeral.toFixed(2)} KM</div>
+                    <div class="bg-slate-800 p-2 rounded-xl border border-slate-700">
+                        <span class="text-[9px] uppercase font-bold text-slate-400">KM Total</span>
+                        <div class="text-base font-black text-agro-400 mt-0.5">${totalKmGeral.toFixed(1)} KM</div>
+                    </div>
+                    <div class="bg-slate-800 p-2 rounded-xl border border-slate-700">
+                        <span class="text-[9px] uppercase font-bold text-slate-400">Custo Est.</span>
+                        <div class="text-base font-black text-red-400 mt-0.5">R$ ${parseFloat(finPerfil.custoTotal).toFixed(2).replace('.', ',')}</div>
                     </div>
                 </div>
             `;
@@ -1184,11 +1270,13 @@
                         lista.forEach(r => { if(r && r.distance) totalKmData += parseFloat(r.distance || 0); });
                     }
 
+                    const finData = calcularFinanceiroKm(totalKmData);
+
                     html += `
                         <div class="bg-slate-800/70 border border-slate-700 rounded-xl overflow-hidden space-y-1">
                             <div class="px-3 py-2 bg-slate-800 flex justify-between items-center text-xs font-bold text-amber-400">
                                 <span><i class="fa-solid fa-calendar-day mr-1"></i> Data: ${dataKey}</span>
-                                <span class="text-slate-200">${lista.length} rota(s) | ${totalKmData.toFixed(2)} KM</span>
+                                <span class="text-slate-200">${totalKmData.toFixed(1)} KM | <strong class="text-red-400">R$ ${parseFloat(finData.custoTotal).toFixed(2).replace('.', ',')}</strong></span>
                             </div>
                             <div class="p-2 space-y-2">
                     `;
@@ -1197,17 +1285,22 @@
                         lista.forEach((r, i) => {
                             if(r) {
                                 const frotaItem = r.fleet || ultimaFrotaGeral;
+                                const distItem = parseFloat(r.distance || 0);
+                                const finItem = calcularFinanceiroKm(distItem);
                                 html += `
                                     <div class="bg-slate-900/90 p-2.5 rounded-lg border border-slate-800 text-xs space-y-1">
                                         <div class="flex justify-between items-center font-bold text-white">
                                             <span><i class="fa-solid fa-location-dot text-agro-500 mr-1"></i> #${i+1}: ${r.destination || 'Manobra'}</span>
-                                            <span class="text-agro-400">${r.distance || '0.00'} KM</span>
+                                            <span class="text-agro-400">${distItem.toFixed(2)} KM</span>
                                         </div>
                                         <div class="text-[11px] text-slate-400 flex justify-between">
                                             <span>Frota: <strong class="text-amber-300">${frotaItem}</strong></span>
-                                            <span>${r.startTime || '--:--'} - ${r.endTime || '--:--'}</span>
+                                            <span>Custo Est: <strong class="text-red-400">R$ ${parseFloat(finItem.custoTotal).toFixed(2).replace('.', ',')}</strong></span>
                                         </div>
-                                        <div class="text-[10px] text-slate-400">KM Ini: ${r.kmStart || 0} | KM Fin: ${r.kmFinal || 0}</div>
+                                        <div class="text-[10px] text-slate-400 flex justify-between">
+                                            <span>KM Ini: ${r.kmStart || 0} | KM Fin: ${r.kmFinal || 0}</span>
+                                            <span>${r.startTime || '--:--'} às ${r.endTime || '--:--'}</span>
+                                        </div>
                                     </div>
                                 `;
                             }
@@ -1840,7 +1933,7 @@
 
         function baixarImagemPronta() {
             const card = document.getElementById('reportCardToImage');
-            showAlert('Gerando imagem...', 'info');
+openAlert('Gerando imagem...', 'info');
             card.style.width = '420px';
 
             html2canvas(card, { 
@@ -1869,6 +1962,8 @@
                 showAlert('Não foi possível gerar a imagem automaticamente. Utilize o resumo do WhatsApp.', 'error');
             });
         }
+
+        function openAlert(msg, type) { showAlert(msg, type); }
 
         function baixarArquivoFallback(canvas) {
             const link = document.createElement('a');
