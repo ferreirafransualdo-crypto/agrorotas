@@ -384,6 +384,17 @@
                     </div>
                 </div>
 
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Horário Saída *</label>
+                        <input type="text" id="editStartTime" required placeholder="Ex: 08:30" class="input-agro font-semibold text-slate-200">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Horário Chegada *</label>
+                        <input type="text" id="editEndTime" required placeholder="Ex: 09:15" class="input-agro font-semibold text-slate-200">
+                    </div>
+                </div>
+
                 <div class="bg-slate-800/80 p-3 rounded-xl border border-slate-700 flex justify-between items-center text-xs">
                     <span class="text-slate-400 font-semibold">Distância Calculada:</span>
                     <strong id="editPreviewDistance" class="text-emerald-400 text-sm">0.00 KM</strong>
@@ -560,7 +571,7 @@
 
     <!-- SCRIPT DA APLICAÇÃO -->
     <script>
-        const APP_VERSION = "4.0"; 
+        const APP_VERSION = "4.1"; 
 
         let timerInterval = null;
         let watchId = null;
@@ -1163,6 +1174,8 @@
             document.getElementById('editFleet').value = rota.fleet || '';
             document.getElementById('editKmStart').value = rota.kmStart || 0;
             document.getElementById('editKmFinal').value = rota.kmFinal || 0;
+            document.getElementById('editStartTime').value = rota.startTime || '00:00';
+            document.getElementById('editEndTime').value = rota.endTime || '00:00';
             document.getElementById('editPreviewDistance').innerText = `${parseFloat(rota.distance || 0).toFixed(2)} KM`;
 
             document.getElementById('modalEditarRota').classList.remove('hidden');
@@ -1185,6 +1198,8 @@
             const novaFrota = document.getElementById('editFleet').value.trim();
             const kmIniNum = parseFloat(document.getElementById('editKmStart').value);
             const kmFinNum = parseFloat(document.getElementById('editKmFinal').value);
+            const novoStartTime = document.getElementById('editStartTime').value.trim();
+            const novoEndTime = document.getElementById('editEndTime').value.trim();
 
             if (kmFinNum < kmIniNum) {
                 showAlert('O KM Final não pode ser menor que o KM Inicial!', 'error');
@@ -1206,6 +1221,8 @@
             history[index].kmStart = kmIniNum.toFixed(1);
             history[index].kmFinal = kmFinNum.toFixed(1);
             history[index].distance = (kmFinNum - kmIniNum).toFixed(2);
+            if(novoStartTime) history[index].startTime = novoStartTime;
+            if(novoEndTime) history[index].endTime = novoEndTime;
 
             localStorage.setItem(`agro_routes_history_${colabAtivo}`, JSON.stringify(history));
             fecharModalEditarRota();
@@ -1219,7 +1236,6 @@
             
             modal.classList.remove('hidden');
 
-            // Substitui o evento para garantir que apagará a rota correta
             btnSim.onclick = function() {
                 executarExclusaoRota(idRota);
                 modal.classList.add('hidden');
@@ -1465,6 +1481,7 @@
                                 <div class="font-bold text-white"><i class="fa-solid fa-location-dot text-agro-500 mr-1"></i> ${item.destination || 'Manobra'}</div>
                                 <div class="text-slate-400 mt-0.5">Data: ${item.data || '--/--/----'} | Frota: ${item.fleet || '---'}</div>
                                 <div class="text-slate-400 text-[11px] mt-0.5">KM Ini: <strong class="text-slate-300">${item.kmStart || 0}</strong> | KM Fim: <strong class="text-slate-300">${item.kmFinal || 0}</strong></div>
+                                <div class="text-slate-400 text-[11px] mt-0.5">Horário: <strong class="text-amber-300">${item.startTime || '--:--'}</strong> às <strong class="text-amber-300">${item.endTime || '--:--'}</strong></div>
                             </div>
                             <div class="flex items-center gap-2">
                                 <div class="text-right font-bold text-agro-400 mr-1">${item.distance || '0.00'} KM</div>
