@@ -158,9 +158,9 @@
                         <i class="fa-solid fa-rotate-right mr-1"></i> Atualizar
                     </button>
                 </div>
-                <p class="text-xs text-slate-400">Acompanhe as manobras em tempo real e acesse as rotas finalizadas separadas por data:</p>
+                <p class="text-xs text-slate-400">Clique em um colaborador para abrir o **Perfil Completo** com frotas, KM percorridos e demandas:</p>
                 
-                <div id="coordinatorCollabList" class="space-y-4"></div>
+                <div id="coordinatorCollabList" class="space-y-3"></div>
             </div>
         </div>
 
@@ -342,6 +342,39 @@
 
     </main>
 
+    <!-- MODAL: PERFIL COMPLETO DO COLABORADOR (VISÃO DO COORDENADOR) -->
+    <div id="modalPerfilCoordenador" class="fixed inset-0 bg-slate-950/85 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3 overflow-y-auto">
+        <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-lg w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden my-auto">
+            <div class="p-4 bg-slate-800 border-b border-slate-700 flex justify-between items-center">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-lg bg-amber-600/20 text-amber-400 flex items-center justify-center font-bold">
+                        <i class="fa-solid fa-user-gear"></i>
+                    </div>
+                    <div>
+                        <h3 id="modalCollabName" class="font-bold text-sm text-white">Perfil do Colaborador</h3>
+                        <p class="text-[10px] text-slate-400">Painel de Acompanhamento da Gestão</p>
+                    </div>
+                </div>
+                <button type="button" onclick="fecharModalPerfil()" class="text-slate-400 hover:text-white text-base p-1.5 cursor-pointer">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            
+            <div id="modalPerfilContent" class="p-4 overflow-y-auto space-y-4 flex-1">
+                <!-- Conteúdo injetado dinamicamente -->
+            </div>
+
+            <div class="p-3 bg-slate-800/90 border-t border-slate-700 flex justify-between items-center">
+                <button type="button" onclick="coordenadorGerarRelatorioAtivo()" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl cursor-pointer flex items-center gap-1.5">
+                    <i class="fa-solid fa-image"></i> Ver Relatório em Imagem 📸
+                </button>
+                <button type="button" onclick="fecharModalPerfil()" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white text-xs font-bold rounded-xl cursor-pointer">
+                    Fechar
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL DO RELATÓRIO VISUAL -->
     <div id="modalRelatorioVisual" class="fixed inset-0 bg-slate-950/95 backdrop-blur-md z-50 hidden flex flex-col items-center justify-start p-3 overflow-y-auto">
         <div class="w-full max-w-md flex justify-between items-center mb-3 text-white">
@@ -450,7 +483,7 @@
 
     <!-- SCRIPT DA APLICAÇÃO -->
     <script>
-        const APP_VERSION = "3.3"; 
+        const APP_VERSION = "3.4"; 
 
         let timerInterval = null;
         let watchId = null;
@@ -458,10 +491,10 @@
         let wakeLock = null;
         let isSimulating = false;
         let isPaused = false;
+        let colaboradorSelecionadoAtual = '';
 
         const LISTA_COLABORADORES = ["Fransualdo", "Lucas", "Breno", "Guilherme", "Kaymerson", "Antônio"];
 
-        // CANAL DE COMUNICAÇÃO EM TEMPO REAL ENTRE ABAS/APARELHOS
         const syncChannel = new BroadcastChannel('agrorota_sync_channel');
 
         syncChannel.onmessage = function(event) {
@@ -643,7 +676,7 @@
             showAlert('Sessão limpa. Escolha o novo perfil.', 'info');
         }
 
-        // NOVO PAINEL DO JOSÉ ELTON COM ROTAS EM ANDAMENTO E ORGANIZADAS POR DATA
+        // MONITORAÇÃO DA EQUIPE PARA O JOSÉ ELTON
         function carregarListaColaboradoresCoordenador() {
             const container = document.getElementById('coordinatorCollabList');
             if (!container) return;
@@ -652,92 +685,121 @@
             LISTA_COLABORADORES.forEach(nome => {
                 const rotaEmAndamento = JSON.parse(localStorage.getItem(`agro_active_route_${nome}`) || 'null');
                 const history = JSON.parse(localStorage.getItem(`agro_routes_history_${nome}`) || '[]');
-                const pastas = JSON.parse(localStorage.getItem(`agro_archived_folders_${nome}`) || '{}');
-
-                // Agrupar histórico por data
-                const rotasPorData = {};
-                history.forEach(r => {
-                    const dataKey = r.data || 'Hoje';
-                    if (!rotasPorData[dataKey]) rotasPorData[dataKey] = [];
-                    rotasPorData[dataKey].push(r);
-                });
-
-                // Incluir pastas arquivadas na contagem por data
-                Object.keys(pastas).forEach(d => {
-                    if (!rotasPorData[d]) rotasPorData[d] = pastas[d];
-                });
+                
+                let totalKmGeral = 0;
+                history.forEach(r => totalKmGeral += parseFloat(r.distance || 0));
 
                 const div = document.createElement('div');
-                div.className = "bg-slate-900 border border-slate-800 p-4 rounded-xl space-y-3";
+                div.className = "bg-slate-900 border border-slate-800 hover:border-slate-700 p-3.5 rounded-xl transition cursor-pointer flex justify-between items-center";
+                div.onclick = () => abrirPerfilColaborador(nome);
 
-                let htmlContent = `
-                    <div class="flex justify-between items-center border-b border-slate-800 pb-2">
-                        <div class="flex items-center gap-2.5">
-                            <div class="w-9 h-9 rounded-lg bg-amber-600/20 border border-amber-500/40 text-amber-400 flex items-center justify-center font-bold">
-                                <i class="fa-solid fa-user"></i>
-                            </div>
-                            <div>
-                                <h4 class="font-bold text-white text-sm">${nome}</h4>
-                                <span class="text-[10px] text-slate-400">${Object.keys(rotasPorData).length} data(s) registrada(s)</span>
-                            </div>
+                div.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-amber-600/20 border border-amber-500/40 text-amber-400 flex items-center justify-center font-bold text-base">
+                            <i class="fa-solid fa-user"></i>
                         </div>
-                        <button type="button" onclick="coordenadorVerRelatorioColaborador('${nome}')" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-lg text-xs flex items-center gap-1.5 cursor-pointer shadow-md transition">
-                            <i class="fa-solid fa-image"></i> Ver Gerado 📸
-                        </button>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <h4 class="font-bold text-white text-sm">${nome}</h4>
+                                ${rotaEmAndamento ? '<span class="px-2 py-0.5 bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[9px] font-bold rounded-full animate-pulse">Em Andamento</span>' : ''}
+                            </div>
+                            <p class="text-[11px] text-slate-400 mt-0.5">Rotas: ${history.length} | Total: ${totalKmGeral.toFixed(2)} KM</p>
+                        </div>
+                    </div>
+                    <div class="text-xs text-amber-400 font-bold flex items-center gap-1">
+                        Ver Perfil <i class="fa-solid fa-chevron-right text-[10px]"></i>
                     </div>
                 `;
-
-                // 1. Exibir manobra ao vivo (se estiver acontecendo agora)
-                if (rotaEmAndamento) {
-                    htmlContent += `
-                        <div class="bg-amber-950/40 border border-amber-500/50 p-2.5 rounded-lg text-xs space-y-1 animate-pulse">
-                            <div class="flex justify-between items-center font-bold text-amber-300">
-                                <span>🟡 EM ANDAMENTO: ${rotaEmAndamento.destination}</span>
-                                <span>${(rotaEmAndamento.distanceKm || 0).toFixed(2)} KM</span>
-                            </div>
-                            <div class="text-[11px] text-amber-200/80 flex justify-between">
-                                <span>Frota: ${rotaEmAndamento.fleet}</span>
-                                <span>KM Ini: ${rotaEmAndamento.kmStart}</span>
-                            </div>
-                        </div>
-                    `;
-                }
-
-                // 2. Exibir manobras finalizadas por datas
-                const datasChaves = Object.keys(rotasPorData);
-                if (datasChaves.length === 0 && !rotaEmAndamento) {
-                    htmlContent += `<div class="text-[11px] text-slate-500 py-1">Nenhuma manobra gravada ainda.</div>`;
-                } else {
-                    datasChaves.forEach(dataKey => {
-                        const lista = rotasPorData[dataKey];
-                        let totalKmData = 0;
-                        lista.forEach(r => totalKmData += parseFloat(r.distance || 0));
-
-                        htmlContent += `
-                            <div class="bg-slate-800/60 border border-slate-700/60 rounded-lg overflow-hidden">
-                                <div class="px-3 py-2 bg-slate-800 flex justify-between items-center text-[11px] font-bold text-slate-300">
-                                    <span>📅 Data: ${dataKey}</span>
-                                    <span class="text-agro-400">${lista.length} rota(s) | ${totalKmData.toFixed(2)} KM</span>
-                                </div>
-                                <div class="p-2 space-y-1.5">
-                                    ${lista.map((r, i) => `
-                                        <div class="bg-slate-900/80 p-2 rounded border border-slate-800 text-[11px] flex justify-between items-center">
-                                            <div>
-                                                <span class="font-bold text-white">#${i+1} ${r.destination}</span>
-                                                <div class="text-[10px] text-slate-400">Frota: ${r.fleet} | ${r.startTime} - ${r.endTime} | KM: ${r.kmStart} -> ${r.kmFinal}</div>
-                                            </div>
-                                            <span class="font-bold text-agro-400 text-xs">${r.distance} KM</span>
-                                        </div>
-                                    `).join('')}
-                                </div>
-                            </div>
-                        `;
-                    });
-                }
-
-                div.innerHTML = htmlContent;
                 container.appendChild(div);
             });
+        }
+
+        // ABRIR O MODAL DE PERFIL INDIVIDUAL DO COLABORADOR
+        function abrirPerfilColaborador(nomeColaborador) {
+            colaboradorSelecionadoAtual = nomeColaborador;
+            document.getElementById('modalCollabName').innerText = `Perfil de ${nomeColaborador}`;
+            
+            const rotaEmAndamento = JSON.parse(localStorage.getItem(`agro_active_route_${nomeColaborador}`) || 'null');
+            const history = JSON.parse(localStorage.getItem(`agro_routes_history_${nomeColaborador}`) || '[]');
+            const pastas = JSON.parse(localStorage.getItem(`agro_archived_folders_${nomeColaborador}`) || '{}');
+
+            let totalKmGeral = 0;
+            history.forEach(r => totalKmGeral += parseFloat(r.distance || 0));
+
+            const content = document.getElementById('modalPerfilContent');
+            let html = `
+                <div class="grid grid-cols-2 gap-2 text-center">
+                    <div class="bg-slate-800 p-2.5 rounded-xl border border-slate-700">
+                        <span class="text-[10px] uppercase font-bold text-slate-400">Total de Rotas</span>
+                        <div class="text-lg font-black text-white mt-0.5">${history.length}</div>
+                    </div>
+                    <div class="bg-slate-800 p-2.5 rounded-xl border border-slate-700">
+                        <span class="text-[10px] uppercase font-bold text-slate-400">KM Total Rodado</span>
+                        <div class="text-lg font-black text-agro-400 mt-0.5">${totalKmGeral.toFixed(2)} KM</div>
+                    </div>
+                </div>
+            `;
+
+            // Manobra Ao Vivo
+            if (rotaEmAndamento) {
+                html += `
+                    <div class="bg-amber-950/40 border border-amber-500/50 p-3 rounded-xl space-y-1.5 animate-pulse">
+                        <div class="flex justify-between items-center font-bold text-amber-300 text-xs">
+                            <span>🟡 Manobra em Andamento</span>
+                            <span>${(rotaEmAndamento.distanceKm || 0).toFixed(2)} KM</span>
+                        </div>
+                        <div class="text-xs text-white font-semibold">Destino: ${rotaEmAndamento.destination}</div>
+                        <div class="text-[11px] text-amber-200/80 flex justify-between">
+                            <span>Frota: <strong>${rotaEmAndamento.fleet}</strong></span>
+                            <span>KM Ini: ${rotaEmAndamento.kmStart}</span>
+                        </div>
+                    </div>
+                `;
+            } else {
+                html += `
+                    <div class="bg-slate-800/40 border border-slate-800 p-2.5 rounded-xl text-center text-xs text-slate-400">
+                        Nenhuma manobra ativa no momento.
+                    </div>
+                `;
+            }
+
+            // Histórico de Demandas Recentes
+            html += `<div class="font-bold text-xs text-slate-300 pt-2 border-t border-slate-800">📋 Demandas Recentes & Histórico:</div>`;
+
+            if (history.length === 0) {
+                html += `<div class="text-xs text-slate-500 text-center py-2">Nenhum histórico recente gravado.</div>`;
+            } else {
+                html += `<div class="space-y-2">`;
+                history.slice().reverse().forEach((r, idx) => {
+                    html += `
+                        <div class="bg-slate-800/80 border border-slate-700/80 p-2.5 rounded-xl text-xs space-y-1">
+                            <div class="flex justify-between items-center font-bold text-white">
+                                <span><i class="fa-solid fa-location-dot text-agro-500 mr-1"></i> ${r.destination}</span>
+                                <span class="text-agro-400">${r.distance} KM</span>
+                            </div>
+                            <div class="text-[11px] text-slate-400 flex justify-between">
+                                <span>Frota: <strong class="text-slate-200">${r.fleet}</strong> | Data: ${r.data}</span>
+                                <span>${r.startTime} - ${r.endTime}</span>
+                            </div>
+                            <div class="text-[10px] text-slate-400 pt-0.5">KM Ini: ${r.kmStart} | KM Fin: ${r.kmFinal}</div>
+                        </div>
+                    `;
+                });
+                html += `</div>`;
+            }
+
+            content.innerHTML = html;
+            document.getElementById('modalPerfilCoordenador').classList.remove('hidden');
+        }
+
+        function fecharModalPerfil() {
+            document.getElementById('modalPerfilCoordenador').classList.add('hidden');
+        }
+
+        function coordenadorGerarRelatorioAtivo() {
+            if (!colaboradorSelecionadoAtual) return;
+            fecharModalPerfil();
+            coordenadorVerRelatorioColaborador(colaboradorSelecionadoAtual);
         }
 
         function coordenadorVerRelatorioColaborador(nomeColaborador) {
@@ -874,9 +936,7 @@
             iniciarGPSContinuo();
             solicitarWakeLock();
             
-            // Notificar o painel do coordenador sobre a manobra em andamento
             syncChannel.postMessage({ type: 'UPDATE_ROUTES', colaborador: colab });
-
             showAlert('Rastreamento GPS iniciado com sucesso!', 'success');
         }
 
@@ -1027,7 +1087,7 @@
                         }
                     },
                     (err) => { 
-                        console.warn("Aviso de GPS (Recuperando sinal):", err.message);
+                        console.warn("Aviso de GPS:", err.message);
                         if (!isPaused && activeRoute.distanceKm >= 0) {
                             activeRoute.distanceKm += 0.01; 
                         }
@@ -1145,7 +1205,6 @@
                 carregarDadosSessaoColaborador(colabAtivo);
                 loadHistory();
 
-                // DISPARAR SINCRONIZAÇÃO AUTOMÁTICA DIRETO PARA O JOSÉ ELTON
                 syncChannel.postMessage({ type: 'UPDATE_ROUTES', colaborador: colabAtivo });
 
                 showAlert('Rota salva e enviada ao painel da gestão!', 'success');
@@ -1276,20 +1335,6 @@
             });
 
             return true;
-        }
-
-        function gerarRelatorioImagem() {
-            const colabAtivo = localStorage.getItem('agro_fixed_colaborador');
-            const history = JSON.parse(localStorage.getItem(`agro_routes_history_${colabAtivo}`) || '[]');
-            
-            if (history.length === 0) {
-                showAlert('Nenhuma rota registrada.', 'error');
-                return;
-            }
-
-            if (popularEstruturaRelatorioVisual(history, new Date().toLocaleDateString('pt-BR'), colabAtivo)) {
-                document.getElementById('modalRelatorioVisual').classList.remove('hidden');
-            }
         }
 
         function fecharModalVisual() {
