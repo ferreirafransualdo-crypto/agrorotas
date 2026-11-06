@@ -163,7 +163,7 @@
                 </select>
             </div>
 
-            <!-- CONFIGURAÇÃO DE COMBUSTÍVEL DA FROTA (FIORINO A ÁLCOOL) -->
+            <!-- CONFIGURAÇÃO DE COMBUSTÍVEL -->
             <div class="bg-slate-800/80 border border-emerald-500/30 rounded-xl p-3.5 space-y-2">
                 <div class="flex justify-between items-center text-xs">
                     <span class="font-bold text-emerald-400 flex items-center gap-1.5">
@@ -179,7 +179,7 @@
                 </div>
             </div>
 
-            <!-- DASHBOARD FINANCIALS & KPIS -->
+            <!-- DASHBOARD KPIS -->
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                 <div class="bg-slate-800/90 border border-slate-700 rounded-xl p-3 text-center">
                     <span class="text-[9px] uppercase tracking-wider font-bold text-slate-400 block">KM Total</span>
@@ -199,7 +199,7 @@
                 </div>
             </div>
 
-            <!-- META DE KM DA EQUIPE -->
+            <!-- META DE KM -->
             <div class="bg-slate-800 border border-slate-700 rounded-xl p-3.5 space-y-2">
                 <div class="flex justify-between items-center text-xs">
                     <span class="font-bold text-slate-300 flex items-center gap-1.5">
@@ -216,7 +216,7 @@
                 </div>
             </div>
 
-            <!-- RANKING DE PRODUTIVIDADE & CUSTO -->
+            <!-- RANKING -->
             <div class="card-agro space-y-3 border-agro-500/30 text-left">
                 <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
                     <i class="fa-solid fa-trophy text-amber-400"></i> Ranking de Produtividade & Custo
@@ -231,7 +231,7 @@
                         <i class="fa-solid fa-folder-tree text-amber-400"></i> Pastas dos Colaboradores
                     </h3>
                     <div class="flex gap-2">
-                        <button type="button" onclick="exportarRelatorioGeralCoordenador()" class="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-600 text-xs font-bold rounded-lg text-white transition cursor-pointer flex items-center gap-1.5" title="Baixar Planilha Consolidada de Todos">
+                        <button type="button" onclick="exportarRelatorioGeralCoordenador()" class="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-600 text-xs font-bold rounded-lg text-white transition cursor-pointer flex items-center gap-1.5" title="Baixar Planilha Consolidada">
                             <i class="fa-solid fa-file-excel"></i> CSV Geral
                         </button>
                         <button type="button" onclick="carregarListaColaboradoresCoordenador()" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-xs font-semibold rounded-lg text-slate-200 transition cursor-pointer">
@@ -407,7 +407,7 @@
                 <i class="fa-solid fa-folder-plus"></i> Finalizar Demanda & Arquivar nas Pastas
               </button>
 
-              <!-- Ferramentas de Backup de Segurança -->
+              <!-- Ferramentas de Backup -->
               <div class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-700/60">
                   <button type="button" onclick="fazerBackupDados()" class="py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-xl border border-slate-700 transition flex items-center justify-center gap-1.5 cursor-pointer">
                       <i class="fa-solid fa-download text-agro-400"></i> Backup (Salvar)
@@ -422,7 +422,7 @@
 
     </main>
 
-    <!-- MODAL: EDITAR ROTA / MANOBRA -->
+    <!-- MODAL: EDITAR ROTA -->
     <div id="modalEditarRota" class="fixed inset-0 bg-slate-950/85 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3 overflow-y-auto">
         <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-5 shadow-2xl space-y-4 text-left">
             <div class="flex justify-between items-center border-b border-slate-800 pb-3">
@@ -504,7 +504,7 @@
         </div>
     </div>
 
-    <!-- MODAL: CONFIRMAR EXCLUSÃO (SIM / NÃO) -->
+    <!-- MODAL: CONFIRMAR EXCLUSÃO -->
     <div id="modalConfirmarExclusao" class="fixed inset-0 bg-slate-950/85 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3">
         <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-sm w-full p-5 shadow-2xl text-center space-y-4">
             <div class="w-12 h-12 rounded-full bg-red-500/20 text-red-500 border border-red-500/30 flex items-center justify-center mx-auto text-xl">
@@ -607,7 +607,7 @@
         </div>
     </div>
 
-    <!-- MODAL: Pastas de Manobras Privadas por Data -->
+    <!-- MODAL: PASTAS DE MANOBRAS PRIVADAS -->
     <div id="modalPastas" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-lg w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden text-left">
             <div class="p-4 bg-slate-800 border-b border-slate-700 flex justify-between items-center">
@@ -632,7 +632,7 @@
 
     <!-- SCRIPT DA APLICAÇÃO -->
     <script>
-        const APP_VERSION = "8.8"; 
+        const APP_VERSION = "8.9"; 
 
         let timerInterval = null;
         let watchId = null;
@@ -1207,6 +1207,23 @@
             }
         }
 
+        // NOVO: Visualizar relatório de uma data específica dentro da pasta arquivada
+        function visualizarRelatorioPastaData(dataKey) {
+            const colabAtivo = localStorage.getItem('agro_fixed_colaborador');
+            let pastas = {};
+            try { pastas = JSON.parse(localStorage.getItem(`agro_archived_folders_${colabAtivo}`) || '{}'); } catch(e){}
+            
+            const listaRotasData = pastas[dataKey];
+            if (!listaRotasData || listaRotasData.length === 0) {
+                showAlert('Nenhum dado encontrado para esta data.', 'error');
+                return;
+            }
+
+            if (popularEstruturaRelatorioVisual(listaRotasData, dataKey, colabAtivo)) {
+                document.getElementById('modalRelatorioVisual').classList.remove('hidden');
+            }
+        }
+
         function forcarDestraveGeral() {
             pararTodosOsTimers();
             liberarWakeLock();
@@ -1767,7 +1784,7 @@
             document.getElementById('modalRelatorioVisual').classList.add('hidden');
         }
 
-        // FUNÇÃO DE GERAÇÃO E COMPARTILHAMENTO DE IMAGEM CORRIGIDA
+        // GERAÇÃO DE IMAGEM OTIMIZADA COM html2canvas
         function baixarImagemPronta() {
             const card = document.getElementById('reportCardToImage');
             showAlert('Gerando imagem do relatório...', 'info');
@@ -1823,7 +1840,7 @@
             baixarImagemPronta();
         }
 
-        // FUNÇÃO DE WHATSAPP CORRIGIDA COM SEGURANÇA E ENCODE
+        // ENVIO PARA O WHATSAPP COM URL ENCODED
         function gerarelatorioGestor() {
             const colabAtivo = localStorage.getItem('agro_fixed_colaborador') || 'Colaborador';
             let history = [];
@@ -1879,10 +1896,11 @@
                 localStorage.setItem(`agro_archived_folders_${colabAtivo}`, JSON.stringify(pastas));
                 localStorage.removeItem(`agro_routes_history_${colabAtivo}`);
                 loadHistory();
-                showAlert('Demanda arquivada com sucesso!', 'success');
+                showAlert('Demanda arquivada com sucesso nas suas pastas!', 'success');
             }
         }
 
+        // RENDERIZAÇÃO DA MODAL DE PASTAS COM O BOTÃO DE GERAR IMAGEM RESTAURADO
         function toggleModalPastas(abrir) {
             const m = document.getElementById('modalPastas');
             if (abrir) {
@@ -1915,7 +1933,13 @@
                                     </div>
                                 </button>
 
-                                <div id="pastaContent_${index}" class="hidden p-3 bg-slate-900/90 border-t border-slate-700/60 space-y-2 text-left">
+                                <div id="pastaContent_${index}" class="hidden p-3 bg-slate-900/90 border-t border-slate-700/60 space-y-3 text-left">
+                                    <div class="flex justify-end pt-1">
+                                        <button type="button" onclick="visualizarRelatorioPastaData('${data}')" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-[11px] font-bold rounded-lg transition cursor-pointer flex items-center gap-1.5 shadow">
+                                            <i class="fa-solid fa-image"></i> Ver Relatório em Imagem Desta Pasta 📸
+                                        </button>
+                                    </div>
+
                                     ${Array.isArray(pastas[data]) ? pastas[data].map((r, i) => r ? `
                                         <div class="bg-slate-800/80 p-2.5 rounded-lg border border-slate-700 text-[11px] space-y-1 text-left">
                                             <div class="flex justify-between items-center text-white font-bold">
@@ -1948,6 +1972,23 @@
             } else {
                 el.classList.add('hidden');
                 icon.className = "fa-solid fa-folder text-amber-500";
+            }
+        }
+
+        // Função para abrir o relatório visual de uma data específica arquivada na pasta do operador
+        function visualizarRelatorioPastaData(dataKey) {
+            const colabAtivo = localStorage.getItem('agro_fixed_colaborador');
+            let pastas = {};
+            try { pastas = JSON.parse(localStorage.getItem(`agro_archived_folders_${colabAtivo}`) || '{}'); } catch(e){}
+            
+            const listaRotasData = pastas[dataKey];
+            if (!listaRotasData || listaRotasData.length === 0) {
+                showAlert('Nenhum dado encontrado para esta data.', 'error');
+                return;
+            }
+
+            if (popularEstruturaRelatorioVisual(listaRotasData, dataKey, colabAtivo)) {
+                document.getElementById('modalRelatorioVisual').classList.remove('hidden');
             }
         }
 
