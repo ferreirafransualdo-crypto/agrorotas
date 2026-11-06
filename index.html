@@ -348,6 +348,80 @@
 
     </main>
 
+    <!-- MODAL: EDITAR ROTA / MANOBRA -->
+    <div id="modalEditarRota" class="fixed inset-0 bg-slate-950/85 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3 overflow-y-auto">
+        <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-5 shadow-2xl space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <h3 class="font-bold text-base text-white flex items-center gap-2">
+                    <i class="fa-solid fa-pen-to-square text-amber-400"></i> Editar Manobra / Rota
+                </h3>
+                <button type="button" onclick="fecharModalEditarRota()" class="text-slate-400 hover:text-white p-1 cursor-pointer">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <form id="formEditarRota" onsubmit="event.preventDefault(); salvarEdicaoRota();" class="space-y-3">
+                <input type="hidden" id="editRouteId">
+                
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Destino / Manobra *</label>
+                    <input type="text" id="editDestination" required class="input-agro">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Frota / Veículo *</label>
+                    <input type="text" id="editFleet" required class="input-agro">
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">KM Inicial *</label>
+                        <input type="number" step="0.1" id="editKmStart" required oninput="recalcularKmEdicao()" class="input-agro font-semibold text-agro-400">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">KM Final *</label>
+                        <input type="number" step="0.1" id="editKmFinal" required oninput="recalcularKmEdicao()" class="input-agro font-semibold text-amber-400">
+                    </div>
+                </div>
+
+                <div class="bg-slate-800/80 p-3 rounded-xl border border-slate-700 flex justify-between items-center text-xs">
+                    <span class="text-slate-400 font-semibold">Distância Calculada:</span>
+                    <strong id="editPreviewDistance" class="text-emerald-400 text-sm">0.00 KM</strong>
+                </div>
+
+                <div class="flex gap-2 pt-2">
+                    <button type="button" onclick="fecharModalEditarRota()" class="w-1/2 py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl text-xs cursor-pointer">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="w-1/2 py-3 bg-agro-600 hover:bg-agro-500 text-white font-bold rounded-xl text-xs cursor-pointer shadow-lg">
+                        Salvar Alterações
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: CONFIRMAR EXCLUSÃO (SIM / NÃO) -->
+    <div id="modalConfirmarExclusao" class="fixed inset-0 bg-slate-950/85 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3">
+        <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-sm w-full p-5 shadow-2xl text-center space-y-4">
+            <div class="w-12 h-12 rounded-full bg-red-500/20 text-red-500 border border-red-500/30 flex items-center justify-center mx-auto text-xl">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <div>
+                <h3 class="font-bold text-base text-white">Deseja excluir?</h3>
+                <p class="text-xs text-slate-400 mt-1">Esta manobra será removida permanentemente do histórico.</p>
+            </div>
+            <div class="grid grid-cols-2 gap-3 pt-2">
+                <button type="button" onclick="fecharModalExclusao()" class="py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl text-xs cursor-pointer">
+                    Não
+                </button>
+                <button type="button" id="btnConfirmarSimExclusao" class="py-2.5 bg-red-600 hover:bg-red-500 text-white font-bold rounded-xl text-xs cursor-pointer shadow-lg">
+                    Sim
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL: PERFIL COMPLETO DO COLABORADOR (VISÃO DO COORDENADOR) -->
     <div id="modalPerfilCoordenador" class="fixed inset-0 bg-slate-950/85 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3 overflow-y-auto">
         <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-lg w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden my-auto">
@@ -366,9 +440,7 @@
                 </button>
             </div>
             
-            <div id="modalPerfilContent" class="p-4 overflow-y-auto space-y-4 flex-1">
-                <!-- Conteúdo injetado dinamicamente -->
-            </div>
+            <div id="modalPerfilContent" class="p-4 overflow-y-auto space-y-4 flex-1"></div>
 
             <div class="p-3 bg-slate-800/90 border-t border-slate-700 flex justify-between items-center">
                 <button type="button" onclick="coordenadorGerarRelatorioAtivo()" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl cursor-pointer flex items-center gap-1.5">
@@ -389,7 +461,6 @@
         </div>
 
         <div class="w-full max-w-md flex justify-center">
-            <!-- CARD DE IMPRESSÃO RESPONSIVO -->
             <div id="reportCardToImage" style="background-color: #f1f5f9; color: #0f172a; border-radius: 16px; overflow: hidden; font-family: 'Inter', sans-serif; border: 3px solid #0b132b; width: 100%;">
                 
                 <div style="background: #090d16; color: #ffffff; padding: 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 4px solid #16a34a;">
@@ -489,7 +560,7 @@
 
     <!-- SCRIPT DA APLICAÇÃO -->
     <script>
-        const APP_VERSION = "3.9"; 
+        const APP_VERSION = "4.0"; 
 
         let timerInterval = null;
         let watchId = null;
@@ -1073,65 +1144,103 @@
             }
         }
 
-        function editarRotaHistorico(idRota) {
+        // ==========================================
+        // FUNÇÕES DE EDIÇÃO E EXCLUSÃO MELHORADAS
+        // ==========================================
+        function abrirModalEditarRota(idRota) {
             const colabAtivo = localStorage.getItem('agro_fixed_colaborador');
             let history = [];
             try { history = JSON.parse(localStorage.getItem(`agro_routes_history_${colabAtivo}`) || '[]'); } catch(e){}
-            const index = history.findIndex(r => r && r.id === idRota);
+            const rota = history.find(r => r && r.id === idRota);
             
-            if (index === -1) {
+            if (!rota) {
                 showAlert('Rota não encontrada.', 'error');
                 return;
             }
 
-            const rota = history[index];
-            
-            const novoDestino = prompt("Editar Destino / Manobra:", rota.destination);
-            if (novoDestino === null) return;
+            document.getElementById('editRouteId').value = rota.id;
+            document.getElementById('editDestination').value = rota.destination || '';
+            document.getElementById('editFleet').value = rota.fleet || '';
+            document.getElementById('editKmStart').value = rota.kmStart || 0;
+            document.getElementById('editKmFinal').value = rota.kmFinal || 0;
+            document.getElementById('editPreviewDistance').innerText = `${parseFloat(rota.distance || 0).toFixed(2)} KM`;
 
-            const novaFrota = prompt("Editar Frota / Veículo:", rota.fleet);
-            if (novaFrota === null) return;
+            document.getElementById('modalEditarRota').classList.remove('hidden');
+        }
 
-            const novoKmStart = prompt("Editar KM Inicial:", rota.kmStart);
-            if (novoKmStart === null || isNaN(novoKmStart)) return;
+        function fecharModalEditarRota() {
+            document.getElementById('modalEditarRota').classList.add('hidden');
+        }
 
-            const novoKmFinal = prompt("Editar KM Final:", rota.kmFinal);
-            if (novoKmFinal === null || isNaN(novoKmFinal)) return;
+        function recalcularKmEdicao() {
+            const kmIni = parseFloat(document.getElementById('editKmStart').value) || 0;
+            const kmFin = parseFloat(document.getElementById('editKmFinal').value) || 0;
+            const diff = kmFin >= kmIni ? (kmFin - kmIni) : 0;
+            document.getElementById('editPreviewDistance').innerText = `${diff.toFixed(2)} KM`;
+        }
 
-            const kmIniNum = parseFloat(novoKmStart);
-            const kmFinNum = parseFloat(novoKmFinal);
+        function salvarEdicaoRota() {
+            const idRota = parseInt(document.getElementById('editRouteId').value);
+            const novoDestino = document.getElementById('editDestination').value.trim();
+            const novaFrota = document.getElementById('editFleet').value.trim();
+            const kmIniNum = parseFloat(document.getElementById('editKmStart').value);
+            const kmFinNum = parseFloat(document.getElementById('editKmFinal').value);
 
             if (kmFinNum < kmIniNum) {
                 showAlert('O KM Final não pode ser menor que o KM Inicial!', 'error');
                 return;
             }
 
-            const distanciaCalculada = kmFinNum - kmIniNum;
-
-            rota.destination = novoDestino.trim() !== '' ? novoDestino.trim() : rota.destination;
-            rota.fleet = novaFrota.trim() !== '' ? novaFrota.trim() : rota.fleet;
-            rota.kmStart = kmIniNum.toFixed(1);
-            rota.kmFinal = kmFinNum.toFixed(1);
-            rota.distance = distanciaCalculada.toFixed(2);
-
-            history[index] = rota;
-            localStorage.setItem(`agro_routes_history_${colabAtivo}`, JSON.stringify(history));
-            loadHistory();
-            showAlert('Rota e quilometragem atualizadas com sucesso!', 'success');
-        }
-
-        function excluirRotaHistorico(idRota) {
-            if (!confirm("Deseja realmente excluir esta rota do histórico?")) return;
-
             const colabAtivo = localStorage.getItem('agro_fixed_colaborador');
             let history = [];
             try { history = JSON.parse(localStorage.getItem(`agro_routes_history_${colabAtivo}`) || '[]'); } catch(e){}
-            history = history.filter(r => r && r.id !== idRota);
+            
+            const index = history.findIndex(r => r && r.id === idRota);
+            if (index === -1) {
+                showAlert('Erro ao encontrar rota para salvar.', 'error');
+                return;
+            }
+
+            history[index].destination = novoDestino;
+            history[index].fleet = novaFrota;
+            history[index].kmStart = kmIniNum.toFixed(1);
+            history[index].kmFinal = kmFinNum.toFixed(1);
+            history[index].distance = (kmFinNum - kmIniNum).toFixed(2);
 
             localStorage.setItem(`agro_routes_history_${colabAtivo}`, JSON.stringify(history));
+            fecharModalEditarRota();
             loadHistory();
-            showAlert('Rota excluída com sucesso!', 'info');
+            showAlert('Manobra atualizada com sucesso!', 'success');
         }
+
+        function confirmarExclusaoRota(idRota) {
+            const modal = document.getElementById('modalConfirmarExclusao');
+            const btnSim = document.getElementById('btnConfirmarSimExclusao');
+            
+            modal.classList.remove('hidden');
+
+            // Substitui o evento para garantir que apagará a rota correta
+            btnSim.onclick = function() {
+                executarExclusaoRota(idRota);
+                modal.classList.add('hidden');
+            };
+        }
+
+        function fecharModalExclusao() {
+            document.getElementById('modalConfirmarExclusao').classList.add('hidden');
+        }
+
+        function executarExclusaoRota(idRota) {
+            const colabAtivo = localStorage.getItem('agro_fixed_colaborador');
+            let history = [];
+            try { history = JSON.parse(localStorage.getItem(`agro_routes_history_${colabAtivo}`) || '[]'); } catch(e){}
+            
+            history = history.filter(r => r && r.id !== idRota);
+            localStorage.setItem(`agro_routes_history_${colabAtivo}`, JSON.stringify(history));
+            loadHistory();
+            showAlert('Manobra excluída com sucesso!', 'info');
+        }
+        // ==========================================
 
         function iniciarTimerUI() {
             pararTodosOsTimers();
@@ -1359,10 +1468,10 @@
                             </div>
                             <div class="flex items-center gap-2">
                                 <div class="text-right font-bold text-agro-400 mr-1">${item.distance || '0.00'} KM</div>
-                                <button type="button" onclick="editarRotaHistorico(${item.id})" class="p-2 bg-slate-800 hover:bg-slate-700 text-amber-400 rounded-lg transition cursor-pointer" title="Editar Rota e KM">
+                                <button type="button" onclick="abrirModalEditarRota(${item.id})" class="p-2 bg-slate-800 hover:bg-slate-700 text-amber-400 rounded-lg transition cursor-pointer" title="Editar Manobra">
                                     <i class="fa-solid fa-pen text-xs"></i>
                                 </button>
-                                <button type="button" onclick="excluirRotaHistorico(${item.id})" class="p-2 bg-slate-800 hover:bg-red-950 text-red-400 rounded-lg transition cursor-pointer" title="Excluir Rota">
+                                <button type="button" onclick="confirmarExclusaoRota(${item.id})" class="p-2 bg-slate-800 hover:bg-red-950 text-red-400 rounded-lg transition cursor-pointer" title="Excluir Manobra">
                                     <i class="fa-solid fa-trash text-xs"></i>
                                 </button>
                             </div>
@@ -1471,7 +1580,6 @@
             showAlert('Gerando imagem...', 'info');
             card.style.width = '420px';
 
-            // Configuração segura do html2canvas ignorando elementos externos com CORS restrito
             html2canvas(card, { 
                 scale: 2, 
                 backgroundColor: '#f1f5f9', 
