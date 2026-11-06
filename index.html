@@ -224,7 +224,7 @@
                 <div id="coordRankingList" class="space-y-1.5 w-full text-left"></div>
             </div>
 
-            <!-- PASTAS DOS COLABORADORES (ALINHADAS À ESQUERDA) -->
+            <!-- PASTAS DOS COLABORADORES (ALINHADAS RIGOROSAMENTE À ESQUERDA) -->
             <div class="card-agro space-y-4 border-amber-500/30 text-left">
                 <div class="flex flex-wrap justify-between items-center gap-2 border-b border-slate-700 pb-3">
                     <h3 class="text-base font-bold text-slate-200 flex items-center gap-2">
@@ -240,8 +240,8 @@
                     </div>
                 </div>
                 
-                <!-- Container com alinhamento rigoroso à esquerda -->
-                <div id="coordinatorCollabFoldersList" class="flex flex-col items-start w-full space-y-3 text-left"></div>
+                <!-- Container principal das pastas alinhado à esquerda -->
+                <div id="coordinatorCollabFoldersList" class="flex flex-col items-stretch w-full space-y-3 text-left"></div>
             </div>
         </div>
 
@@ -633,7 +633,7 @@
 
     <!-- SCRIPT DA APLICAÇÃO -->
     <script>
-        const APP_VERSION = "8.6"; 
+        const APP_VERSION = "8.7"; 
 
         let timerInterval = null;
         let watchId = null;
@@ -967,29 +967,29 @@
                     alertaInativo = true;
                 }
 
-                // Renderizando a Pasta perfeitamente alinhada à esquerda
+                // Renderizando a Pasta perfeitamente alinhada à esquerda com largura total 100%
                 const folderCard = document.createElement('div');
                 folderCard.className = "bg-slate-900 border border-slate-800 rounded-xl overflow-hidden transition w-full text-left";
 
                 let htmlPasta = `
-                    <button type="button" onclick="alternarAcordeaoPastaGestao('collabFolder_${indexColab}', 'iconFolder_${indexColab}')" class="w-full p-3.5 bg-slate-900 hover:bg-slate-800/80 flex justify-between items-center text-left cursor-pointer">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-xl bg-amber-600/20 border border-amber-500/40 text-amber-400 flex items-center justify-center font-bold text-base">
+                    <button type="button" onclick="alternarAcordeaoPastaGestao('collabFolder_${indexColab}', 'iconFolder_${indexColab}')" class="w-full p-3.5 bg-slate-900 hover:bg-slate-800/80 flex items-center justify-between text-left cursor-pointer">
+                        <div class="flex items-center gap-3 text-left">
+                            <div class="w-10 h-10 rounded-xl bg-amber-600/20 border border-amber-500/40 text-amber-400 flex items-center justify-center font-bold text-base shrink-0">
                                 <i id="iconFolder_${indexColab}" class="fa-solid fa-folder text-amber-500"></i>
                             </div>
                             <div class="text-left">
-                                <h4 class="font-bold text-white text-sm flex items-center gap-2">
+                                <h4 class="font-bold text-white text-sm flex items-center gap-2 flex-wrap text-left">
                                     📁 Pasta: ${nome}
                                     ${alertaInativo ? '<span class="text-[9px] bg-red-950 text-red-300 px-1.5 py-0.5 rounded border border-red-800">⚠️ Inativo hoje</span>' : ''}
                                     ${rotaEmAndamento ? '<span class="text-[9px] bg-emerald-950 text-emerald-300 px-1.5 py-0.5 rounded border border-emerald-800 animate-pulse">🟢 Em Campo</span>' : ''}
                                 </h4>
-                                <span class="text-[11px] text-slate-400 block">Frota: <strong class="text-amber-400">${frotaIdentificada}</strong></span>
+                                <span class="text-[11px] text-slate-400 block text-left">Frota: <strong class="text-amber-400">${frotaIdentificada}</strong></span>
                             </div>
                         </div>
-                        <div class="text-right flex items-center gap-3">
+                        <div class="text-right flex items-center gap-3 shrink-0">
                             <div>
-                                <div class="text-xs font-black text-agro-400">${totalKmColab.toFixed(1)} KM</div>
-                                <div class="text-[10px] text-red-400 font-semibold">R$ ${parseFloat(colabFin.custoTotal).toFixed(2).replace('.', ',')}</div>
+                                <div class="text-xs font-black text-agro-400 text-right">${totalKmColab.toFixed(1)} KM</div>
+                                <div class="text-[10px] text-red-400 font-semibold text-right">R$ ${parseFloat(colabFin.custoTotal).toFixed(2).replace('.', ',')}</div>
                             </div>
                             <i class="fa-solid fa-chevron-down text-slate-400 text-xs"></i>
                         </div>
@@ -1993,7 +1993,7 @@
             if (!box || !msgEl) return;
             msgEl.innerText = msg;
             box.className = `p-4 rounded-xl border flex items-start gap-3 transition-all ${type === 'error' ? 'bg-red-950 border-red-700 text-red-200' : type === 'info' ? 'bg-blue-950 border-blue-700 text-blue-200' : 'bg-agro-950 border-agro-700 text-agro-200'}`;
-            box.classList.remove('hidden');
+            box.classList.add('hidden');
             setTimeout(() => box.classList.add('hidden'), 4000);
         }
 
