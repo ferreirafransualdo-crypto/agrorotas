@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AgroRota GPS - Logística & Gestão Financeira</title>
+    <title>AgroRota GPS - Logística & Gestão em Pastas</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Font Awesome Icons -->
@@ -163,19 +163,19 @@
                 </select>
             </div>
 
-            <!-- CONFIGURAÇÃO DE COMBUSTÍVEL DA FROTA -->
+            <!-- CONFIGURAÇÃO DE COMBUSTÍVEL DA FROTA (FIORINO A ÁLCOOL) -->
             <div class="bg-slate-800/80 border border-emerald-500/30 rounded-xl p-3.5 space-y-2">
                 <div class="flex justify-between items-center text-xs">
                     <span class="font-bold text-emerald-400 flex items-center gap-1.5">
-                        <i class="fa-solid fa-gas-station"></i> Parâmetros de Combustível da Frota
+                        <i class="fa-solid fa-gas-station"></i> Parâmetros de Combustível (Fiorino Álcool)
                     </span>
                     <button type="button" onclick="configurarParametrosCombustivel()" class="text-[10px] bg-emerald-950 border border-emerald-700 hover:bg-emerald-900 text-emerald-300 px-2 py-1 rounded-lg font-bold cursor-pointer">
                         <i class="fa-solid fa-sliders mr-1"></i> Ajustar Preço/Consumo
                     </button>
                 </div>
                 <div class="grid grid-cols-2 gap-2 text-[11px] text-slate-300 bg-slate-900/60 p-2 rounded-lg border border-slate-800">
-                    <div>Consumo Médio: <strong id="paramKmL" class="text-white">8.5 KM/L</strong></div>
-                    <div class="text-right">Preço/Litro: <strong id="paramPriceL" class="text-emerald-400">R$ 5,89</strong></div>
+                    <div>Consumo Médio: <strong id="paramKmL" class="text-white">8.0 KM/L</strong></div>
+                    <div class="text-right">Preço Álcool: <strong id="paramPriceL" class="text-emerald-400">R$ 3,92</strong></div>
                 </div>
             </div>
 
@@ -186,7 +186,7 @@
                     <div id="kpiTotalKm" class="text-lg font-black text-white mt-0.5">0.0 KM</div>
                 </div>
                 <div class="bg-slate-800/90 border border-slate-700 rounded-xl p-3 text-center">
-                    <span class="text-[9px] uppercase tracking-wider font-bold text-slate-400 block">Litros Estimados</span>
+                    <span class="text-[9px] uppercase tracking-wider font-bold text-slate-400 block">Litros Álcool</span>
                     <div id="kpiTotalLiters" class="text-lg font-black text-amber-400 mt-0.5">0.0 L</div>
                 </div>
                 <div class="bg-slate-800/90 border border-slate-700 rounded-xl p-3 text-center">
@@ -224,11 +224,11 @@
                 <div id="coordRankingList" class="space-y-1.5"></div>
             </div>
 
-            <!-- MONITORAMENTO DE COLABORADORES -->
+            <!-- PASTAS DOS COLABORADORES (ÁREA DA GESTÃO) -->
             <div class="card-agro space-y-4 border-amber-500/30">
                 <div class="flex flex-wrap justify-between items-center gap-2 border-b border-slate-700 pb-3">
                     <h3 class="text-base font-bold text-slate-200 flex items-center gap-2">
-                        <i class="fa-solid fa-satellite-dish text-amber-400 animate-pulse"></i> Status da Equipe
+                        <i class="fa-solid fa-folder-tree text-amber-400"></i> Pastas dos Colaboradores
                     </h3>
                     <div class="flex gap-2">
                         <button type="button" onclick="exportarRelatorioGeralCoordenador()" class="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-600 text-xs font-bold rounded-lg text-white transition cursor-pointer flex items-center gap-1.5" title="Baixar Planilha Consolidada de Todos">
@@ -240,7 +240,7 @@
                     </div>
                 </div>
                 
-                <div id="coordinatorCollabList" class="space-y-3"></div>
+                <div id="coordinatorCollabFoldersList" class="space-y-3"></div>
             </div>
         </div>
 
@@ -279,7 +279,7 @@
                         <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Veículo / Frota *</label>
                         <div class="relative">
                             <i class="fa-solid fa-truck absolute left-3 top-3.5 text-slate-500"></i>
-                            <input type="text" id="inputFleet" required placeholder="Ex: 336862" oninput="carregarKmPorFrota(this.value)" class="input-agro placeholder-slate-500 font-bold">
+                            <input type="text" id="inputFleet" required placeholder="Ex: Fiorino Álcool" oninput="carregarKmPorFrota(this.value)" class="input-agro placeholder-slate-500 font-bold">
                         </div>
                     </div>
 
@@ -304,7 +304,7 @@
 
                     <div>
                         <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Observações (Opcional)</label>
-                        <input type="text" id="inputNotes" placeholder="Ex: Carga de adubo" class="w-full bg-slate-900 border border-slate-700 rounded-xl py-2.5 px-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-agro-500">
+                        <input type="text" id="inputNotes" placeholder="Ex: Entrega de peças" class="w-full bg-slate-900 border border-slate-700 rounded-xl py-2.5 px-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-agro-500">
                     </div>
 
                     <button type="submit" class="btn-agro shadow-lg text-lg">
@@ -399,7 +399,7 @@
                 <i class="fa-solid fa-image text-xl"></i> Gerar Imagem do Relatório 📸
               </button>
 
-              <button type="button" onclick="gerarRelatorioGestor()" class="btn-agro shadow-lg text-base cursor-pointer" style="background-color: #16a34a;">
+              <button type="button" onclick="gerarelatorioGestor()" class="btn-agro shadow-lg text-base cursor-pointer" style="background-color: #16a34a;">
                 <i class="fa-brands fa-whatsapp text-xl"></i> Enviar Meu Resumo via WhatsApp
               </button>
               
@@ -525,37 +525,6 @@
         </div>
     </div>
 
-    <!-- MODAL: PERFIL COMPLETO DO COLABORADOR (VISÃO DO COORDENADOR) -->
-    <div id="modalPerfilCoordenador" class="fixed inset-0 bg-slate-950/85 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3 overflow-y-auto">
-        <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-lg w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden my-auto">
-            <div class="p-4 bg-slate-800 border-b border-slate-700 flex justify-between items-center">
-                <div class="flex items-center gap-2">
-                    <div class="w-8 h-8 rounded-lg bg-amber-600/20 text-amber-400 flex items-center justify-center font-bold">
-                        <i class="fa-solid fa-user-gear"></i>
-                    </div>
-                    <div>
-                        <h3 id="modalCollabName" class="font-bold text-sm text-white">Perfil do Colaborador</h3>
-                        <p class="text-[10px] text-slate-400">Demandas Organizadas por Data</p>
-                    </div>
-                </div>
-                <button type="button" onclick="fecharModalPerfil()" class="text-slate-400 hover:text-white text-base p-1.5 cursor-pointer">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
-            
-            <div id="modalPerfilContent" class="p-4 overflow-y-auto space-y-4 flex-1"></div>
-
-            <div class="p-3 bg-slate-800/90 border-t border-slate-700 flex justify-between items-center">
-                <button type="button" onclick="coordenadorGerarRelatorioAtivo()" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl cursor-pointer flex items-center gap-1.5">
-                    <i class="fa-solid fa-image"></i> Ver Relatório em Imagem 📸
-                </button>
-                <button type="button" onclick="fecharModalPerfil()" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white text-xs font-bold rounded-xl cursor-pointer">
-                    Fechar
-                </button>
-            </div>
-        </div>
-    </div>
-
     <!-- MODAL DO RELATÓRIO VISUAL -->
     <div id="modalRelatorioVisual" class="fixed inset-0 bg-slate-950/95 backdrop-blur-md z-50 hidden flex flex-col items-center justify-start p-3 overflow-y-auto">
         <div class="w-full max-w-md flex justify-between items-center mb-3 text-white">
@@ -663,7 +632,7 @@
 
     <!-- SCRIPT DA APLICAÇÃO -->
     <script>
-        const APP_VERSION = "7.0"; 
+        const APP_VERSION = "8.0"; 
 
         let timerInterval = null;
         let watchId = null;
@@ -846,23 +815,23 @@
         }
 
         // ==========================================
-        // PARÂMETROS & CÁLCULOS DE COMBUSTÍVEL (V7.0)
+        // PARÂMETROS & CÁLCULOS DE COMBUSTÍVEL (FIORINO ÁLCOOL)
         // ==========================================
         function carregarParametrosCombustivelUI() {
-            const kmL = localStorage.getItem('agro_fuel_km_l') || '8.5';
-            const priceL = localStorage.getItem('agro_fuel_price') || '5.89';
+            const kmL = localStorage.getItem('agro_fuel_km_l') || '8.0';
+            const priceL = localStorage.getItem('agro_fuel_price') || '3.92';
             if(document.getElementById('paramKmL')) document.getElementById('paramKmL').innerText = `${kmL} KM/L`;
             if(document.getElementById('paramPriceL')) document.getElementById('paramPriceL').innerText = `R$ ${parseFloat(priceL).toFixed(2).replace('.', ',')}`;
         }
 
         function configurarParametrosCombustivel() {
-            const kmLAtual = localStorage.getItem('agro_fuel_km_l') || '8.5';
-            const priceLAtual = localStorage.getItem('agro_fuel_price') || '5.89';
+            const kmLAtual = localStorage.getItem('agro_fuel_km_l') || '8.0';
+            const priceLAtual = localStorage.getItem('agro_fuel_price') || '3.92';
 
-            const novoKmL = prompt("Digite o consumo médio da frota (KM por Litro):", kmLAtual);
+            const novoKmL = prompt("Digite o consumo médio da Fiorino (KM por Litro de Álcool):", kmLAtual);
             if (!novoKmL || isNaN(novoKmL) || parseFloat(novoKmL) <= 0) return;
 
-            const novoPrice = prompt("Digite o preço médio do combustível (R$ por Litro):", priceLAtual);
+            const novoPrice = prompt("Digite o preço médio do Álcool (R$ por Litro):", priceLAtual);
             if (!novoPrice || isNaN(novoPrice) || parseFloat(novoPrice) <= 0) return;
 
             localStorage.setItem('agro_fuel_km_l', parseFloat(novoKmL));
@@ -874,13 +843,12 @@
         }
 
         function calcularFinanceiroKm(kmTotal) {
-            const kmL = parseFloat(localStorage.getItem('agro_fuel_km_l') || '8.5');
-            const priceL = parseFloat(localStorage.getItem('agro_fuel_price') || '5.89');
+            const kmL = parseFloat(localStorage.getItem('agro_fuel_km_l') || '8.0');
+            const priceL = parseFloat(localStorage.getItem('agro_fuel_price') || '3.92');
 
             const litros = kmL > 0 ? (kmTotal / kmL) : 0;
             const custoTotal = litros * priceL;
             
-            // Estimativa de Economia (12% de otimização em relação a rotas sem controle)
             const custoSemOtimizacao = custoTotal * 1.12;
             const economiaEst = custoSemOtimizacao - custoTotal;
 
@@ -918,7 +886,7 @@
         }
 
         function carregarListaColaboradoresCoordenador() {
-            const container = document.getElementById('coordinatorCollabList');
+            const container = document.getElementById('coordinatorCollabFoldersList');
             const rankingContainer = document.getElementById('coordRankingList');
             const periodFilter = document.getElementById('coordPeriodFilter')?.value || 'todos';
             if (!container || !rankingContainer) return;
@@ -931,7 +899,7 @@
             let operadoresEmCampo = 0;
             const dadosRanking = [];
 
-            LISTA_COLABORADORES.forEach(nome => {
+            LISTA_COLABORADORES.forEach((nome, indexColab) => {
                 let rotaEmAndamento = null;
                 try { rotaEmAndamento = JSON.parse(localStorage.getItem(`agro_active_route_${nome}`) || 'null'); } catch(e){}
 
@@ -943,7 +911,7 @@
 
                 let totalRotasColab = 0;
                 let totalKmColab = 0;
-                let frotaIdentificada = localStorage.getItem(`agro_last_fleet_${nome}`) || '---';
+                let frotaIdentificada = localStorage.getItem(`agro_last_fleet_${nome}`) || 'Fiorino Álcool';
 
                 if (rotaEmAndamento && rotaEmAndamento.fleet) {
                     frotaIdentificada = rotaEmAndamento.fleet;
@@ -954,23 +922,36 @@
                     frotaIdentificada = history[history.length - 1].fleet;
                 }
 
-                history.forEach(r => {
-                    if (r && filtrarDataPorPeriodo(r.data, periodFilter)) {
-                        totalRotasColab++;
-                        if (r.distance) totalKmColab += parseFloat(r.distance || 0);
-                    }
-                });
+                const rotasPorData = {};
+                
+                if(Array.isArray(history)) {
+                    history.forEach(r => {
+                        if(r && filtrarDataPorPeriodo(r.data, periodFilter)) {
+                            const dataKey = r.data || new Date().toLocaleDateString('pt-BR');
+                            if (!rotasPorData[dataKey]) rotasPorData[dataKey] = [];
+                            rotasPorData[dataKey].push(r);
+                            totalRotasColab++;
+                            totalKmColab += parseFloat(r.distance || 0);
+                        }
+                    });
+                }
 
-                Object.keys(pastas).forEach(dataKey => {
-                    if (filtrarDataPorPeriodo(dataKey, periodFilter) && Array.isArray(pastas[dataKey])) {
-                        pastas[dataKey].forEach(r => {
-                            if (r) {
-                                totalRotasColab++;
-                                if (r.distance) totalKmColab += parseFloat(r.distance || 0);
-                            }
-                        });
-                    }
-                });
+                if(pastas && typeof pastas === 'object') {
+                    Object.keys(pastas).forEach(dataKey => {
+                        if(filtrarDataPorPeriodo(dataKey, periodFilter) && Array.isArray(pastas[dataKey])) {
+                            pastas[dataKey].forEach(r => {
+                                if(r) {
+                                    if(!rotasPorData[dataKey]) rotasPorData[dataKey] = [];
+                                    if(!rotasPorData[dataKey].some(item => item && item.id === r.id)) {
+                                        rotasPorData[dataKey].push(r);
+                                        totalRotasColab++;
+                                        totalKmColab += parseFloat(r.distance || 0);
+                                    }
+                                }
+                            });
+                        }
+                    });
+                }
 
                 totalEquipeKm += totalKmColab;
                 totalEquipeRotas += totalRotasColab;
@@ -989,59 +970,105 @@
                     alertaInativo = true;
                 }
 
-                const card = document.createElement('div');
-                card.className = "bg-slate-900 border border-slate-800 hover:border-slate-700 p-4 rounded-xl space-y-3 transition";
+                // Renderizando a Pasta do Colaborador
+                const folderCard = document.createElement('div');
+                folderCard.className = "bg-slate-900 border border-slate-800 rounded-xl overflow-hidden transition";
 
-                card.innerHTML = `
-                    <div class="flex justify-between items-center">
+                let htmlPasta = `
+                    <button type="button" onclick="alternarAcordeaoPastaGestao('collabFolder_${indexColab}', 'iconFolder_${indexColab}')" class="w-full p-3.5 bg-slate-900 hover:bg-slate-800/80 flex justify-between items-center text-left cursor-pointer">
                         <div class="flex items-center gap-3">
                             <div class="w-10 h-10 rounded-xl bg-amber-600/20 border border-amber-500/40 text-amber-400 flex items-center justify-center font-bold text-base">
-                                <i class="fa-solid fa-user"></i>
+                                <i id="iconFolder_${indexColab}" class="fa-solid fa-folder text-amber-500"></i>
                             </div>
                             <div>
                                 <h4 class="font-bold text-white text-sm flex items-center gap-2">
-                                    ${nome}
+                                    📁 Pasta: ${nome}
                                     ${alertaInativo ? '<span class="text-[9px] bg-red-950 text-red-300 px-1.5 py-0.5 rounded border border-red-800">⚠️ Inativo hoje</span>' : ''}
+                                    ${rotaEmAndamento ? '<span class="text-[9px] bg-emerald-950 text-emerald-300 px-1.5 py-0.5 rounded border border-emerald-800 animate-pulse">🟢 Em Campo</span>' : ''}
                                 </h4>
                                 <span class="text-[11px] text-slate-400">Frota: <strong class="text-amber-400">${frotaIdentificada}</strong></span>
                             </div>
                         </div>
-                        <div>
-                            ${rotaEmAndamento ? 
-                                '<span class="px-2.5 py-1 bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[10px] font-extrabold rounded-full animate-pulse flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Em Campo</span>' : 
-                                '<span class="px-2.5 py-1 bg-slate-800 text-slate-400 border border-slate-700 text-[10px] font-semibold rounded-full">Aguardando</span>'
+                        <div class="text-right flex items-center gap-3">
+                            <div>
+                                <div class="text-xs font-black text-agro-400">${totalKmColab.toFixed(1)} KM</div>
+                                <div class="text-[10px] text-red-400 font-semibold">R$ ${parseFloat(colabFin.custoTotal).toFixed(2).replace('.', ',')}</div>
+                            </div>
+                            <i class="fa-solid fa-chevron-down text-slate-400 text-xs"></i>
+                        </div>
+                    </button>
+
+                    <div id="collabFolder_${indexColab}" class="hidden p-4 bg-slate-800/60 border-t border-slate-800 space-y-3">
+                `;
+
+                if (rotaEmAndamento) {
+                    htmlPasta += `
+                        <div class="bg-amber-950/40 border border-amber-500/50 p-2.5 rounded-lg space-y-1 animate-pulse">
+                            <div class="flex justify-between items-center font-bold text-amber-300 text-xs">
+                                <span>🟡 Manobra Ativa no Momento</span>
+                                <span>${(rotaEmAndamento.distanceKm || 0).toFixed(2)} KM</span>
+                            </div>
+                            <div class="text-xs text-white font-semibold">Destino: ${rotaEmAndamento.destination || '---'}</div>
+                        </div>
+                    `;
+                }
+
+                const datasChaves = Object.keys(rotasPorData);
+                if (datasChaves.length === 0 && !rotaEmAndamento) {
+                    htmlPasta += `<div class="text-xs text-slate-500 text-center py-3">Nenhum registro para este período na pasta.</div>`;
+                } else {
+                    datasChaves.sort().reverse().forEach(dataKey => {
+                        const lista = rotasPorData[dataKey];
+                        let totalKmData = 0;
+                        lista.forEach(r => { if(r && r.distance) totalKmData += parseFloat(r.distance || 0); });
+                        const finData = calcularFinanceiroKm(totalKmData);
+
+                        htmlPasta += `
+                            <div class="bg-slate-900 border border-slate-700/60 rounded-xl overflow-hidden space-y-1">
+                                <div class="px-3 py-2 bg-slate-800 flex justify-between items-center text-xs font-bold text-amber-400">
+                                    <span><i class="fa-solid fa-calendar-day mr-1"></i> Data: ${dataKey}</span>
+                                    <span class="text-slate-200">${lista.length} rota(s) | ${totalKmData.toFixed(1)} KM | <strong class="text-red-400">R$ ${parseFloat(finData.custoTotal).toFixed(2).replace('.', ',')}</strong></span>
+                                </div>
+                                <div class="p-2 space-y-2">
+                        `;
+
+                        lista.forEach((r, i) => {
+                            if(r) {
+                                const distItem = parseFloat(r.distance || 0);
+                                const finItem = calcularFinanceiroKm(distItem);
+                                htmlPasta += `
+                                    <div class="bg-slate-800/80 p-2.5 rounded-lg border border-slate-700 text-xs space-y-1">
+                                        <div class="flex justify-between items-center font-bold text-white">
+                                            <span><i class="fa-solid fa-location-dot text-agro-500 mr-1"></i> #${i+1}: ${r.destination || 'Manobra'}</span>
+                                            <span class="text-agro-400">${distItem.toFixed(2)} KM</span>
+                                        </div>
+                                        <div class="text-[11px] text-slate-400 flex justify-between">
+                                            <span>Saída: ${r.startTime || '--:--'} - Chegada: ${r.endTime || '--:--'}</span>
+                                            <span>Custo: <strong class="text-red-400">R$ ${parseFloat(finItem.custoTotal).toFixed(2).replace('.', ',')}</strong></span>
+                                        </div>
+                                    </div>
+                                `;
                             }
-                        </div>
-                    </div>
+                        });
 
-                    <div class="grid grid-cols-3 gap-2 bg-slate-800/60 p-2.5 rounded-lg border border-slate-800 text-xs text-center">
-                        <div>
-                            <span class="text-[8px] uppercase tracking-wider text-slate-400 block font-semibold">Manobras</span>
-                            <span class="font-bold text-white">${totalRotasColab}</span>
-                        </div>
-                        <div>
-                            <span class="text-[8px] uppercase tracking-wider text-slate-400 block font-semibold">KM Total</span>
-                            <span class="font-bold text-agro-400">${totalKmColab.toFixed(1)} KM</span>
-                        </div>
-                        <div>
-                            <span class="text-[8px] uppercase tracking-wider text-slate-400 block font-semibold">Custo Est.</span>
-                            <span class="font-bold text-red-400">R$ ${parseFloat(colabFin.custoTotal).toFixed(2).replace('.', ',')}</span>
-                        </div>
-                    </div>
+                        htmlPasta += `</div></div>`;
+                    });
+                }
 
-                    <div class="flex gap-2 pt-1">
-                        <button type="button" onclick="abrirPerfilColaborador('${nome}')" class="flex-1 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold rounded-lg transition cursor-pointer flex items-center justify-center gap-1.5">
-                            <i class="fa-solid fa-folder-open text-amber-400"></i> Ver Perfil Completo
-                        </button>
-                        <button type="button" onclick="coordenadorVerRelatorioColaborador('${nome}')" class="py-2 px-3 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-lg transition cursor-pointer flex items-center justify-center gap-1.5" title="Gerar Relatório em Imagem">
-                            <i class="fa-solid fa-image"></i> 📸
-                        </button>
+                htmlPasta += `
+                        <div class="pt-2 flex justify-end">
+                            <button type="button" onclick="coordenadorVerRelatorioColaborador('${nome}')" class="px-3 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-lg transition cursor-pointer flex items-center gap-1.5">
+                                <i class="fa-solid fa-image"></i> Ver Relatório em Imagem deste Colaborador 📸
+                            </button>
+                        </div>
                     </div>
                 `;
-                container.appendChild(card);
+
+                folderCard.innerHTML = htmlPasta;
+                container.appendChild(folderCard);
             });
 
-            // Atualiza os KPIs Financeiros e Operacionais do Topo
+            // Atualiza KPIs Financeiros e Operacionais do Topo
             const finGeral = calcularFinanceiroKm(totalEquipeKm);
             document.getElementById('kpiTotalKm').innerText = `${totalEquipeKm.toFixed(1)} KM`;
             document.getElementById('kpiTotalLiters').innerText = `${finGeral.litros} L`;
@@ -1051,7 +1078,7 @@
             // Atualiza a Barra de Meta
             atualizarBarraMetaKm(totalEquipeKm);
 
-            // Atualiza o Ranking de Produtividade e Custos
+            // Atualiza o Ranking
             dadosRanking.sort((a, b) => b.km - a.km);
             dadosRanking.forEach((item, index) => {
                 const medalhas = ['🥇', '🥈', '🥉', '4º', '5º', '6º'];
@@ -1071,6 +1098,18 @@
                 `;
                 rankingContainer.appendChild(rankRow);
             });
+        }
+
+        function alternarAcordeaoPastaGestao(contentId, iconId) {
+            const el = document.getElementById(contentId);
+            const icon = document.getElementById(iconId);
+            if (el.classList.contains('hidden')) {
+                el.classList.remove('hidden');
+                icon.className = "fa-solid fa-folder-open text-amber-400";
+            } else {
+                el.classList.add('hidden');
+                icon.className = "fa-solid fa-folder text-amber-500";
+            }
         }
 
         function ajustarMetaKm() {
@@ -1094,9 +1133,9 @@
         }
 
         function exportarRelatorioGeralCoordenador() {
-            let csv = 'Colaborador,Data,Frota,KM Inicial,KM Final,Manobra,Saida,Chegada,Distancia,Litros_Estimados,Custo_Estimado_R$\n';
-            const kmL = parseFloat(localStorage.getItem('agro_fuel_km_l') || '8.5');
-            const priceL = parseFloat(localStorage.getItem('agro_fuel_price') || '5.89');
+            let csv = 'Colaborador,Data,Frota,KM Inicial,KM Final,Manobra,Saida,Chegada,Distancia,Litros_Alcool,Custo_R$\n';
+            const kmL = parseFloat(localStorage.getItem('agro_fuel_km_l') || '8.0');
+            const priceL = parseFloat(localStorage.getItem('agro_fuel_price') || '3.92');
 
             LISTA_COLABORADORES.forEach(nome => {
                 let history = [];
@@ -1132,197 +1171,9 @@
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `Relatorio_Geral_Custos_Equipe_${new Date().toISOString().slice(0,10)}.csv`;
+            a.download = `Relatorio_Geral_Fiorino_${new Date().toISOString().slice(0,10)}.csv`;
             a.click();
-            showAlert('Planilha financeira e operacional gerada!', 'success');
-        }
-
-        function ingestaoBackupCoordenador(event) {
-            const arquivo = event.target.files[0];
-            if (!arquivo) return;
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const dados = JSON.parse(e.target.result);
-                    if (!dados.colaborador) throw new Error('Arquivo incompatível');
-
-                    const colab = dados.colaborador;
-
-                    if (dados.history) localStorage.setItem(`agro_routes_history_${colab}`, dados.history);
-                    if (dados.folders) localStorage.setItem(`agro_archived_folders_${colab}`, dados.folders);
-                    if (dados.lastFleet) localStorage.setItem(`agro_last_fleet_${colab}`, dados.lastFleet);
-                    if (dados.lastKm) localStorage.setItem(`agro_last_km_${colab}`, dados.lastKm);
-                    if (dados.pin) localStorage.setItem(`agro_pin_${colab}`, dados.pin);
-
-                    carregarListaColaboradoresCoordenador();
-                    showAlert(`Dados de ${colab} carregados com sucesso!`, 'success');
-                } catch (err) {
-                    showAlert('Erro ao ler o arquivo de dados do colaborador.', 'error');
-                }
-            };
-            reader.readAsText(arquivo);
-        }
-
-        function abrirPerfilColaborador(nomeColaborador) {
-            colaboradorSelecionadoAtual = nomeColaborador;
-            document.getElementById('modalCollabName').innerText = `Perfil de ${nomeColaborador}`;
-            
-            let rotaEmAndamento = null;
-            try { rotaEmAndamento = JSON.parse(localStorage.getItem(`agro_active_route_${nomeColaborador}`) || 'null'); } catch(e){}
-
-            let history = [];
-            try { history = JSON.parse(localStorage.getItem(`agro_routes_history_${nomeColaborador}`) || '[]'); } catch(e){}
-
-            let pastas = {};
-            try { pastas = JSON.parse(localStorage.getItem(`agro_archived_folders_${nomeColaborador}`) || '{}'); } catch(e){}
-
-            const ultimaFrotaGeral = localStorage.getItem(`agro_last_fleet_${nomeColaborador}`) || 'Não informada';
-
-            const rotasPorData = {};
-            
-            if(Array.isArray(history)) {
-                history.forEach(r => {
-                    if(r) {
-                        const dataKey = r.data || new Date().toLocaleDateString('pt-BR');
-                        if (!rotasPorData[dataKey]) rotasPorData[dataKey] = [];
-                        if (!rotasPorData[dataKey].some(item => item && item.id === r.id)) rotasPorData[dataKey].push(r);
-                    }
-                });
-            }
-
-            if(pastas && typeof pastas === 'object') {
-                Object.keys(pastas).forEach(dataKey => {
-                    if(!rotasPorData[dataKey]) rotasPorData[dataKey] = [];
-                    if(Array.isArray(pastas[dataKey])) {
-                        pastas[dataKey].forEach(r => {
-                            if(r && !rotasPorData[dataKey].some(item => item && item.id === r.id)) {
-                                rotasPorData[dataKey].push(r);
-                            }
-                        });
-                    }
-                });
-            }
-
-            let totalRotasGeral = 0;
-            let totalKmGeral = 0;
-
-            Object.values(rotasPorData).forEach(lista => {
-                if(Array.isArray(lista)) {
-                    totalRotasGeral += lista.length;
-                    lista.forEach(r => { if(r && r.distance) totalKmGeral += parseFloat(r.distance || 0); });
-                }
-            });
-
-            const finPerfil = calcularFinanceiroKm(totalKmGeral);
-
-            const content = document.getElementById('modalPerfilContent');
-            let html = `
-                <div class="grid grid-cols-3 gap-2 text-center">
-                    <div class="bg-slate-800 p-2 rounded-xl border border-slate-700">
-                        <span class="text-[9px] uppercase font-bold text-slate-400">Total Rotas</span>
-                        <div class="text-base font-black text-white mt-0.5">${totalRotasGeral}</div>
-                    </div>
-                    <div class="bg-slate-800 p-2 rounded-xl border border-slate-700">
-                        <span class="text-[9px] uppercase font-bold text-slate-400">KM Total</span>
-                        <div class="text-base font-black text-agro-400 mt-0.5">${totalKmGeral.toFixed(1)} KM</div>
-                    </div>
-                    <div class="bg-slate-800 p-2 rounded-xl border border-slate-700">
-                        <span class="text-[9px] uppercase font-bold text-slate-400">Custo Est.</span>
-                        <div class="text-base font-black text-red-400 mt-0.5">R$ ${parseFloat(finPerfil.custoTotal).toFixed(2).replace('.', ',')}</div>
-                    </div>
-                </div>
-            `;
-
-            if (rotaEmAndamento) {
-                html += `
-                    <div class="bg-amber-950/40 border border-amber-500/50 p-3 rounded-xl space-y-1.5 animate-pulse">
-                        <div class="flex justify-between items-center font-bold text-amber-300 text-xs">
-                            <span>🟡 Manobra em Andamento</span>
-                            <span>${(rotaEmAndamento.distanceKm || 0).toFixed(2)} KM</span>
-                        </div>
-                        <div class="text-xs text-white font-semibold">Destino: ${rotaEmAndamento.destination || '---'}</div>
-                        <div class="text-[11px] text-amber-200/80 flex justify-between">
-                            <span>Frota: <strong class="text-white">${rotaEmAndamento.fleet || ultimaFrotaGeral}</strong></span>
-                            <span>KM Ini: ${rotaEmAndamento.kmStart || 0}</span>
-                        </div>
-                    </div>
-                `;
-            } else {
-                html += `
-                    <div class="bg-slate-800/40 border border-slate-800 p-2.5 rounded-xl text-center text-xs text-slate-400 flex justify-between items-center">
-                        <span>Nenhuma manobra ativa no momento.</span>
-                        <span class="text-amber-400 font-bold">Frota: ${ultimaFrotaGeral}</span>
-                    </div>
-                `;
-            }
-
-            html += `<div class="font-bold text-xs text-slate-300 pt-2 border-t border-slate-800">📅 Demandas Separadas por Data:</div>`;
-
-            const datasChaves = Object.keys(rotasPorData);
-            if (datasChaves.length === 0) {
-                html += `<div class="text-xs text-slate-500 text-center py-2">Nenhuma demanda registrada ainda.</div>`;
-            } else {
-                datasChaves.sort().reverse().forEach(dataKey => {
-                    const lista = rotasPorData[dataKey];
-                    let totalKmData = 0;
-                    if(Array.isArray(lista)) {
-                        lista.forEach(r => { if(r && r.distance) totalKmData += parseFloat(r.distance || 0); });
-                    }
-
-                    const finData = calcularFinanceiroKm(totalKmData);
-
-                    html += `
-                        <div class="bg-slate-800/70 border border-slate-700 rounded-xl overflow-hidden space-y-1">
-                            <div class="px-3 py-2 bg-slate-800 flex justify-between items-center text-xs font-bold text-amber-400">
-                                <span><i class="fa-solid fa-calendar-day mr-1"></i> Data: ${dataKey}</span>
-                                <span class="text-slate-200">${totalKmData.toFixed(1)} KM | <strong class="text-red-400">R$ ${parseFloat(finData.custoTotal).toFixed(2).replace('.', ',')}</strong></span>
-                            </div>
-                            <div class="p-2 space-y-2">
-                    `;
-
-                    if(Array.isArray(lista)) {
-                        lista.forEach((r, i) => {
-                            if(r) {
-                                const frotaItem = r.fleet || ultimaFrotaGeral;
-                                const distItem = parseFloat(r.distance || 0);
-                                const finItem = calcularFinanceiroKm(distItem);
-                                html += `
-                                    <div class="bg-slate-900/90 p-2.5 rounded-lg border border-slate-800 text-xs space-y-1">
-                                        <div class="flex justify-between items-center font-bold text-white">
-                                            <span><i class="fa-solid fa-location-dot text-agro-500 mr-1"></i> #${i+1}: ${r.destination || 'Manobra'}</span>
-                                            <span class="text-agro-400">${distItem.toFixed(2)} KM</span>
-                                        </div>
-                                        <div class="text-[11px] text-slate-400 flex justify-between">
-                                            <span>Frota: <strong class="text-amber-300">${frotaItem}</strong></span>
-                                            <span>Custo Est: <strong class="text-red-400">R$ ${parseFloat(finItem.custoTotal).toFixed(2).replace('.', ',')}</strong></span>
-                                        </div>
-                                        <div class="text-[10px] text-slate-400 flex justify-between">
-                                            <span>KM Ini: ${r.kmStart || 0} | KM Fin: ${r.kmFinal || 0}</span>
-                                            <span>${r.startTime || '--:--'} às ${r.endTime || '--:--'}</span>
-                                        </div>
-                                    </div>
-                                `;
-                            }
-                        });
-                    }
-
-                    html += `</div></div>`;
-                });
-            }
-
-            content.innerHTML = html;
-            document.getElementById('modalPerfilCoordenador').classList.remove('hidden');
-        }
-
-        function fecharModalPerfil() {
-            document.getElementById('modalPerfilCoordenador').classList.add('hidden');
-        }
-
-        function coordenadorGerarRelatorioAtivo() {
-            if (!colaboradorSelecionadoAtual) return;
-            fecharModalPerfil();
-            coordenadorVerRelatorioColaborador(colaboradorSelecionadoAtual);
+            showAlert('Planilha consolidada gerada!', 'success');
         }
 
         function coordenadorVerRelatorioColaborador(nomeColaborador) {
@@ -1391,7 +1242,7 @@
                     document.getElementById('inputFleet').value = ultimaFrotaSalva;
                     carregarKmPorFrota(ultimaFrotaSalva);
                 } else {
-                    document.getElementById('inputFleet').value = '';
+                    document.getElementById('inputFleet').value = 'Fiorino Álcool';
                     document.getElementById('inputKmStart').value = '1000.0';
                 }
             } catch(e) { console.error(e); }
@@ -1494,9 +1345,6 @@
             }
         }
 
-        // ==========================================
-        // EDIÇÃO DE ROTA & CONFIRMAÇÃO DE EXCLUSÃO
-        // ==========================================
         function abrirModalEditarRota(idRota) {
             const colabAtivo = localStorage.getItem('agro_fixed_colaborador');
             let history = [];
@@ -1572,9 +1420,7 @@
         function confirmarExclusaoRota(idRota) {
             const modal = document.getElementById('modalConfirmarExclusao');
             const btnSim = document.getElementById('btnConfirmarSimExclusao');
-            
             modal.classList.remove('hidden');
-
             btnSim.onclick = function() {
                 executarExclusaoRota(idRota);
                 modal.classList.add('hidden');
@@ -1589,13 +1435,11 @@
             const colabAtivo = localStorage.getItem('agro_fixed_colaborador');
             let history = [];
             try { history = JSON.parse(localStorage.getItem(`agro_routes_history_${colabAtivo}`) || '[]'); } catch(e){}
-            
             history = history.filter(r => r && r.id !== idRota);
             localStorage.setItem(`agro_routes_history_${colabAtivo}`, JSON.stringify(history));
             loadHistory();
             showAlert('Manobra excluída com sucesso!', 'info');
         }
-        // ==========================================
 
         function iniciarTimerUI() {
             pararTodosOsTimers();
@@ -1749,7 +1593,7 @@
                     id: Date.now(),
                     data: dataHoje,
                     colaborador: colabAtivo,
-                    fleet: activeRoute.fleet || '---',
+                    fleet: activeRoute.fleet || 'Fiorino Álcool',
                     kmStart: kmStartNum.toFixed(1),
                     kmFinal: kmFinal.toFixed(1),
                     destination: activeRoute.destination || 'Manobra',
@@ -1875,7 +1719,7 @@
 
             document.getElementById('imgReportDate').innerText = dataTitulo || new Date().toLocaleDateString('pt-BR');
             document.getElementById('imgReportCollab').innerText = nomeColaborador;
-            document.getElementById('imgReportFleet').innerText = ultimaRota.fleet || '---';
+            document.getElementById('imgReportFleet').innerText = ultimaRota.fleet || 'Fiorino Álcool';
             document.getElementById('imgReportTotalRoutes').innerText = listaRotas.length;
 
             let totalKmGeral = 0;
@@ -1933,7 +1777,7 @@
 
         function baixarImagemPronta() {
             const card = document.getElementById('reportCardToImage');
-openAlert('Gerando imagem...', 'info');
+            showAlert('Gerando imagem...', 'info');
             card.style.width = '420px';
 
             html2canvas(card, { 
@@ -1963,8 +1807,6 @@ openAlert('Gerando imagem...', 'info');
             });
         }
 
-        function openAlert(msg, type) { showAlert(msg, type); }
-
         function baixarArquivoFallback(canvas) {
             const link = document.createElement('a');
             link.download = `Relatorio_AgroRota_${new Date().toISOString().slice(0,10)}.png`;
@@ -1975,10 +1817,10 @@ openAlert('Gerando imagem...', 'info');
 
         function partilharImagemDireta() {
             baixarImagemPronta();
-            setTimeout(() => { gerarRelatorioGestor(); }, 1500);
+            setTimeout(() => { gerarelatorioGestor(); }, 1500);
         }
 
-        function gerarRelatorioGestor() {
+        function gerarelatorioGestor() {
             const colabAtivo = localStorage.getItem('agro_fixed_colaborador');
             let history = [];
             try { history = JSON.parse(localStorage.getItem(`agro_routes_history_${colabAtivo}`) || '[]'); } catch(e){}
@@ -1995,7 +1837,7 @@ openAlert('Gerando imagem...', 'info');
             history.forEach((r, idx) => {
                 if(r) {
                     texto += `*Rota #${idx + 1}*\n`;
-                    texto += `👤 ${r.colaborador || colabAtivo} | 🚗 ${r.fleet || '---'}\n`;
+                    texto += `👤 ${r.colaborador || colabAtivo} | 🚗 ${r.fleet || 'Fiorino Álcool'}\n`;
                     texto += `⚙️ ${r.destination || 'Manobra'}\n`;
                     texto += `⏰ ${r.startTime || '--:--'} - ${r.endTime || '--:--'} | 🛣️ *${r.distance || '0.00'} KM*\n\n`;
                 }
