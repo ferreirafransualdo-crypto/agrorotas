@@ -489,7 +489,7 @@
 
     <!-- SCRIPT DA APLICAÇÃO -->
     <script>
-        const APP_VERSION = "3.7"; 
+        const APP_VERSION = "3.8"; 
 
         let timerInterval = null;
         let watchId = null;
@@ -500,17 +500,6 @@
         let colaboradorSelecionadoAtual = '';
 
         const LISTA_COLABORADORES = ["Fransualdo", "Lucas", "Breno", "Guilherme", "Kaymerson", "Antônio"];
-
-        const syncChannel = new BroadcastChannel('agrorota_sync_channel');
-
-        syncChannel.onmessage = function(event) {
-            if (event.data && event.data.type === 'UPDATE_ROUTES') {
-                const tipoSessao = localStorage.getItem('agro_session_type');
-                if (tipoSessao === 'coordenador') {
-                    carregarListaColaboradoresCoordenador();
-                }
-            }
-        };
 
         let activeRoute = {
             colaborador: '',
@@ -681,16 +670,27 @@
             showAlert('Sessão limpa. Escolha o novo perfil.', 'info');
         }
 
-        // CARREGA A LISTA DE TODOS OS COLABORADORES PARA O JOSÉ ELTON E DETECTA A FROTA CORRETA
+        // CARREGA A LISTA DE TODOS OS COLABORADORES PARA O JOSÉ ELTON COM SEGURANÇA
         function carregarListaColaboradoresCoordenador() {
             const container = document.getElementById('coordinatorCollabList');
             if (!container) return;
             container.innerHTML = '';
 
             LISTA_COLABORADORES.forEach(nome => {
-                const rotaEmAndamento = JSON.parse(localStorage.getItem(`agro_active_route_${nome}`) || 'null');
-                const history = JSON.parse(localStorage.getItem(`agro_routes_history_${nome}`) || '[]');
-                const pastas = JSON.parse(localStorage.getItem(`agro_archived_folders_${nome}`) || '{}');
+                let rotaEmAndamento = null;
+                try {
+                    rotaEmAndamento = JSON.parse(localStorage.getItem(`agro_active_route_${nome}`) || 'null');
+                } catch(e) { rotaEmAndamento = null; }
+
+                let history = [];
+                try {
+                    history = JSON.parse(localStorage.getItem(`agro_routes_history_${nome}`) || '[]');
+                } catch(e) { history = []; }
+
+                let pastas = {};
+                try {
+                    pastas = JSON.parse(localStorage.getItem(`agro_archived_folders_${nome}`) || '{}');
+                } catch(e) { pastas = {}; }
 
                 let totalRotas = history.length;
                 let totalKmGeral = 0;
@@ -702,11 +702,13 @@
                     frotaIdentificada = history[history.length - 1].fleet;
                 }
 
-                history.forEach(r => totalKmGeral += parseFloat(r.distance || 0));
+                history.forEach(r => { if(r && r.distance) totalKmGeral += parseFloat(r.distance || 0); });
 
                 Object.values(pastas).forEach(listaPasta => {
-                    totalRotas += listaPasta.length;
-                    listaPasta.forEach(r => totalKmGeral += parseFloat(r.distance || 0));
+                    if(Array.isArray(listaPasta)) {
+                        totalRotas += listaPasta.length;
+                        listaPasta.forEach(r => { if(r && r.distance) totalKmGeral += parseFloat(r.distance || 0); });
+                    }
                 });
 
                 const div = document.createElement('div');
@@ -723,7 +725,7 @@
                                 <h4 class="font-bold text-white text-sm">${nome}</h4>
                                 ${rotaEmAndamento ? '<span class="px-2 py-0.5 bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[9px] font-bold rounded-full animate-pulse">Em Andamento</span>' : ''}
                             </div>
-                            <p class="text-[11px] text-slate-400 mt-0.5">Frota Atual: <strong class="text-amber-400">${frotaIdentificada}</strong> | Rotas: ${totalRotas} | Total: ${totalKmGeral.toFixed(2)} KM</p>
+                            <p class="text-[11px] text-slate-400 mt-0.5">Frota: <strong class="text-amber-400">${frotaIdentificada}</strong> | Rotas: ${totalRotas} | Total: ${totalKmGeral.toFixed(2)} KM</p>
                         </div>
                     </div>
                     <div class="text-xs text-amber-400 font-bold flex items-center gap-1">
@@ -762,40 +764,55 @@
             reader.readAsText(arquivo);
         }
 
-        // PERFIL COMPLETO SEPARADO POR DATA COM FROTA SEMPRE IDENTIFICADA
+        // PERFIL COMPLETO SEPARADO POR DATA COM TRATAMENTO SEGURO
         function abrirPerfilColaborador(nomeColaborador) {
             colaboradorSelecionadoAtual = nomeColaborador;
             document.getElementById('modalCollabName').innerText = `Perfil de ${nomeColaborador}`;
             
-            const rotaEmAndamento = JSON.parse(localStorage.getItem(`agro_active_route_${nomeColaborador}`) || 'null');
-            const history = JSON.parse(localStorage.getItem(`agro_routes_history_${nomeColaborador}`) || '[]');
-            const pastas = JSON.parse(localStorage.getItem(`agro_archived_folders_${nomeColaborador}`) || '{}');
+            let rotaEmAndamento = null;
+            try { rotaEmAndamento = JSON.parse(localStorage.getItem(`agro_active_route_${nomeColaborador}`) || 'null'); } catch(e){}
+
+            let history = [];
+            try { history = JSON.parse(localStorage.getItem(`agro_routes_history_${nomeColaborador}`) || '[]'); } catch(e){}
+
+            let pastas = {};
+            try { pastas = JSON.parse(localStorage.getItem(`agro_archived_folders_${nomeColaborador}`) || '{}'); } catch(e){}
+
             const ultimaFrotaGeral = localStorage.getItem(`agro_last_fleet_${nomeColaborador}`) || 'Não informada';
 
-            // Agrupar todas as rotas (histórico + pastas) por data
             const rotasPorData = {};
             
-            history.forEach(r => {
-                const dataKey = r.data || new Date().toLocaleDateString('pt-BR');
-                if (!rotasPorData[dataKey]) rotasPorData[dataKey] = [];
-                if (!rotasPorData[dataKey].some(item => item.id === r.id)) rotasPorData[dataKey].push(r);
-            });
-
-            Object.keys(pastas).forEach(dataKey => {
-                if (!rotasPorData[dataKey]) rotasPorData[dataKey] = [];
-                pastas[dataKey].forEach(r => {
-                    if (!rotasPorData[dataKey].some(item => item.id === r.id)) {
-                        rotasPorData[dataKey].push(r);
+            if(Array.isArray(history)) {
+                history.forEach(r => {
+                    if(r) {
+                        const dataKey = r.data || new Date().toLocaleDateString('pt-BR');
+                        if (!rotasPorData[dataKey]) rotasPorData[dataKey] = [];
+                        if (!rotasPorData[dataKey].some(item => item && item.id === r.id)) rotasPorData[dataKey].push(r);
                     }
                 });
-            });
+            }
+
+            if(pastas && typeof pastas === 'object') {
+                Object.keys(pastas).forEach(dataKey => {
+                    if(!rotasPorData[dataKey]) rotasPorData[dataKey] = [];
+                    if(Array.isArray(pastas[dataKey])) {
+                        pastas[dataKey].forEach(r => {
+                            if(r && !rotasPorData[dataKey].some(item => item && item.id === r.id)) {
+                                rotasPorData[dataKey].push(r);
+                            }
+                        });
+                    }
+                });
+            }
 
             let totalRotasGeral = 0;
             let totalKmGeral = 0;
 
             Object.values(rotasPorData).forEach(lista => {
-                totalRotasGeral += lista.length;
-                lista.forEach(r => totalKmGeral += parseFloat(r.distance || 0));
+                if(Array.isArray(lista)) {
+                    totalRotasGeral += lista.length;
+                    lista.forEach(r => { if(r && r.distance) totalKmGeral += parseFloat(r.distance || 0); });
+                }
             });
 
             const content = document.getElementById('modalPerfilContent');
@@ -812,7 +829,6 @@
                 </div>
             `;
 
-            // Manobra Ao Vivo
             if (rotaEmAndamento) {
                 html += `
                     <div class="bg-amber-950/40 border border-amber-500/50 p-3 rounded-xl space-y-1.5 animate-pulse">
@@ -820,10 +836,10 @@
                             <span>🟡 Manobra em Andamento</span>
                             <span>${(rotaEmAndamento.distanceKm || 0).toFixed(2)} KM</span>
                         </div>
-                        <div class="text-xs text-white font-semibold">Destino: ${rotaEmAndamento.destination}</div>
+                        <div class="text-xs text-white font-semibold">Destino: ${rotaEmAndamento.destination || '---'}</div>
                         <div class="text-[11px] text-amber-200/80 flex justify-between">
                             <span>Frota: <strong class="text-white">${rotaEmAndamento.fleet || ultimaFrotaGeral}</strong></span>
-                            <span>KM Ini: ${rotaEmAndamento.kmStart}</span>
+                            <span>KM Ini: ${rotaEmAndamento.kmStart || 0}</span>
                         </div>
                     </div>
                 `;
@@ -836,7 +852,6 @@
                 `;
             }
 
-            // Demandas Separadas por Data
             html += `<div class="font-bold text-xs text-slate-300 pt-2 border-t border-slate-800">📅 Demandas Separadas por Data:</div>`;
 
             const datasChaves = Object.keys(rotasPorData);
@@ -846,7 +861,9 @@
                 datasChaves.sort().reverse().forEach(dataKey => {
                     const lista = rotasPorData[dataKey];
                     let totalKmData = 0;
-                    lista.forEach(r => totalKmData += parseFloat(r.distance || 0));
+                    if(Array.isArray(lista)) {
+                        lista.forEach(r => { if(r && r.distance) totalKmData += parseFloat(r.distance || 0); });
+                    }
 
                     html += `
                         <div class="bg-slate-800/70 border border-slate-700 rounded-xl overflow-hidden space-y-1">
@@ -857,22 +874,26 @@
                             <div class="p-2 space-y-2">
                     `;
 
-                    lista.forEach((r, i) => {
-                        const frotaItem = r.fleet || ultimaFrotaGeral;
-                        html += `
-                            <div class="bg-slate-900/90 p-2.5 rounded-lg border border-slate-800 text-xs space-y-1">
-                                <div class="flex justify-between items-center font-bold text-white">
-                                    <span><i class="fa-solid fa-location-dot text-agro-500 mr-1"></i> #${i+1}: ${r.destination}</span>
-                                    <span class="text-agro-400">${r.distance} KM</span>
-                                </div>
-                                <div class="text-[11px] text-slate-400 flex justify-between">
-                                    <span>Frota: <strong class="text-amber-300">${frotaItem}</strong></span>
-                                    <span>${r.startTime} - ${r.endTime}</span>
-                                </div>
-                                <div class="text-[10px] text-slate-400">KM Ini: ${r.kmStart} | KM Fin: ${r.kmFinal}</div>
-                            </div>
-                        `;
-                    });
+                    if(Array.isArray(lista)) {
+                        lista.forEach((r, i) => {
+                            if(r) {
+                                const frotaItem = r.fleet || ultimaFrotaGeral;
+                                html += `
+                                    <div class="bg-slate-900/90 p-2.5 rounded-lg border border-slate-800 text-xs space-y-1">
+                                        <div class="flex justify-between items-center font-bold text-white">
+                                            <span><i class="fa-solid fa-location-dot text-agro-500 mr-1"></i> #${i+1}: ${r.destination || 'Manobra'}</span>
+                                            <span class="text-agro-400">${r.distance || '0.00'} KM</span>
+                                        </div>
+                                        <div class="text-[11px] text-slate-400 flex justify-between">
+                                            <span>Frota: <strong class="text-amber-300">${frotaItem}</strong></span>
+                                            <span>${r.startTime || '--:--'} - ${r.endTime || '--:--'}</span>
+                                        </div>
+                                        <div class="text-[10px] text-slate-400">KM Ini: ${r.kmStart || 0} | KM Fin: ${r.kmFinal || 0}</div>
+                                    </div>
+                                `;
+                            }
+                        });
+                    }
 
                     html += `</div></div>`;
                 });
@@ -893,10 +914,12 @@
         }
 
         function coordenadorVerRelatorioColaborador(nomeColaborador) {
-            const history = JSON.parse(localStorage.getItem(`agro_routes_history_${nomeColaborador}`) || '[]');
+            let history = [];
+            try { history = JSON.parse(localStorage.getItem(`agro_routes_history_${nomeColaborador}`) || '[]'); } catch(e){}
             
             if (history.length === 0) {
-                const pastas = JSON.parse(localStorage.getItem(`agro_archived_folders_${nomeColaborador}`) || '{}');
+                let pastas = {};
+                try { pastas = JSON.parse(localStorage.getItem(`agro_archived_folders_${nomeColaborador}`) || '{}'); } catch(e){}
                 const datas = Object.keys(pastas);
                 if (datas.length > 0) {
                     const ultimaData = datas[datas.length - 1];
@@ -1028,7 +1051,6 @@
             iniciarGPSContinuo();
             solicitarWakeLock();
             
-            syncChannel.postMessage({ type: 'UPDATE_ROUTES', colaborador: colab });
             showAlert('Rastreamento GPS iniciado com sucesso!', 'success');
         }
 
@@ -1047,8 +1069,9 @@
 
         function editarRotaHistorico(idRota) {
             const colabAtivo = localStorage.getItem('agro_fixed_colaborador');
-            let history = JSON.parse(localStorage.getItem(`agro_routes_history_${colabAtivo}`) || '[]');
-            const index = history.findIndex(r => r.id === idRota);
+            let history = [];
+            try { history = JSON.parse(localStorage.getItem(`agro_routes_history_${colabAtivo}`) || '[]'); } catch(e){}
+            const index = history.findIndex(r => r && r.id === idRota);
             
             if (index === -1) {
                 showAlert('Rota não encontrada.', 'error');
@@ -1088,7 +1111,6 @@
             history[index] = rota;
             localStorage.setItem(`agro_routes_history_${colabAtivo}`, JSON.stringify(history));
             loadHistory();
-            syncChannel.postMessage({ type: 'UPDATE_ROUTES', colaborador: colabAtivo });
             showAlert('Rota e quilometragem atualizadas com sucesso!', 'success');
         }
 
@@ -1096,12 +1118,12 @@
             if (!confirm("Deseja realmente excluir esta rota do histórico?")) return;
 
             const colabAtivo = localStorage.getItem('agro_fixed_colaborador');
-            let history = JSON.parse(localStorage.getItem(`agro_routes_history_${colabAtivo}`) || '[]');
-            history = history.filter(r => r.id !== idRota);
+            let history = [];
+            try { history = JSON.parse(localStorage.getItem(`agro_routes_history_${colabAtivo}`) || '[]'); } catch(e){}
+            history = history.filter(r => r && r.id !== idRota);
 
             localStorage.setItem(`agro_routes_history_${colabAtivo}`, JSON.stringify(history));
             loadHistory();
-            syncChannel.postMessage({ type: 'UPDATE_ROUTES', colaborador: colabAtivo });
             showAlert('Rota excluída com sucesso!', 'info');
         }
 
@@ -1171,7 +1193,6 @@
                                 const colab = localStorage.getItem('agro_fixed_colaborador');
                                 if (colab) {
                                     localStorage.setItem(`agro_active_route_${colab}`, JSON.stringify(activeRoute));
-                                    syncChannel.postMessage({ type: 'UPDATE_ROUTES', colaborador: colab });
                                 }
                             }
                         } else {
@@ -1212,7 +1233,6 @@
                         const colab = localStorage.getItem('agro_fixed_colaborador');
                         if (colab) {
                             localStorage.setItem(`agro_active_route_${colab}`, JSON.stringify(activeRoute));
-                            syncChannel.postMessage({ type: 'UPDATE_ROUTES', colaborador: colab });
                         }
                     }
                 }, 1500);
@@ -1271,7 +1291,8 @@
                 };
 
                 let historyKey = `agro_routes_history_${colabAtivo}`;
-                let history = JSON.parse(localStorage.getItem(historyKey) || '[]');
+                let history = [];
+                try { history = JSON.parse(localStorage.getItem(historyKey) || '[]'); } catch(e){}
                 history.push(registro);
                 localStorage.setItem(historyKey, JSON.stringify(history));
 
@@ -1297,8 +1318,6 @@
                 carregarDadosSessaoColaborador(colabAtivo);
                 loadHistory();
 
-                syncChannel.postMessage({ type: 'UPDATE_ROUTES', colaborador: colabAtivo });
-
                 showAlert('Rota salva e enviada ao painel da gestão!', 'success');
             }
         }
@@ -1306,7 +1325,9 @@
         function loadHistory() {
             try {
                 const colabAtivo = localStorage.getItem('agro_fixed_colaborador');
-                const history = JSON.parse(localStorage.getItem(`agro_routes_history_${colabAtivo}`) || '[]');
+                let history = [];
+                try { history = JSON.parse(localStorage.getItem(`agro_routes_history_${colabAtivo}`) || '[]'); } catch(e){}
+                
                 const container = document.getElementById('historyList');
                 const datalist = document.getElementById('destinationList');
                 if(!container || !datalist) return;
@@ -1320,32 +1341,36 @@
                 }
 
                 history.slice().reverse().forEach((item) => {
-                    destinationsSet.add(item.destination);
-                    const div = document.createElement('div');
-                    div.className = "bg-slate-900 border border-slate-800 p-3 rounded-xl flex justify-between items-center text-xs";
-                    div.innerHTML = `
-                        <div class="flex-1 pr-2">
-                            <div class="font-bold text-white"><i class="fa-solid fa-location-dot text-agro-500 mr-1"></i> ${item.destination}</div>
-                            <div class="text-slate-400 mt-0.5">Data: ${item.data} | Frota: ${item.fleet}</div>
-                            <div class="text-slate-400 text-[11px] mt-0.5">KM Ini: <strong class="text-slate-300">${item.kmStart}</strong> | KM Fim: <strong class="text-slate-300">${item.kmFinal}</strong></div>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <div class="text-right font-bold text-agro-400 mr-1">${item.distance} KM</div>
-                            <button type="button" onclick="editarRotaHistorico(${item.id})" class="p-2 bg-slate-800 hover:bg-slate-700 text-amber-400 rounded-lg transition cursor-pointer" title="Editar Rota e KM">
-                                <i class="fa-solid fa-pen text-xs"></i>
-                            </button>
-                            <button type="button" onclick="excluirRotaHistorico(${item.id})" class="p-2 bg-slate-800 hover:bg-red-950 text-red-400 rounded-lg transition cursor-pointer" title="Excluir Rota">
-                                <i class="fa-solid fa-trash text-xs"></i>
-                            </button>
-                        </div>
-                    `;
-                    container.appendChild(div);
+                    if(item) {
+                        destinationsSet.add(item.destination || '');
+                        const div = document.createElement('div');
+                        div.className = "bg-slate-900 border border-slate-800 p-3 rounded-xl flex justify-between items-center text-xs";
+                        div.innerHTML = `
+                            <div class="flex-1 pr-2">
+                                <div class="font-bold text-white"><i class="fa-solid fa-location-dot text-agro-500 mr-1"></i> ${item.destination || 'Manobra'}</div>
+                                <div class="text-slate-400 mt-0.5">Data: ${item.data || '--/--/----'} | Frota: ${item.fleet || '---'}</div>
+                                <div class="text-slate-400 text-[11px] mt-0.5">KM Ini: <strong class="text-slate-300">${item.kmStart || 0}</strong> | KM Fim: <strong class="text-slate-300">${item.kmFinal || 0}</strong></div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <div class="text-right font-bold text-agro-400 mr-1">${item.distance || '0.00'} KM</div>
+                                <button type="button" onclick="editarRotaHistorico(${item.id})" class="p-2 bg-slate-800 hover:bg-slate-700 text-amber-400 rounded-lg transition cursor-pointer" title="Editar Rota e KM">
+                                    <i class="fa-solid fa-pen text-xs"></i>
+                                </button>
+                                <button type="button" onclick="excluirRotaHistorico(${item.id})" class="p-2 bg-slate-800 hover:bg-red-950 text-red-400 rounded-lg transition cursor-pointer" title="Excluir Rota">
+                                    <i class="fa-solid fa-trash text-xs"></i>
+                                </button>
+                            </div>
+                        `;
+                        container.appendChild(div);
+                    }
                 });
 
                 destinationsSet.forEach(dest => {
-                    const opt = document.createElement('option');
-                    opt.value = dest;
-                    datalist.appendChild(opt);
+                    if(dest) {
+                        const opt = document.createElement('option');
+                        opt.value = dest;
+                        datalist.appendChild(opt);
+                    }
                 });
             } catch(e) { console.error(e); }
         }
@@ -1355,17 +1380,17 @@
                 const colabAtivo = localStorage.getItem('agro_fixed_colaborador');
                 localStorage.removeItem(`agro_routes_history_${colabAtivo}`);
                 loadHistory();
-                syncChannel.postMessage({ type: 'UPDATE_ROUTES', colaborador: colabAtivo });
                 showAlert('Histórico recente limpo.', 'info');
             }
         }
 
         function exportToCSV() {
             const colabAtivo = localStorage.getItem('agro_fixed_colaborador');
-            const history = JSON.parse(localStorage.getItem(`agro_routes_history_${colabAtivo}`) || '[]');
+            let history = [];
+            try { history = JSON.parse(localStorage.getItem(`agro_routes_history_${colabAtivo}`) || '[]'); } catch(e){}
             if (history.length === 0) { showAlert('Sem dados para exportar.', 'error'); return; }
             let csv = 'ID,Data,Colaborador,Frota,KM Inicial,KM Final,Manobra,Saida,Chegada,Duracao,Distancia\n';
-            history.forEach(i => { csv += `${i.id},${i.data},${i.colaborador},${i.fleet},${i.kmStart},${i.kmFinal},"${i.destination}",${i.startTime},${i.endTime},${i.duration},${i.distance}\n`; });
+            history.forEach(i => { if(i) { csv += `${i.id || 0},${i.data || ''},${i.colaborador || ''},${i.fleet || ''},${i.kmStart || 0},${i.kmFinal || 0},"${i.destination || ''}",${i.startTime || ''},${i.endTime || ''},${i.duration || ''},${i.distance || 0}\n`; } });
             const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -1373,9 +1398,9 @@
         }
 
         function popularEstruturaRelatorioVisual(listaRotas, dataTitulo, nomeColaborador) {
-            if (!listaRotas || listaRotas.length === 0) return false;
+            if (!listaRotas || !Array.isArray(listaRotas) || listaRotas.length === 0) return false;
 
-            const ultimaRota = listaRotas[listaRotas.length - 1];
+            const ultimaRota = listaRotas[listaRotas.length - 1] || {};
 
             document.getElementById('imgReportDate').innerText = dataTitulo || new Date().toLocaleDateString('pt-BR');
             document.getElementById('imgReportCollab').innerText = nomeColaborador;
@@ -1383,47 +1408,49 @@
             document.getElementById('imgReportTotalRoutes').innerText = listaRotas.length;
 
             let totalKmGeral = 0;
-            listaRotas.forEach(r => totalKmGeral += parseFloat(r.distance || 0));
+            listaRotas.forEach(r => { if(r && r.distance) totalKmGeral += parseFloat(r.distance || 0); });
 
             document.getElementById('summaryTotalRoutes').innerText = listaRotas.length;
             document.getElementById('summaryTotalKm').innerText = `${totalKmGeral.toFixed(2)} km`;
-            document.getElementById('summaryFirstStart').innerText = listaRotas[0].startTime || '--:--';
-            document.getElementById('summaryLastEnd').innerText = listaRotas[listaRotas.length - 1].endTime || '--:--';
+            document.getElementById('summaryFirstStart').innerText = listaRotas[0]?.startTime || '--:--';
+            document.getElementById('summaryLastEnd').innerText = ultimaRota.endTime || '--:--';
 
             const container = document.getElementById('imgRoutesContainer');
             container.innerHTML = '';
 
             listaRotas.forEach((r, idx) => {
-                const card = document.createElement('div');
-                card.style.background = '#ffffff';
-                card.style.borderRadius = '12px';
-                card.style.overflow = 'hidden';
-                card.style.border = '1px solid #cbd5e1';
-                card.style.boxShadow = '0 2px 4px rgba(0,0,0,0.05)';
-                card.innerHTML = `
-                    <div style="background: #0b132b; color: #ffffff; padding: 8px 12px; display: flex; justify-content: space-between; align-items: center;">
-                        <span style="font-weight: 900; font-size: 11px; color: #ffffff;">Rota #${idx + 1}</span>
-                    </div>
-                    <div style="padding: 10px 12px; display: grid; grid-template-columns: 1.2fr 1fr 1fr 1fr; gap: 4px; align-items: center; border-bottom: 1px solid #e2e8f0;">
-                        <div>
-                            <span style="font-size: 7px; font-weight: 800; color: #64748b; text-transform: uppercase; display: block;">Manobra:</span>
-                            <span style="font-size: 10px; font-weight: 900; color: #0f172a;">${r.destination}</span>
+                if(r) {
+                    const card = document.createElement('div');
+                    card.style.background = '#ffffff';
+                    card.style.borderRadius = '12px';
+                    card.style.overflow = 'hidden';
+                    card.style.border = '1px solid #cbd5e1';
+                    card.style.boxShadow = '0 2px 4px rgba(0,0,0,0.05)';
+                    card.innerHTML = `
+                        <div style="background: #0b132b; color: #ffffff; padding: 8px 12px; display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-weight: 900; font-size: 11px; color: #ffffff;">Rota #${idx + 1}</span>
                         </div>
-                        <div>
-                            <span style="font-size: 7px; font-weight: 800; color: #64748b; text-transform: uppercase; display: block;">Saída: ${r.startTime}</span>
-                            <span style="font-size: 7px; font-weight: 800; color: #64748b; text-transform: uppercase; display: block;">Chegada: ${r.endTime}</span>
+                        <div style="padding: 10px 12px; display: grid; grid-template-columns: 1.2fr 1fr 1fr 1fr; gap: 4px; align-items: center; border-bottom: 1px solid #e2e8f0;">
+                            <div>
+                                <span style="font-size: 7px; font-weight: 800; color: #64748b; text-transform: uppercase; display: block;">Manobra:</span>
+                                <span style="font-size: 10px; font-weight: 900; color: #0f172a;">${r.destination || 'Manobra'}</span>
+                            </div>
+                            <div>
+                                <span style="font-size: 7px; font-weight: 800; color: #64748b; text-transform: uppercase; display: block;">Saída: ${r.startTime || '--:--'}</span>
+                                <span style="font-size: 7px; font-weight: 800; color: #64748b; text-transform: uppercase; display: block;">Chegada: ${r.endTime || '--:--'}</span>
+                            </div>
+                            <div>
+                                <span style="font-size: 7px; font-weight: 800; color: #64748b; text-transform: uppercase; display: block;">KM Ini: ${r.kmStart || 0}</span>
+                                <span style="font-size: 7px; font-weight: 800; color: #64748b; text-transform: uppercase; display: block;">KM Fin: ${r.kmFinal || 0}</span>
+                            </div>
+                            <div style="text-align: right;">
+                                <span style="font-size: 7px; font-weight: 800; color: #64748b; text-transform: uppercase; display: block;">Total:</span>
+                                <span style="font-size: 11px; font-weight: 900; color: #2563eb;">${r.distance || '0.00'} km</span>
+                            </div>
                         </div>
-                        <div>
-                            <span style="font-size: 7px; font-weight: 800; color: #64748b; text-transform: uppercase; display: block;">KM Ini: ${r.kmStart}</span>
-                            <span style="font-size: 7px; font-weight: 800; color: #64748b; text-transform: uppercase; display: block;">KM Fin: ${r.kmFinal}</span>
-                        </div>
-                        <div style="text-align: right;">
-                            <span style="font-size: 7px; font-weight: 800; color: #64748b; text-transform: uppercase; display: block;">Total:</span>
-                            <span style="font-size: 11px; font-weight: 900; color: #2563eb;">${r.distance} km</span>
-                        </div>
-                    </div>
-                `;
-                container.appendChild(card);
+                    `;
+                    container.appendChild(card);
+                }
             });
 
             return true;
@@ -1470,7 +1497,8 @@
 
         function gerarRelatorioGestor() {
             const colabAtivo = localStorage.getItem('agro_fixed_colaborador');
-            const history = JSON.parse(localStorage.getItem(`agro_routes_history_${colabAtivo}`) || '[]');
+            let history = [];
+            try { history = JSON.parse(localStorage.getItem(`agro_routes_history_${colabAtivo}`) || '[]'); } catch(e){}
             
             if (history.length === 0) {
                 showAlert('Sem dados para o WhatsApp.', 'error');
@@ -1478,14 +1506,16 @@
             }
 
             let totalKmGeral = 0;
-            history.forEach(r => totalKmGeral += parseFloat(r.distance || 0));
+            history.forEach(r => { if(r && r.distance) totalKmGeral += parseFloat(r.distance || 0); });
 
             let texto = `*📊 RELATÓRIO DE ROTAS - AGROROTA GPS* 🚜\n\n`;
             history.forEach((r, idx) => {
-                texto += `*Rota #${idx + 1}*\n`;
-                texto += `👤 ${r.colaborador} | 🚗 ${r.fleet}\n`;
-                texto += `⚙️ ${r.destination}\n`;
-                texto += `⏰ ${r.startTime} - ${r.endTime} | 🛣️ *${r.distance} KM*\n\n`;
+                if(r) {
+                    texto += `*Rota #${idx + 1}*\n`;
+                    texto += `👤 ${r.colaborador || colabAtivo} | 🚗 ${r.fleet || '---'}\n`;
+                    texto += `⚙️ ${r.destination || 'Manobra'}\n`;
+                    texto += `⏰ ${r.startTime || '--:--'} - ${r.endTime || '--:--'} | 🛣️ *${r.distance || '0.00'} KM*\n\n`;
+                }
             });
             texto += `🛣️ *KM TOTAL DO DIA:* *${totalKmGeral.toFixed(2)} KM*\n\n_Enviado via AgroRota GPS_`;
 
@@ -1495,24 +1525,28 @@
 
         function finalizarDemandaDoDia() {
             const colabAtivo = localStorage.getItem('agro_fixed_colaborador');
-            const history = JSON.parse(localStorage.getItem(`agro_routes_history_${colabAtivo}`) || '[]');
+            let history = [];
+            try { history = JSON.parse(localStorage.getItem(`agro_routes_history_${colabAtivo}`) || '[]'); } catch(e){}
             if (history.length === 0) {
                 showAlert('Não há rotas para arquivar.', 'error');
                 return;
             }
 
             if (confirm("Deseja arquivar suas manobras nas suas pastas privadas?")) {
-                let pastas = JSON.parse(localStorage.getItem(`agro_archived_folders_${colabAtivo}`) || '{}');
+                let pastas = {};
+                try { pastas = JSON.parse(localStorage.getItem(`agro_archived_folders_${colabAtivo}`) || '{}'); } catch(e){}
+                
                 history.forEach(r => {
-                    const dataFolder = r.data || new Date().toLocaleDateString('pt-BR');
-                    if (!pastas[dataFolder]) pastas[dataFolder] = [];
-                    pastas[dataFolder].push(r);
+                    if(r) {
+                        const dataFolder = r.data || new Date().toLocaleDateString('pt-BR');
+                        if (!pastas[dataFolder]) pastas[dataFolder] = [];
+                        pastas[dataFolder].push(r);
+                    }
                 });
 
                 localStorage.setItem(`agro_archived_folders_${colabAtivo}`, JSON.stringify(pastas));
                 localStorage.removeItem(`agro_routes_history_${colabAtivo}`);
                 loadHistory();
-                syncChannel.postMessage({ type: 'UPDATE_ROUTES', colaborador: colabAtivo });
                 showAlert('Demanda arquivada com sucesso!', 'success');
             }
         }
@@ -1521,7 +1555,9 @@
             const m = document.getElementById('modalPastas');
             if (abrir) {
                 const colabAtivo = localStorage.getItem('agro_fixed_colaborador');
-                const pastas = JSON.parse(localStorage.getItem(`agro_archived_folders_${colabAtivo}`) || '{}');
+                let pastas = {};
+                try { pastas = JSON.parse(localStorage.getItem(`agro_archived_folders_${colabAtivo}`) || '{}'); } catch(e){}
+                
                 const content = document.getElementById('modalPastasContent');
                 const datas = Object.keys(pastas);
 
@@ -1530,7 +1566,9 @@
                 } else {
                     content.innerHTML = datas.map((data, index) => {
                         let totalKmPasta = 0;
-                        pastas[data].forEach(r => totalKmPasta += parseFloat(r.distance || 0));
+                        if(Array.isArray(pastas[data])) {
+                            pastas[data].forEach(r => { if(r && r.distance) totalKmPasta += parseFloat(r.distance || 0); });
+                        }
 
                         return `
                             <div class="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden transition">
@@ -1546,18 +1584,18 @@
                                 </button>
 
                                 <div id="pastaContent_${index}" class="hidden p-3 bg-slate-900/90 border-t border-slate-700/60 space-y-2">
-                                    ${pastas[data].map((r, i) => `
+                                    ${Array.isArray(pastas[data]) ? pastas[data].map((r, i) => r ? `
                                         <div class="bg-slate-800/80 p-2.5 rounded-lg border border-slate-700 text-[11px] space-y-1">
                                             <div class="flex justify-between items-center text-white font-bold">
-                                                <span><i class="fa-solid fa-route text-agro-500 mr-1"></i> #${i+1}: ${r.destination}</span>
-                                                <span class="text-agro-400">${r.distance} km</span>
+                                                <span><i class="fa-solid fa-route text-agro-500 mr-1"></i> #${i+1}: ${r.destination || 'Manobra'}</span>
+                                                <span class="text-agro-400">${r.distance || '0.00'} km</span>
                                             </div>
                                             <div class="text-slate-400 flex justify-between">
-                                                <span>Frota: ${r.fleet} | Saída: ${r.startTime}</span>
-                                                <span>KM Fim: ${r.kmFinal}</span>
+                                                <span>Frota: ${r.fleet || '---'} | Saída: ${r.startTime || '--:--'}</span>
+                                                <span>KM Fim: ${r.kmFinal || 0}</span>
                                             </div>
                                         </div>
-                                    `).join('')}
+                                    ` : '').join('') : ''}
                                 </div>
                             </div>
                         `;
