@@ -698,28 +698,41 @@
             }
 
             const rota = history[index];
+            
             const novoDestino = prompt("Editar Destino / Manobra:", rota.destination);
             if (novoDestino === null) return;
 
             const novaFrota = prompt("Editar Frota / Veículo:", rota.fleet);
             if (novaFrota === null) return;
 
-            const novaDistancia = prompt("Editar Distância Percorrida (KM):", rota.distance);
-            if (novaDistancia === null || isNaN(novaDistancia)) return;
+            const novoKmStart = prompt("Editar KM Inicial:", rota.kmStart);
+            if (novoKmStart === null || isNaN(novoKmStart)) return;
+
+            const novoKmFinal = prompt("Editar KM Final:", rota.kmFinal);
+            if (novoKmFinal === null || isNaN(novoKmFinal)) return;
+
+            const kmIniNum = parseFloat(novoKmStart);
+            const kmFinNum = parseFloat(novoKmFinal);
+
+            if (kmFinNum < kmIniNum) {
+                showAlert('O KM Final não pode ser menor que o KM Inicial!', 'error');
+                return;
+            }
+
+            const distanciaCalculada = kmFinNum - kmIniNum;
 
             rota.destination = novoDestino.trim() !== '' ? novoDestino.trim() : rota.destination;
             rota.fleet = novaFrota.trim() !== '' ? novaFrota.trim() : rota.fleet;
-            const distNum = parseFloat(novaDistancia);
-            rota.distance = distNum.toFixed(2);
-            rota.kmFinal = (parseFloat(rota.kmStart) + distNum).toFixed(1);
+            rota.kmStart = kmIniNum.toFixed(1);
+            rota.kmFinal = kmFinNum.toFixed(1);
+            rota.distance = distanciaCalculada.toFixed(2);
 
             history[index] = rota;
             localStorage.setItem(`agro_routes_history_${colabAtivo}`, JSON.stringify(history));
             loadHistory();
-            showAlert('Rota editada com sucesso!', 'success');
+            showAlert('Rota e quilometragem atualizadas com sucesso!', 'success');
         }
 
-        // NOVA FUNÇÃO: Excluir uma rota individualmente do histórico
         function excluirRotaHistorico(idRota) {
             if (!confirm("Deseja realmente excluir esta rota do histórico?")) return;
 
@@ -948,11 +961,12 @@
                     div.innerHTML = `
                         <div class="flex-1 pr-2">
                             <div class="font-bold text-white"><i class="fa-solid fa-location-dot text-agro-500 mr-1"></i> ${item.destination}</div>
-                            <div class="text-slate-400 mt-0.5">Data: ${item.data} | Frota: ${item.fleet} | KM Fim: ${item.kmFinal}</div>
+                            <div class="text-slate-400 mt-0.5">Data: ${item.data} | Frota: ${item.fleet}</div>
+                            <div class="text-slate-400 text-[11px] mt-0.5">KM Ini: <strong class="text-slate-300">${item.kmStart}</strong> | KM Fim: <strong class="text-slate-300">${item.kmFinal}</strong></div>
                         </div>
                         <div class="flex items-center gap-2">
                             <div class="text-right font-bold text-agro-400 mr-1">${item.distance} KM</div>
-                            <button type="button" onclick="editarRotaHistorico(${item.id})" class="p-2 bg-slate-800 hover:bg-slate-700 text-amber-400 rounded-lg transition cursor-pointer" title="Editar Rota">
+                            <button type="button" onclick="editarRotaHistorico(${item.id})" class="p-2 bg-slate-800 hover:bg-slate-700 text-amber-400 rounded-lg transition cursor-pointer" title="Editar Rota e KM">
                                 <i class="fa-solid fa-pen text-xs"></i>
                             </button>
                             <button type="button" onclick="excluirRotaHistorico(${item.id})" class="p-2 bg-slate-800 hover:bg-red-950 text-red-400 rounded-lg transition cursor-pointer" title="Excluir Rota">
