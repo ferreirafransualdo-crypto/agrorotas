@@ -321,7 +321,7 @@
 
             <!-- Botões de Ações -->
             <div class="space-y-3 pt-2">
-              <button type="button" onclick="gerarRelatorioImagem()" class="w-full py-4 bg-blue-600 hover:bg-blue-500 text-white font-extrabold rounded-xl text-base shadow-xl transition flex items-center justify-center gap-2 cursor-pointer">
+              <button type="button" onclick="abrirRelatorioVisualOperador()" class="w-full py-4 bg-blue-600 hover:bg-blue-500 text-white font-extrabold rounded-xl text-base shadow-xl transition flex items-center justify-center gap-2 cursor-pointer">
                 <i class="fa-solid fa-image text-xl"></i> Gerar Imagem do Relatório 📸
               </button>
 
@@ -489,7 +489,7 @@
 
     <!-- SCRIPT DA APLICAÇÃO -->
     <script>
-        const APP_VERSION = "3.8"; 
+        const APP_VERSION = "3.9"; 
 
         let timerInterval = null;
         let watchId = null;
@@ -670,7 +670,6 @@
             showAlert('Sessão limpa. Escolha o novo perfil.', 'info');
         }
 
-        // CARREGA A LISTA DE TODOS OS COLABORADORES PARA O JOSÉ ELTON COM SEGURANÇA
         function carregarListaColaboradoresCoordenador() {
             const container = document.getElementById('coordinatorCollabList');
             if (!container) return;
@@ -678,19 +677,13 @@
 
             LISTA_COLABORADORES.forEach(nome => {
                 let rotaEmAndamento = null;
-                try {
-                    rotaEmAndamento = JSON.parse(localStorage.getItem(`agro_active_route_${nome}`) || 'null');
-                } catch(e) { rotaEmAndamento = null; }
+                try { rotaEmAndamento = JSON.parse(localStorage.getItem(`agro_active_route_${nome}`) || 'null'); } catch(e){}
 
                 let history = [];
-                try {
-                    history = JSON.parse(localStorage.getItem(`agro_routes_history_${nome}`) || '[]');
-                } catch(e) { history = []; }
+                try { history = JSON.parse(localStorage.getItem(`agro_routes_history_${nome}`) || '[]'); } catch(e){}
 
                 let pastas = {};
-                try {
-                    pastas = JSON.parse(localStorage.getItem(`agro_archived_folders_${nome}`) || '{}');
-                } catch(e) { pastas = {}; }
+                try { pastas = JSON.parse(localStorage.getItem(`agro_archived_folders_${nome}`) || '{}'); } catch(e){}
 
                 let totalRotas = history.length;
                 let totalKmGeral = 0;
@@ -736,7 +729,6 @@
             });
         }
 
-        // INGESTÃO DE BACKUP ENVIADO PELOS COLABORADORES PARA O JOSÉ ELTON
         function ingestaoBackupCoordenador(event) {
             const arquivo = event.target.files[0];
             if (!arquivo) return;
@@ -764,7 +756,6 @@
             reader.readAsText(arquivo);
         }
 
-        // PERFIL COMPLETO SEPARADO POR DATA COM TRATAMENTO SEGURO
         function abrirPerfilColaborador(nomeColaborador) {
             colaboradorSelecionadoAtual = nomeColaborador;
             document.getElementById('modalCollabName').innerText = `Perfil de ${nomeColaborador}`;
@@ -933,6 +924,21 @@
             }
 
             if (popularEstruturaRelatorioVisual(history, new Date().toLocaleDateString('pt-BR'), nomeColaborador)) {
+                document.getElementById('modalRelatorioVisual').classList.remove('hidden');
+            }
+        }
+
+        function abrirRelatorioVisualOperador() {
+            const colabAtivo = localStorage.getItem('agro_fixed_colaborador');
+            let history = [];
+            try { history = JSON.parse(localStorage.getItem(`agro_routes_history_${colabAtivo}`) || '[]'); } catch(e){}
+
+            if (history.length === 0) {
+                showAlert('Você não tem rotas recentes para gerar a imagem.', 'error');
+                return;
+            }
+
+            if (popularEstruturaRelatorioVisual(history, new Date().toLocaleDateString('pt-BR'), colabAtivo)) {
                 document.getElementById('modalRelatorioVisual').classList.remove('hidden');
             }
         }
@@ -1465,10 +1471,20 @@
             showAlert('Gerando imagem...', 'info');
             card.style.width = '420px';
 
-            html2canvas(card, { scale: 2, backgroundColor: '#f1f5f9', useCORS: true, allowTaint: true, logging: false }).then(canvas => {
+            // Configuração segura do html2canvas ignorando elementos externos com CORS restrito
+            html2canvas(card, { 
+                scale: 2, 
+                backgroundColor: '#f1f5f9', 
+                useCORS: true, 
+                allowTaint: false, 
+                logging: false 
+            }).then(canvas => {
                 card.style.width = '100%';
                 canvas.toBlob((blob) => {
-                    if (!blob) return;
+                    if (!blob) {
+                        showAlert('Erro ao converter imagem.', 'error');
+                        return;
+                    }
                     const file = new File([blob], `Relatorio_AgroRota_${new Date().toISOString().slice(0,10)}.png`, { type: 'image/png' });
                     if (navigator.canShare && navigator.canShare({ files: [file] })) {
                         navigator.share({ files: [file], title: 'Relatório AgroRota', text: 'Segue o relatório de rotas.' }).catch(() => { baixarArquivoFallback(canvas); });
@@ -1478,7 +1494,8 @@
                 }, 'image/png');
             }).catch(err => {
                 card.style.width = '100%';
-                showAlert('Erro ao gerar imagem.', 'error');
+                console.error("Erro html2canvas:", err);
+                showAlert('Não foi possível gerar a imagem automaticamente. Utilize o resumo do WhatsApp.', 'error');
             });
         }
 
