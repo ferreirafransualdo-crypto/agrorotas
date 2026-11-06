@@ -632,7 +632,7 @@
 
     <!-- SCRIPT DA APLICAÇÃO -->
     <script>
-        const APP_VERSION = "8.9"; 
+        const APP_VERSION = "9.0"; 
 
         let timerInterval = null;
         let watchId = null;
@@ -1207,7 +1207,7 @@
             }
         }
 
-        // NOVO: Visualizar relatório de uma data específica dentro da pasta arquivada
+        // FUNÇÃO DE VISUALIZAÇÃO DE RELATÓRIO POR DATA NA PASTA ARQUIVADA
         function visualizarRelatorioPastaData(dataKey) {
             const colabAtivo = localStorage.getItem('agro_fixed_colaborador');
             let pastas = {};
@@ -1784,7 +1784,6 @@
             document.getElementById('modalRelatorioVisual').classList.add('hidden');
         }
 
-        // GERAÇÃO DE IMAGEM OTIMIZADA COM html2canvas
         function baixarImagemPronta() {
             const card = document.getElementById('reportCardToImage');
             showAlert('Gerando imagem do relatório...', 'info');
@@ -1840,7 +1839,6 @@
             baixarImagemPronta();
         }
 
-        // ENVIO PARA O WHATSAPP COM URL ENCODED
         function gerarelatorioGestor() {
             const colabAtivo = localStorage.getItem('agro_fixed_colaborador') || 'Colaborador';
             let history = [];
@@ -1900,7 +1898,6 @@
             }
         }
 
-        // RENDERIZAÇÃO DA MODAL DE PASTAS COM O BOTÃO DE GERAR IMAGEM RESTAURADO
         function toggleModalPastas(abrir) {
             const m = document.getElementById('modalPastas');
             if (abrir) {
@@ -1934,8 +1931,8 @@
                                 </button>
 
                                 <div id="pastaContent_${index}" class="hidden p-3 bg-slate-900/90 border-t border-slate-700/60 space-y-3 text-left">
-                                    <div class="flex justify-end pt-1">
-                                        <button type="button" onclick="visualizarRelatorioPastaData('${data}')" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-[11px] font-bold rounded-lg transition cursor-pointer flex items-center gap-1.5 shadow">
+                                    <div class="flex justify-start pt-1">
+                                        <button type="button" onclick="visualizarRelatorioPastaData('${data}')" class="px-3 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-lg transition cursor-pointer flex items-center gap-1.5 shadow">
                                             <i class="fa-solid fa-image"></i> Ver Relatório em Imagem Desta Pasta 📸
                                         </button>
                                     </div>
@@ -1975,7 +1972,6 @@
             }
         }
 
-        // Função para abrir o relatório visual de uma data específica arquivada na pasta do operador
         function visualizarRelatorioPastaData(dataKey) {
             const colabAtivo = localStorage.getItem('agro_fixed_colaborador');
             let pastas = {};
