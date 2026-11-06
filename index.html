@@ -59,7 +59,7 @@
                 </div>
                 <div>
                     <h1 class="font-bold text-lg leading-tight text-white">AgroRota GPS</h1>
-                    <p class="text-xs text-slate-400">Operadores & Gestão</p>
+                    <p class="text-xs text-slate-400">Operadores & Gestão em Tempo Real</p>
                 </div>
             </div>
             <div class="flex items-center gap-2">
@@ -85,7 +85,7 @@
             <button type="button" onclick="hideAlert()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
         </div>
 
-        <!-- TELA 1: IDENTIFICAÇÃO E SELEÇÃO DE COLABORADOR / COORDENADOR -->
+        <!-- TELA 1: IDENTIFICAÇÃO E SELEÇÃO -->
         <section id="loginSection" class="card-agro max-w-md mx-auto mt-8 space-y-5">
             <div class="text-center space-y-1">
                 <div class="w-12 h-12 bg-agro-600/20 border border-agro-500/40 text-agro-400 rounded-2xl mx-auto flex items-center justify-center text-xl mb-2">
@@ -149,18 +149,18 @@
                 </button>
             </div>
 
-            <div class="card-agro space-y-4">
+            <div class="card-agro space-y-4 border-amber-500/30">
                 <div class="flex justify-between items-center border-b border-slate-700 pb-3">
                     <h3 class="text-lg font-bold text-slate-200 flex items-center gap-2">
-                        <i class="fa-solid fa-users text-amber-400"></i> Colaboradores Ativos
+                        <i class="fa-solid fa-satellite-dish text-amber-400 animate-pulse"></i> Monitoramento da Equipe
                     </h3>
                     <button type="button" onclick="carregarListaColaboradoresCoordenador()" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-xs font-semibold rounded-lg text-slate-200 transition cursor-pointer">
-                        <i class="fa-solid fa-rotate-right mr-1"></i> Atualizar Lista
+                        <i class="fa-solid fa-rotate-right mr-1"></i> Atualizar
                     </button>
                 </div>
-                <p class="text-xs text-slate-400">Selecione um colaborador abaixo para inspecionar as rotas realizadas e gerar o relatório visual:</p>
+                <p class="text-xs text-slate-400">Acompanhe as manobras em tempo real e acesse as rotas finalizadas separadas por data:</p>
                 
-                <div id="coordinatorCollabList" class="space-y-3"></div>
+                <div id="coordinatorCollabList" class="space-y-4"></div>
             </div>
         </div>
 
@@ -450,7 +450,7 @@
 
     <!-- SCRIPT DA APLICAÇÃO -->
     <script>
-        const APP_VERSION = "3.2"; 
+        const APP_VERSION = "3.3"; 
 
         let timerInterval = null;
         let watchId = null;
@@ -460,6 +460,19 @@
         let isPaused = false;
 
         const LISTA_COLABORADORES = ["Fransualdo", "Lucas", "Breno", "Guilherme", "Kaymerson", "Antônio"];
+
+        // CANAL DE COMUNICAÇÃO EM TEMPO REAL ENTRE ABAS/APARELHOS
+        const syncChannel = new BroadcastChannel('agrorota_sync_channel');
+
+        syncChannel.onmessage = function(event) {
+            if (event.data && event.data.type === 'UPDATE_ROUTES') {
+                const tipoSessao = localStorage.getItem('agro_session_type');
+                if (tipoSessao === 'coordenador') {
+                    carregarListaColaboradoresCoordenador();
+                    showAlert(`Nova manobra sincronizada de ${event.data.colaborador}!`, 'info');
+                }
+            }
+        };
 
         let activeRoute = {
             colaborador: '',
@@ -630,38 +643,99 @@
             showAlert('Sessão limpa. Escolha o novo perfil.', 'info');
         }
 
+        // NOVO PAINEL DO JOSÉ ELTON COM ROTAS EM ANDAMENTO E ORGANIZADAS POR DATA
         function carregarListaColaboradoresCoordenador() {
             const container = document.getElementById('coordinatorCollabList');
             if (!container) return;
             container.innerHTML = '';
 
             LISTA_COLABORADORES.forEach(nome => {
+                const rotaEmAndamento = JSON.parse(localStorage.getItem(`agro_active_route_${nome}`) || 'null');
                 const history = JSON.parse(localStorage.getItem(`agro_routes_history_${nome}`) || '[]');
                 const pastas = JSON.parse(localStorage.getItem(`agro_archived_folders_${nome}`) || '{}');
-                const totalRotasRecentes = history.length;
-                const totalPastas = Object.keys(pastas).length;
 
-                let totalKmRecente = 0;
-                history.forEach(r => totalKmRecente += parseFloat(r.distance || 0));
+                // Agrupar histórico por data
+                const rotasPorData = {};
+                history.forEach(r => {
+                    const dataKey = r.data || 'Hoje';
+                    if (!rotasPorData[dataKey]) rotasPorData[dataKey] = [];
+                    rotasPorData[dataKey].push(r);
+                });
+
+                // Incluir pastas arquivadas na contagem por data
+                Object.keys(pastas).forEach(d => {
+                    if (!rotasPorData[d]) rotasPorData[d] = pastas[d];
+                });
 
                 const div = document.createElement('div');
-                div.className = "bg-slate-900 border border-slate-800 p-3.5 rounded-xl flex flex-col gap-3";
-                div.innerHTML = `
-                    <div class="flex justify-between items-center">
+                div.className = "bg-slate-900 border border-slate-800 p-4 rounded-xl space-y-3";
+
+                let htmlContent = `
+                    <div class="flex justify-between items-center border-b border-slate-800 pb-2">
                         <div class="flex items-center gap-2.5">
                             <div class="w-9 h-9 rounded-lg bg-amber-600/20 border border-amber-500/40 text-amber-400 flex items-center justify-center font-bold">
                                 <i class="fa-solid fa-user"></i>
                             </div>
                             <div>
                                 <h4 class="font-bold text-white text-sm">${nome}</h4>
-                                <p class="text-[11px] text-slate-400">Recente: ${totalRotasRecentes} rota(s) | ${totalKmRecente.toFixed(2)} km | Pastas: ${totalPastas}</p>
+                                <span class="text-[10px] text-slate-400">${Object.keys(rotasPorData).length} data(s) registrada(s)</span>
                             </div>
                         </div>
-                        <button type="button" onclick="coordenadorVerRelatorioColaborador('${nome}')" class="px-3 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-lg text-xs flex items-center gap-1.5 cursor-pointer shadow-md transition">
-                            <i class="fa-solid fa-image"></i> Ver Relatório 📸
+                        <button type="button" onclick="coordenadorVerRelatorioColaborador('${nome}')" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-lg text-xs flex items-center gap-1.5 cursor-pointer shadow-md transition">
+                            <i class="fa-solid fa-image"></i> Ver Gerado 📸
                         </button>
                     </div>
                 `;
+
+                // 1. Exibir manobra ao vivo (se estiver acontecendo agora)
+                if (rotaEmAndamento) {
+                    htmlContent += `
+                        <div class="bg-amber-950/40 border border-amber-500/50 p-2.5 rounded-lg text-xs space-y-1 animate-pulse">
+                            <div class="flex justify-between items-center font-bold text-amber-300">
+                                <span>🟡 EM ANDAMENTO: ${rotaEmAndamento.destination}</span>
+                                <span>${(rotaEmAndamento.distanceKm || 0).toFixed(2)} KM</span>
+                            </div>
+                            <div class="text-[11px] text-amber-200/80 flex justify-between">
+                                <span>Frota: ${rotaEmAndamento.fleet}</span>
+                                <span>KM Ini: ${rotaEmAndamento.kmStart}</span>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                // 2. Exibir manobras finalizadas por datas
+                const datasChaves = Object.keys(rotasPorData);
+                if (datasChaves.length === 0 && !rotaEmAndamento) {
+                    htmlContent += `<div class="text-[11px] text-slate-500 py-1">Nenhuma manobra gravada ainda.</div>`;
+                } else {
+                    datasChaves.forEach(dataKey => {
+                        const lista = rotasPorData[dataKey];
+                        let totalKmData = 0;
+                        lista.forEach(r => totalKmData += parseFloat(r.distance || 0));
+
+                        htmlContent += `
+                            <div class="bg-slate-800/60 border border-slate-700/60 rounded-lg overflow-hidden">
+                                <div class="px-3 py-2 bg-slate-800 flex justify-between items-center text-[11px] font-bold text-slate-300">
+                                    <span>📅 Data: ${dataKey}</span>
+                                    <span class="text-agro-400">${lista.length} rota(s) | ${totalKmData.toFixed(2)} KM</span>
+                                </div>
+                                <div class="p-2 space-y-1.5">
+                                    ${lista.map((r, i) => `
+                                        <div class="bg-slate-900/80 p-2 rounded border border-slate-800 text-[11px] flex justify-between items-center">
+                                            <div>
+                                                <span class="font-bold text-white">#${i+1} ${r.destination}</span>
+                                                <div class="text-[10px] text-slate-400">Frota: ${r.fleet} | ${r.startTime} - ${r.endTime} | KM: ${r.kmStart} -> ${r.kmFinal}</div>
+                                            </div>
+                                            <span class="font-bold text-agro-400 text-xs">${r.distance} KM</span>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+
+                div.innerHTML = htmlContent;
                 container.appendChild(div);
             });
         }
@@ -799,6 +873,10 @@
             iniciarTimerUI();
             iniciarGPSContinuo();
             solicitarWakeLock();
+            
+            // Notificar o painel do coordenador sobre a manobra em andamento
+            syncChannel.postMessage({ type: 'UPDATE_ROUTES', colaborador: colab });
+
             showAlert('Rastreamento GPS iniciado com sucesso!', 'success');
         }
 
@@ -858,6 +936,7 @@
             history[index] = rota;
             localStorage.setItem(`agro_routes_history_${colabAtivo}`, JSON.stringify(history));
             loadHistory();
+            syncChannel.postMessage({ type: 'UPDATE_ROUTES', colaborador: colabAtivo });
             showAlert('Rota e quilometragem atualizadas com sucesso!', 'success');
         }
 
@@ -870,6 +949,7 @@
 
             localStorage.setItem(`agro_routes_history_${colabAtivo}`, JSON.stringify(history));
             loadHistory();
+            syncChannel.postMessage({ type: 'UPDATE_ROUTES', colaborador: colabAtivo });
             showAlert('Rota excluída com sucesso!', 'info');
         }
 
@@ -939,6 +1019,7 @@
                                 const colab = localStorage.getItem('agro_fixed_colaborador');
                                 if (colab) {
                                     localStorage.setItem(`agro_active_route_${colab}`, JSON.stringify(activeRoute));
+                                    syncChannel.postMessage({ type: 'UPDATE_ROUTES', colaborador: colab });
                                 }
                             }
                         } else {
@@ -979,6 +1060,7 @@
                         const colab = localStorage.getItem('agro_fixed_colaborador');
                         if (colab) {
                             localStorage.setItem(`agro_active_route_${colab}`, JSON.stringify(activeRoute));
+                            syncChannel.postMessage({ type: 'UPDATE_ROUTES', colaborador: colab });
                         }
                     }
                 }, 1500);
@@ -1062,7 +1144,11 @@
 
                 carregarDadosSessaoColaborador(colabAtivo);
                 loadHistory();
-                showAlert('Rota salva com segurança!', 'success');
+
+                // DISPARAR SINCRONIZAÇÃO AUTOMÁTICA DIRETO PARA O JOSÉ ELTON
+                syncChannel.postMessage({ type: 'UPDATE_ROUTES', colaborador: colabAtivo });
+
+                showAlert('Rota salva e enviada ao painel da gestão!', 'success');
             }
         }
 
@@ -1118,6 +1204,7 @@
                 const colabAtivo = localStorage.getItem('agro_fixed_colaborador');
                 localStorage.removeItem(`agro_routes_history_${colabAtivo}`);
                 loadHistory();
+                syncChannel.postMessage({ type: 'UPDATE_ROUTES', colaborador: colabAtivo });
                 showAlert('Histórico recente limpo.', 'info');
             }
         }
@@ -1288,6 +1375,7 @@
                 localStorage.setItem(`agro_archived_folders_${colabAtivo}`, JSON.stringify(pastas));
                 localStorage.removeItem(`agro_routes_history_${colabAtivo}`);
                 loadHistory();
+                syncChannel.postMessage({ type: 'UPDATE_ROUTES', colaborador: colabAtivo });
                 showAlert('Demanda arquivada com sucesso!', 'success');
             }
         }
