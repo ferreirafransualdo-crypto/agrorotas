@@ -92,7 +92,7 @@
                     <i class="fa-solid fa-users-gear"></i>
                 </div>
                 <h2 class="text-xl font-bold text-white">Acesso ao Sistema</h2>
-                <p class="text-xs text-slate-400">Escolha seu nome ou o perfil da coordenação.</p>
+                <p class="text-xs text-slate-400">Escolha seu nome para acessar o painel.</p>
             </div>
 
             <form id="loginForm" class="space-y-4" onsubmit="event.preventDefault(); validarLoginColaborador();">
@@ -101,7 +101,7 @@
                     <div class="relative">
                         <i class="fa-solid fa-user absolute left-3 top-3.5 text-slate-500"></i>
                         <select id="loginColaborador" required class="input-agro">
-                            <option value="">Selecione o seu Nome ou Perfil</option>
+                            <option value="">Selecione o seu Nome</option>
                             <optgroup label="Operadores">
                                 <option value="Fransualdo">Fransualdo</option>
                                 <option value="Lucas">Lucas</option>
@@ -111,7 +111,7 @@
                                 <option value="Antônio">Antônio</option>
                             </optgroup>
                             <optgroup label="Gestão">
-                                <option value="Coordenador">👨‍💼 Coordenador: José Elton</option>
+                                <option value="Coordenador">👨‍💼 José Elton</option>
                             </optgroup>
                         </select>
                     </div>
@@ -142,7 +142,7 @@
             <div class="bg-slate-800/90 border border-amber-500/40 rounded-xl p-3 flex justify-between items-center text-xs">
                 <div class="flex items-center gap-2 text-amber-300">
                     <i class="fa-solid fa-user-tie text-amber-400 text-sm"></i>
-                    <span>Coordenador: <strong class="text-white">José Elton</strong></span>
+                    <span>Sessão Ativa: <strong class="text-white">José Elton</strong></span>
                 </div>
                 <button type="button" onclick="logoutColaborador()" class="text-slate-400 hover:text-red-400 underline cursor-pointer">
                     <i class="fa-solid fa-right-from-bracket mr-1"></i> Sair
@@ -450,7 +450,7 @@
 
     <!-- SCRIPT DA APLICAÇÃO -->
     <script>
-        const APP_VERSION = "3.1"; 
+        const APP_VERSION = "3.2"; 
 
         let timerInterval = null;
         let watchId = null;
@@ -566,11 +566,11 @@
             }
 
             if (colab === 'Coordenador') {
-                let senhaCoord = localStorage.getItem('agro_pin_Coordenador') || '1234';
-                if (pin === senhaCoord || pin === 'coord123') {
+                let senhaCoord = localStorage.getItem('agro_pin_Coordenador') || '0000';
+                if (pin === senhaCoord || pin === '0000') {
                     concluirLoginCoordenador();
                 } else {
-                    showAlert('Senha do Coordenador José Elton incorreta!', 'error');
+                    showAlert('Senha do José Elton incorreta!', 'error');
                     document.getElementById('loginPin').value = '';
                 }
             } else {
@@ -608,7 +608,7 @@
             document.getElementById('loginSection').classList.add('hidden');
             document.getElementById('coordinatorPanel').classList.remove('hidden');
             carregarListaColaboradoresCoordenador();
-            showAlert('Bem-vindo à Área do Coordenador José Elton!', 'success');
+            showAlert('Bem-vindo à Área do José Elton!', 'success');
         }
 
         function logoutColaborador() {
