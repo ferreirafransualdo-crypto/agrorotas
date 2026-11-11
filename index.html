@@ -632,7 +632,7 @@
 
     <!-- SCRIPT DA APLICAÇÃO -->
     <script>
-        const APP_VERSION = "9.0"; 
+        const APP_VERSION = "9.1"; 
 
         let timerInterval = null;
         let watchId = null;
@@ -640,6 +640,9 @@
         let wakeLock = null;
         let isSimulating = false;
         let isPaused = false;
+        
+        let tempoInicioPausa = null;
+        let totalSegundosPausados = 0;
 
         const LISTA_COLABORADORES = ["Fransualdo", "Lucas", "Breno", "Guilherme", "Kaymerson", "Antônio"];
 
@@ -651,6 +654,7 @@
             notes: '',
             startTime: null,
             elapsedSeconds: 0,
+            totalPausedSeconds: 0,
             distanceKm: 0,
             lastCoords: null,
             gpsPoints: 0
@@ -1207,7 +1211,6 @@
             }
         }
 
-        // FUNÇÃO DE VISUALIZAÇÃO DE RELATÓRIO POR DATA NA PASTA ARQUIVADA
         function visualizarRelatorioPastaData(dataKey) {
             const colabAtivo = localStorage.getItem('agro_fixed_colaborador');
             let pastas = {};
@@ -1233,6 +1236,8 @@
             }
             isSimulating = false;
             isPaused = false;
+            tempoInicioPausa = null;
+            totalSegundosPausados = 0;
             document.getElementById('activeSection').classList.add('hidden');
             document.getElementById('formSection').classList.remove('hidden');
             showAlert('Aplicativo destravado com sucesso.', 'success');
@@ -1283,6 +1288,9 @@
                         localStorage.removeItem(`agro_active_route_${colab}`);
                         return;
                     }
+                    totalSegundosPausados = activeRoute.totalPausedSeconds || 0;
+                    isPaused = false;
+
                     document.getElementById('formSection').classList.add('hidden');
                     document.getElementById('activeSection').classList.remove('hidden');
                     document.getElementById('liveDestination').innerText = activeRoute.destination;
@@ -1312,14 +1320,19 @@
                 return;
             }
 
+            totalSegundosPausados = 0;
+            tempoInicioPausa = null;
+            isPaused = false;
+
             activeRoute = {
                 colaborador: colab,
                 fleet: fleet,
                 kmStart: kmStart,
                 destination: destination,
                 notes: notes,
-                startTime: new Date().getTime(),
+                startTime: Date.now(),
                 elapsedSeconds: 0,
+                totalPausedSeconds: 0,
                 distanceKm: 0,
                 lastCoords: null,
                 gpsPoints: 0
@@ -1450,11 +1463,26 @@
             showAlert('Manobra excluída com sucesso!', 'info');
         }
 
+        // CORREÇÃO DO TIMER COM DESCONTO PRECISO DE PAUSA
         function iniciarTimerUI() {
             pararTodosOsTimers();
             timerInterval = setInterval(() => {
                 if (!isPaused) {
-                    activeRoute.elapsedSeconds++;
+                    if (tempoInicioPausa) {
+                        const segundosPausadosNestaVez = Math.floor((Date.now() - tempoInicioPausa) / 1000);
+                        totalSegundosPausados += segundosPausadosNestaVez;
+                        tempoInicioPausa = null;
+                        activeRoute.totalPausedSeconds = totalSegundosPausados;
+                        
+                        const colab = localStorage.getItem('agro_fixed_colaborador');
+                        if (colab) {
+                            localStorage.setItem(`agro_active_route_${colab}`, JSON.stringify(activeRoute));
+                        }
+                    }
+
+                    const tempoRealSegundos = Math.floor((Date.now() - activeRoute.startTime) / 1000) - totalSegundosPausados;
+                    activeRoute.elapsedSeconds = tempoRealSegundos > 0 ? tempoRealSegundos : 0;
+
                     const hrs = String(Math.floor(activeRoute.elapsedSeconds / 3600)).padStart(2, '0');
                     const mins = String(Math.floor((activeRoute.elapsedSeconds % 3600) / 60)).padStart(2, '0');
                     const secs = String(activeRoute.elapsedSeconds % 60).padStart(2, '0');
@@ -1465,6 +1493,34 @@
                     if (liveKmEl) liveKmEl.innerText = (activeRoute.kmStart + activeRoute.distanceKm).toFixed(1);
                 }
             }, 1000);
+        }
+
+        function togglePauseTracking() {
+            isPaused = !isPaused;
+            const btn = document.getElementById('pauseBtn');
+            const colab = localStorage.getItem('agro_fixed_colaborador');
+
+            if (isPaused) {
+                tempoInicioPausa = Date.now();
+                if (btn) {
+                    btn.className = "py-2.5 bg-agro-600 hover:bg-agro-500 text-white font-bold rounded-xl text-xs transition flex items-center justify-center gap-2 cursor-pointer";
+                    btn.innerHTML = '<i class="fa-solid fa-play"></i> RETOMAR ROTA';
+                }
+            } else {
+                if (tempoInicioPausa) {
+                    const segundosPausadosNestaVez = Math.floor((Date.now() - tempoInicioPausa) / 1000);
+                    totalSegundosPausados += segundosPausadosNestaVez;
+                    tempoInicioPausa = null;
+                    activeRoute.totalPausedSeconds = totalSegundosPausados;
+                }
+                if (colab) {
+                    localStorage.setItem(`agro_active_route_${colab}`, JSON.stringify(activeRoute));
+                }
+                if (btn) {
+                    btn.className = "py-2.5 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-xl text-xs transition flex items-center justify-center gap-2 cursor-pointer";
+                    btn.innerHTML = '<i class="fa-solid fa-pause"></i> PAUSAR ROTA';
+                }
+            }
         }
 
         function iniciarGPSContinuo() {
@@ -1568,25 +1624,15 @@
             }
         }
 
-        function togglePauseTracking() {
-            isPaused = !isPaused;
-            const btn = document.getElementById('pauseBtn');
-            if (isPaused) {
-                if (btn) {
-                    btn.className = "py-2.5 bg-agro-600 hover:bg-agro-500 text-white font-bold rounded-xl text-xs transition flex items-center justify-center gap-2 cursor-pointer";
-                    btn.innerHTML = '<i class="fa-solid fa-play"></i> RETOMAR ROTA';
-                }
-            } else {
-                if (btn) {
-                    btn.className = "py-2.5 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-xl text-xs transition flex items-center justify-center gap-2 cursor-pointer";
-                    btn.innerHTML = '<i class="fa-solid fa-pause"></i> PAUSAR ROTA';
-                }
-            }
-        }
-
         function stopTracking() {
             if (!confirm("Deseja encerrar e salvar esta rota permanentemente?")) return;
             
+            if (isPaused && tempoInicioPausa) {
+                const segundosPausadosNestaVez = Math.floor((Date.now() - tempoInicioPausa) / 1000);
+                totalSegundosPausados += segundosPausadosNestaVez;
+                tempoInicioPausa = null;
+            }
+
             pararTodosOsTimers();
             liberarWakeLock();
             const colabAtivo = localStorage.getItem('agro_fixed_colaborador');
@@ -1632,7 +1678,9 @@
                 localStorage.removeItem(`agro_active_route_${colabAtivo}`);
                 isSimulating = false;
                 isPaused = false;
-                activeRoute = { colaborador: '', fleet: '', kmStart: 0, destination: '', notes: '', startTime: null, elapsedSeconds: 0, distanceKm: 0, lastCoords: null, gpsPoints: 0 };
+                tempoInicioPausa = null;
+                totalSegundosPausados = 0;
+                activeRoute = { colaborador: '', fleet: '', kmStart: 0, destination: '', notes: '', startTime: null, elapsedSeconds: 0, totalPausedSeconds: 0, distanceKm: 0, lastCoords: null, gpsPoints: 0 };
 
                 document.getElementById('activeSection').classList.add('hidden');
                 document.getElementById('formSection').classList.remove('hidden');
@@ -1673,7 +1721,7 @@
                                 <div class="font-bold text-white text-left"><i class="fa-solid fa-location-dot text-agro-500 mr-1"></i> ${item.destination || 'Manobra'}</div>
                                 <div class="text-slate-400 mt-0.5 text-left">Data: ${item.data || '--/--/----'} | Frota: ${item.fleet || '---'}</div>
                                 <div class="text-slate-400 text-[11px] mt-0.5 text-left">KM Ini: <strong class="text-slate-300">${item.kmStart || 0}</strong> | KM Fim: <strong class="text-slate-300">${item.kmFinal || 0}</strong></div>
-                                <div class="text-slate-400 text-[11px] mt-0.5 text-left">Horário: <strong class="text-amber-300">${item.startTime || '--:--'}</strong> às <strong class="text-amber-300">${item.endTime || '--:--'}</strong></div>
+                                <div class="text-slate-400 text-[11px] mt-0.5 text-left">Horário: <strong class="text-amber-300">${item.startTime || '--:--'}</strong> às <strong class="text-amber-300">${item.endTime || '--:--'}</strong> (Tempo: ${item.duration || '00:00:00'})</div>
                             </div>
                             <div class="flex items-center gap-2">
                                 <div class="text-right font-bold text-agro-400 mr-1">${item.distance || '0.00'} KM</div>
@@ -1969,22 +2017,6 @@
             } else {
                 el.classList.add('hidden');
                 icon.className = "fa-solid fa-folder text-amber-500";
-            }
-        }
-
-        function visualizarRelatorioPastaData(dataKey) {
-            const colabAtivo = localStorage.getItem('agro_fixed_colaborador');
-            let pastas = {};
-            try { pastas = JSON.parse(localStorage.getItem(`agro_archived_folders_${colabAtivo}`) || '{}'); } catch(e){}
-            
-            const listaRotasData = pastas[dataKey];
-            if (!listaRotasData || listaRotasData.length === 0) {
-                showAlert('Nenhum dado encontrado para esta data.', 'error');
-                return;
-            }
-
-            if (popularEstruturaRelatorioVisual(listaRotasData, dataKey, colabAtivo)) {
-                document.getElementById('modalRelatorioVisual').classList.remove('hidden');
             }
         }
 
