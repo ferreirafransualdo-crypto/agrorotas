@@ -296,7 +296,7 @@
                             <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Tipo de Manobra / Destino *</label>
                             <div class="relative">
                                 <i class="fa-solid fa-location-dot absolute left-3 top-3.5 text-slate-500"></i>
-                                <input type="text" id="inputDestination" required placeholder="Ex: Entrega de Material" list="destinationList" class="input-agro placeholder-slate-500">
+                                <input type="text" id="inputDestination" required placeholder="Ex: Posto de combustivel" list="destinationList" class="input-agro placeholder-slate-500">
                                 <datalist id="destinationList"></datalist>
                             </div>
                         </div>
@@ -304,7 +304,7 @@
 
                     <div>
                         <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Observações (Opcional)</label>
-                        <input type="text" id="inputNotes" placeholder="Ex: Peças para frente de serviço" class="w-full bg-slate-900 border border-slate-700 rounded-xl py-2.5 px-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-agro-500">
+                        <input type="text" id="inputNotes" placeholder="Ex: Entrega de peças" class="w-full bg-slate-900 border border-slate-700 rounded-xl py-2.5 px-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-agro-500">
                     </div>
 
                     <button type="submit" class="btn-agro shadow-lg text-lg">
@@ -337,8 +337,8 @@
                         <button type="button" id="pauseBtn" onclick="togglePauseTracking()" class="py-2.5 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-xl text-xs transition flex items-center justify-center gap-2 cursor-pointer">
                             <i class="fa-solid fa-pause"></i> PAUSAR ROTA
                         </button>
-                        <button type="button" onclick="abrirModalCapturaFoto()" class="py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs transition flex items-center justify-center gap-2 cursor-pointer shadow-lg">
-                            <i class="fa-solid fa-camera"></i> ENCERRAR & FOTO 📸
+                        <button type="button" onclick="stopTracking()" class="py-2.5 bg-red-600 hover:bg-red-500 text-white font-bold rounded-xl text-xs transition flex items-center justify-center gap-2 cursor-pointer">
+                            <i class="fa-solid fa-square"></i> ENCERRAR & SALVAR
                         </button>
                     </div>
                 </div>
@@ -421,44 +421,6 @@
         </div>
 
     </main>
-
-    <!-- MODAL: CAPTURA DE FOTO DA ENTREGA (POD) -->
-    <div id="modalCapturaFoto" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-5 shadow-2xl space-y-4 text-left">
-            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-                <h3 class="font-bold text-base text-white flex items-center gap-2">
-                    <i class="fa-solid fa-camera text-emerald-400"></i> Comprovação de Entrega (Foto)
-                </h3>
-                <button type="button" onclick="fecharModalCapturaFoto()" class="text-slate-400 hover:text-white p-1 cursor-pointer">
-                    <i class="fa-solid fa-xmark text-lg"></i>
-                </button>
-            </div>
-
-            <p class="text-xs text-slate-300">Tire uma foto do material entregue ou descarregado para anexar ao relatório desta rota.</p>
-
-            <div class="flex flex-col items-center justify-center gap-3">
-                <input type="file" id="inputFotoEntrega" accept="image/*" capture="environment" class="hidden" onchange="processarFotoEntrega(event)">
-                
-                <div id="previewFotoContainer" class="w-full h-48 bg-slate-950 border-2 border-dashed border-slate-700 rounded-xl flex flex-col items-center justify-center overflow-hidden relative">
-                    <i class="fa-solid fa-cloud-arrow-up text-3xl text-slate-600 mb-2"></i>
-                    <span class="text-xs text-slate-400 font-semibold">Nenhuma foto tirada ainda</span>
-                </div>
-
-                <button type="button" onclick="document.getElementById('inputFotoEntrega').click()" class="w-full py-3 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold rounded-xl text-xs flex items-center justify-center gap-2 border border-slate-700 cursor-pointer">
-                    <i class="fa-solid fa-camera text-emerald-400"></i> Abrir Câmera / Escolher Foto
-                </button>
-            </div>
-
-            <div class="grid grid-cols-2 gap-3 pt-2">
-                <button type="button" onclick="salvarRotaComOuSemFoto(false)" class="py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl text-xs cursor-pointer">
-                    Pular Foto & Salvar
-                </button>
-                <button type="button" id="btnSalvarComFoto" onclick="salvarRotaComOuSemFoto(true)" disabled class="py-3 bg-emerald-600/50 text-white/50 font-bold rounded-xl text-xs cursor-not-allowed shadow-lg">
-                    Salvar com Foto 📸
-                </button>
-            </div>
-        </div>
-    </div>
 
     <!-- MODAL: EDITAR ROTA -->
     <div id="modalEditarRota" class="fixed inset-0 bg-slate-950/85 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3 overflow-y-auto">
@@ -670,7 +632,7 @@
 
     <!-- SCRIPT DA APLICAÇÃO -->
     <script>
-        const APP_VERSION = "9.2"; 
+        const APP_VERSION = "9.1"; 
 
         let timerInterval = null;
         let watchId = null;
@@ -681,7 +643,6 @@
         
         let tempoInicioPausa = null;
         let totalSegundosPausados = 0;
-        let base64FotoEntregaAtual = null;
 
         const LISTA_COLABORADORES = ["Fransualdo", "Lucas", "Breno", "Guilherme", "Kaymerson", "Antônio"];
 
@@ -1075,7 +1036,7 @@
                                 const distItem = parseFloat(r.distance || 0);
                                 const finItem = calcularFinanceiroKm(distItem);
                                 htmlPasta += `
-                                    <div class="bg-slate-800/80 p-2.5 rounded-lg border border-slate-700 text-xs space-y-2 text-left">
+                                    <div class="bg-slate-800/80 p-2.5 rounded-lg border border-slate-700 text-xs space-y-1 text-left">
                                         <div class="flex justify-between items-center font-bold text-white">
                                             <span><i class="fa-solid fa-location-dot text-agro-500 mr-1"></i> #${i+1}: ${r.destination || 'Manobra'}</span>
                                             <span class="text-agro-400">${distItem.toFixed(2)} KM</span>
@@ -1084,12 +1045,6 @@
                                             <span>Saída: ${r.startTime || '--:--'} - Chegada: ${r.endTime || '--:--'}</span>
                                             <span>Custo: <strong class="text-red-400">R$ ${parseFloat(finItem.custoTotal).toFixed(2).replace('.', ',')}</strong></span>
                                         </div>
-                                        ${r.fotoEntrega ? `
-                                            <div class="mt-2 pt-2 border-t border-slate-700 flex items-center gap-3">
-                                                <img src="${r.fotoEntrega}" alt="Foto Entrega" class="w-14 h-14 object-cover rounded-lg border border-slate-600 shadow cursor-pointer" onclick="window.open('${r.fotoEntrega}')">
-                                                <span class="text-[10px] text-emerald-400 font-bold"><i class="fa-solid fa-camera mr-1"></i> Comprovante Visual Anexado</span>
-                                            </div>
-                                        ` : ''}
                                     </div>
                                 `;
                             }
@@ -1668,62 +1623,9 @@
             }
         }
 
-        function abrirModalCapturaFoto() {
-            base64FotoEntregaAtual = null;
-            const container = document.getElementById('previewFotoContainer');
-            container.innerHTML = `
-                <i class="fa-solid fa-cloud-arrow-up text-3xl text-slate-600 mb-2"></i>
-                <span class="text-xs text-slate-400 font-semibold">Nenhuma foto tirada ainda</span>
-            `;
-            const btn = document.getElementById('btnSalvarComFoto');
-            btn.disabled = true;
-            btn.className = "py-3 bg-emerald-600/50 text-white/50 font-bold rounded-xl text-xs cursor-not-allowed shadow-lg";
-
-            document.getElementById('modalCapturaFoto').classList.remove('hidden');
-        }
-
-        function fecharModalCapturaFoto() {
-            document.getElementById('modalCapturaFoto').classList.add('hidden');
-        }
-
-        function processarFotoEntrega(event) {
-            const arquivo = event.target.files[0];
-            if (!arquivo) return;
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const img = new Image();
-                img.onload = function() {
-                    const canvas = document.createElement('canvas');
-                    const MAX_WIDTH = 800;
-                    const scaleSize = MAX_WIDTH / img.width;
-                    canvas.width = MAX_WIDTH;
-                    canvas.height = img.height * (scaleSize < 1 ? scaleSize : 1);
-
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-                    base64FotoEntregaAtual = canvas.toDataURL('image/jpeg', 0.6);
-
-                    const container = document.getElementById('previewFotoContainer');
-                    container.innerHTML = `<img src="${base64FotoEntregaAtual}" class="w-full h-full object-cover">`;
-
-                    const btn = document.getElementById('btnSalvarComFoto');
-                    btn.disabled = false;
-                    btn.className = "py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs cursor-pointer shadow-lg";
-                }
-                img.src = e.target.result;
-            }
-            reader.readAsDataURL(arquivo);
-        }
-
-        function salvarRotaComOuSemFoto(comFoto) {
-            document.getElementById('modalCapturaFoto').classList.add('hidden');
-            const fotoSalvar = comFoto ? base64FotoEntregaAtual : null;
-            executarEncerramentoRota(fotoSalvar);
-        }
-
-        function executarEncerramentoRota(fotoEntregaBase64) {
+        function stopTracking() {
+            if (!confirm("Deseja encerrar e salvar esta rota permanentemente?")) return;
+            
             if (isPaused && tempoInicioPausa) {
                 const segundosPausadosNestaVez = Math.floor((Date.now() - tempoInicioPausa) / 1000);
                 totalSegundosPausados += segundosPausadosNestaVez;
@@ -1753,8 +1655,7 @@
                     startTime: activeRoute.startTime ? new Date(activeRoute.startTime).toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'}) : agora.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'}),
                     endTime: agora.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'}),
                     duration: document.getElementById('liveTimer').innerText || '00:00:00',
-                    distance: distanceNum.toFixed(2),
-                    fotoEntrega: fotoEntregaBase64 || null
+                    distance: distanceNum.toFixed(2)
                 };
 
                 let historyKey = `agro_routes_history_${colabAtivo}`;
@@ -1778,7 +1679,6 @@
                 isPaused = false;
                 tempoInicioPausa = null;
                 totalSegundosPausados = 0;
-                base64FotoEntregaAtual = null;
                 activeRoute = { colaborador: '', fleet: '', kmStart: 0, destination: '', notes: '', startTime: null, elapsedSeconds: 0, totalPausedSeconds: 0, distanceKm: 0, lastCoords: null, gpsPoints: 0 };
 
                 document.getElementById('activeSection').classList.add('hidden');
@@ -1788,7 +1688,7 @@
                 carregarDadosSessaoColaborador(colabAtivo);
                 loadHistory();
 
-                showAlert('Rota salva com sucesso com o comprovante visual!', 'success');
+                showAlert('Rota salva e enviada ao painel da gestão!', 'success');
             }
         }
 
@@ -1814,31 +1714,23 @@
                     if(item) {
                         destinationsSet.add(item.destination || '');
                         const div = document.createElement('div');
-                        div.className = "bg-slate-900 border border-slate-800 p-3 rounded-xl flex flex-col gap-2 text-xs text-left w-full";
+                        div.className = "bg-slate-900 border border-slate-800 p-3 rounded-xl flex justify-between items-center text-xs text-left w-full";
                         div.innerHTML = `
-                            <div class="flex justify-between items-start w-full">
-                                <div class="flex-1 pr-2 text-left">
-                                    <div class="font-bold text-white text-left"><i class="fa-solid fa-location-dot text-agro-500 mr-1"></i> ${item.destination || 'Manobra'}</div>
-                                    <div class="text-slate-400 mt-0.5 text-left">Data: ${item.data || '--/--/----'} | Frota: ${item.fleet || '---'}</div>
-                                    <div class="text-slate-400 text-[11px] mt-0.5 text-left">KM Ini: <strong class="text-slate-300">${item.kmStart || 0}</strong> | KM Fim: <strong class="text-slate-300">${item.kmFinal || 0}</strong></div>
-                                    <div class="text-slate-400 text-[11px] mt-0.5 text-left">Horário: <strong class="text-amber-300">${item.startTime || '--:--'}</strong> às <strong class="text-amber-300">${item.endTime || '--:--'}</strong> (Tempo: ${item.duration || '00:00:00'})</div>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <div class="text-right font-bold text-agro-400 mr-1">${item.distance || '0.00'} KM</div>
-                                    <button type="button" onclick="abrirModalEditarRota(${item.id})" class="p-2 bg-slate-800 hover:bg-slate-700 text-amber-400 rounded-lg transition cursor-pointer" title="Editar Manobra">
-                                        <i class="fa-solid fa-pen text-xs"></i>
-                                    </button>
-                                    <button type="button" onclick="confirmarExclusaoRota(${item.id})" class="p-2 bg-slate-800 hover:bg-red-950 text-red-400 rounded-lg transition cursor-pointer" title="Excluir Manobra">
-                                        <i class="fa-solid fa-trash text-xs"></i>
-                                    </button>
-                                </div>
+                            <div class="flex-1 pr-2 text-left">
+                                <div class="font-bold text-white text-left"><i class="fa-solid fa-location-dot text-agro-500 mr-1"></i> ${item.destination || 'Manobra'}</div>
+                                <div class="text-slate-400 mt-0.5 text-left">Data: ${item.data || '--/--/----'} | Frota: ${item.fleet || '---'}</div>
+                                <div class="text-slate-400 text-[11px] mt-0.5 text-left">KM Ini: <strong class="text-slate-300">${item.kmStart || 0}</strong> | KM Fim: <strong class="text-slate-300">${item.kmFinal || 0}</strong></div>
+                                <div class="text-slate-400 text-[11px] mt-0.5 text-left">Horário: <strong class="text-amber-300">${item.startTime || '--:--'}</strong> às <strong class="text-amber-300">${item.endTime || '--:--'}</strong> (Tempo: ${item.duration || '00:00:00'})</div>
                             </div>
-                            ${item.fotoEntrega ? `
-                                <div class="pt-2 border-t border-slate-800 flex items-center gap-3">
-                                    <img src="${item.fotoEntrega}" alt="Comprovante" class="w-12 h-12 object-cover rounded-lg border border-slate-700 shadow cursor-pointer" onclick="window.open('${item.fotoEntrega}')">
-                                    <span class="text-[10px] text-emerald-400 font-bold"><i class="fa-solid fa-camera mr-1"></i> Foto da Entrega Anexada</span>
-                                </div>
-                            ` : ''}
+                            <div class="flex items-center gap-2">
+                                <div class="text-right font-bold text-agro-400 mr-1">${item.distance || '0.00'} KM</div>
+                                <button type="button" onclick="abrirModalEditarRota(${item.id})" class="p-2 bg-slate-800 hover:bg-slate-700 text-amber-400 rounded-lg transition cursor-pointer" title="Editar Manobra">
+                                    <i class="fa-solid fa-pen text-xs"></i>
+                                </button>
+                                <button type="button" onclick="confirmarExclusaoRota(${item.id})" class="p-2 bg-slate-800 hover:bg-red-950 text-red-400 rounded-lg transition cursor-pointer" title="Excluir Manobra">
+                                    <i class="fa-solid fa-trash text-xs"></i>
+                                </button>
+                            </div>
                         `;
                         container.appendChild(div);
                     }
@@ -1927,12 +1819,6 @@
                                 <span style="font-size: 11px; font-weight: 900; color: #2563eb;">${r.distance || '0.00'} km</span>
                             </div>
                         </div>
-                        ${r.fotoEntrega ? `
-                            <div style="padding: 8px 12px; background: #f8fafc; border-top: 1px solid #e2e8f0; display: flex; align-items: center; gap: 8px;">
-                                <img src="${r.fotoEntrega}" style="width: 36px; height: 36px; object-fit: cover; border-radius: 6px; border: 1px solid #cbd5e1;">
-                                <span style="font-size: 9px; font-weight: 800; color: #16a34a;">Possui Comprovante Fotográfico</span>
-                            </div>
-                        ` : ''}
                     `;
                     container.appendChild(card);
                 }
@@ -2019,9 +1905,7 @@
                     texto += `*Rota #${idx + 1}*\n`;
                     texto += `👤 ${r.colaborador || colabAtivo} | 🚗 ${r.fleet || 'Fiorino Álcool'}\n`;
                     texto += `⚙️ Destino: ${r.destination || 'Manobra'}\n`;
-                    texto += `⏰ ${r.startTime || '--:--'} às ${r.endTime || '--:--'} | 🛣️ *${r.distance || '0.00'} KM*\n`;
-                    if(r.fotoEntrega) texto += `📸 _Comprovante fotográfico anexado_\n`;
-                    texto += `\n`;
+                    texto += `⏰ ${r.startTime || '--:--'} às ${r.endTime || '--:--'} | 🛣️ *${r.distance || '0.00'} KM*\n\n`;
                 }
             });
             texto += `🛣️ *KM TOTAL DO DIA:* *${totalKmGeral.toFixed(2)} KM*\n\n_Enviado via AgroRota GPS_`;
@@ -2110,12 +1994,6 @@
                                                 <span>Frota: ${r.fleet || '---'} | Saída: ${r.startTime || '--:--'}</span>
                                                 <span>KM Fim: ${r.kmFinal || 0}</span>
                                             </div>
-                                            ${r.fotoEntrega ? `
-                                                <div class="mt-1 pt-1 border-t border-slate-700 flex items-center gap-2">
-                                                    <img src="${r.fotoEntrega}" class="w-10 h-10 object-cover rounded border border-slate-600 cursor-pointer" onclick="window.open('${r.fotoEntrega}')">
-                                                    <span class="text-[9px] text-emerald-400 font-bold">Foto da Entrega</span>
-                                                </div>
-                                            ` : ''}
                                         </div>
                                     ` : '').join('') : ''}
                                 </div>
