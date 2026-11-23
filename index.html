@@ -423,10 +423,10 @@
     </main>
 
     <!-- MODAL: EDITAR ROTA -->
-    <div id="modalEditarRota" class="fixed inset-0 bg-slate-950/85 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3 overflow-y-auto">
+    <div id="modalEditarRota" class="fixed inset-0 bg-slate-950/85 backdrop-blur-sm z-[60] hidden flex items-center justify-center p-3 overflow-y-auto">
         <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-5 shadow-2xl space-y-4 text-left">
             <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-                <h3 class="font-bold text-base text-white flex items-center gap-2">
+                <h3 id="modalEditarTitulo" class="font-bold text-base text-white flex items-center gap-2">
                     <i class="fa-solid fa-pen-to-square text-amber-400"></i> Editar Manobra / Rota
                 </h3>
                 <button type="button" onclick="fecharModalEditarRota()" class="text-slate-400 hover:text-white p-1 cursor-pointer">
@@ -436,6 +436,7 @@
 
             <form id="formEditarRota" onsubmit="event.preventDefault(); salvarEdicaoRota();" class="space-y-3">
                 <input type="hidden" id="editRouteId">
+                <input type="hidden" id="editRouteFolder">
                 
                 <div>
                     <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Destino / Manobra *</label>
@@ -505,14 +506,14 @@
     </div>
 
     <!-- MODAL: CONFIRMAR EXCLUSÃO -->
-    <div id="modalConfirmarExclusao" class="fixed inset-0 bg-slate-950/85 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3">
+    <div id="modalConfirmarExclusao" class="fixed inset-0 bg-slate-950/85 backdrop-blur-sm z-[60] hidden flex items-center justify-center p-3">
         <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-sm w-full p-5 shadow-2xl text-center space-y-4">
             <div class="w-12 h-12 rounded-full bg-red-500/20 text-red-500 border border-red-500/30 flex items-center justify-center mx-auto text-xl">
                 <i class="fa-solid fa-triangle-exclamation"></i>
             </div>
             <div>
                 <h3 class="font-bold text-base text-white">Deseja excluir?</h3>
-                <p class="text-xs text-slate-400 mt-1">Esta manobra será removida permanentemente do histórico.</p>
+                <p id="textoConfirmarExclusao" class="text-xs text-slate-400 mt-1">Esta manobra será removida permanentemente.</p>
             </div>
             <div class="grid grid-cols-2 gap-3 pt-2">
                 <button type="button" onclick="fecharModalExclusao()" class="py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl text-xs cursor-pointer">
@@ -526,7 +527,7 @@
     </div>
 
     <!-- MODAL DO RELATÓRIO VISUAL -->
-    <div id="modalRelatorioVisual" class="fixed inset-0 bg-slate-950/95 backdrop-blur-md z-50 hidden flex flex-col items-center justify-start p-3 overflow-y-auto">
+    <div id="modalRelatorioVisual" class="fixed inset-0 bg-slate-950/95 backdrop-blur-md z-[70] hidden flex flex-col items-center justify-start p-3 overflow-y-auto">
         <div class="w-full max-w-md flex justify-between items-center mb-3 text-white">
             <span class="text-sm font-bold flex items-center gap-2 text-emerald-400"><i class="fa-solid fa-circle-check"></i> Relatório Pronto</span>
             <button type="button" onclick="fecharModalVisual()" class="text-slate-300 hover:text-white bg-slate-800 px-3 py-1.5 rounded-lg text-xs cursor-pointer font-bold"><i class="fa-solid fa-xmark mr-1"></i> Fechar</button>
@@ -632,7 +633,7 @@
 
     <!-- SCRIPT DA APLICAÇÃO -->
     <script>
-        const APP_VERSION = "9.1"; 
+        const APP_VERSION = "9.2"; 
 
         let timerInterval = null;
         let watchId = null;
@@ -640,6 +641,7 @@
         let wakeLock = null;
         let isSimulating = false;
         let isPaused = false;
+        let openArchivedFolders = new Set();
         
         let tempoInicioPausa = null;
         let totalSegundosPausados = 0;
@@ -1367,18 +1369,44 @@
             }
         }
 
-        function abrirModalEditarRota(idRota) {
+        function obterListaRotasAlvo(colabAtivo, dataFolder = '') {
+            if (dataFolder) {
+                let pastas = {};
+                try { pastas = JSON.parse(localStorage.getItem(`agro_archived_folders_${colabAtivo}`) || '{}'); } catch(e){}
+                return {
+                    tipo: 'pasta',
+                    pastas: pastas,
+                    lista: Array.isArray(pastas[dataFolder]) ? pastas[dataFolder] : []
+                };
+            } else {
+                let history = [];
+                try { history = JSON.parse(localStorage.getItem(`agro_routes_history_${colabAtivo}`) || '[]'); } catch(e){}
+                return {
+                    tipo: 'historico',
+                    lista: Array.isArray(history) ? history : []
+                };
+            }
+        }
+
+        function abrirModalEditarRota(idRota, dataFolder = '') {
             const colabAtivo = localStorage.getItem('agro_fixed_colaborador');
-            let history = [];
-            try { history = JSON.parse(localStorage.getItem(`agro_routes_history_${colabAtivo}`) || '[]'); } catch(e){}
-            const rota = history.find(r => r && r.id === idRota);
+            const alvo = obterListaRotasAlvo(colabAtivo, dataFolder);
+            const rota = alvo.lista.find(r => r && String(r.id) === String(idRota));
             
             if (!rota) {
                 showAlert('Rota não encontrada.', 'error');
                 return;
             }
 
+            const tituloModal = document.getElementById('modalEditarTitulo');
+            if (tituloModal) {
+                tituloModal.innerHTML = dataFolder
+                    ? `<i class="fa-solid fa-pen-to-square text-amber-400"></i> Editar Manobra Arquivada (${dataFolder})`
+                    : `<i class="fa-solid fa-pen-to-square text-amber-400"></i> Editar Manobra / Rota`;
+            }
+
             document.getElementById('editRouteId').value = rota.id;
+            document.getElementById('editRouteFolder').value = dataFolder || '';
             document.getElementById('editDestination').value = rota.destination || '';
             document.getElementById('editFleet').value = rota.fleet || '';
             document.getElementById('editKmStart').value = rota.kmStart || 0;
@@ -1392,6 +1420,7 @@
 
         function fecharModalEditarRota() {
             document.getElementById('modalEditarRota').classList.add('hidden');
+            document.getElementById('editRouteFolder').value = '';
         }
 
         function recalcularKmEdicao() {
@@ -1402,7 +1431,8 @@
         }
 
         function salvarEdicaoRota() {
-            const idRota = parseInt(document.getElementById('editRouteId').value);
+            const idRota = document.getElementById('editRouteId').value;
+            const dataFolder = document.getElementById('editRouteFolder').value.trim();
             const novoDestino = document.getElementById('editDestination').value.trim();
             const novaFrota = document.getElementById('editFleet').value.trim();
             const kmIniNum = parseFloat(document.getElementById('editKmStart').value);
@@ -1416,35 +1446,49 @@
             }
 
             const colabAtivo = localStorage.getItem('agro_fixed_colaborador');
-            let history = [];
-            try { history = JSON.parse(localStorage.getItem(`agro_routes_history_${colabAtivo}`) || '[]'); } catch(e){}
-            
-            const index = history.findIndex(r => r && r.id === idRota);
+            const alvo = obterListaRotasAlvo(colabAtivo, dataFolder);
+            const index = alvo.lista.findIndex(r => r && String(r.id) === String(idRota));
+
             if (index === -1) {
                 showAlert('Erro ao encontrar rota para salvar.', 'error');
                 return;
             }
 
-            history[index].destination = novoDestino;
-            history[index].fleet = novaFrota;
-            history[index].kmStart = kmIniNum.toFixed(1);
-            history[index].kmFinal = kmFinNum.toFixed(1);
-            history[index].distance = (kmFinNum - kmIniNum).toFixed(2);
-            if (novoStartTime) history[index].startTime = novoStartTime;
-            if (novoEndTime) history[index].endTime = novoEndTime;
+            alvo.lista[index].destination = novoDestino;
+            alvo.lista[index].fleet = novaFrota;
+            alvo.lista[index].kmStart = kmIniNum.toFixed(1);
+            alvo.lista[index].kmFinal = kmFinNum.toFixed(1);
+            alvo.lista[index].distance = (kmFinNum - kmIniNum).toFixed(2);
+            if (novoStartTime) alvo.lista[index].startTime = novoStartTime;
+            if (novoEndTime) alvo.lista[index].endTime = novoEndTime;
 
-            localStorage.setItem(`agro_routes_history_${colabAtivo}`, JSON.stringify(history));
-            fecharModalEditarRota();
-            loadHistory();
-            showAlert('Manobra atualizada com sucesso!', 'success');
+            if (dataFolder) {
+                alvo.pastas[dataFolder] = alvo.lista;
+                localStorage.setItem(`agro_archived_folders_${colabAtivo}`, JSON.stringify(alvo.pastas));
+                openArchivedFolders.add(dataFolder);
+                fecharModalEditarRota();
+                renderizarConteudoPastas();
+                showAlert('Manobra arquivada atualizada com sucesso!', 'success');
+            } else {
+                localStorage.setItem(`agro_routes_history_${colabAtivo}`, JSON.stringify(alvo.lista));
+                fecharModalEditarRota();
+                loadHistory();
+                showAlert('Manobra atualizada com sucesso!', 'success');
+            }
         }
 
-        function confirmarExclusaoRota(idRota) {
+        function confirmarExclusaoRota(idRota, dataFolder = '') {
             const modal = document.getElementById('modalConfirmarExclusao');
             const btnSim = document.getElementById('btnConfirmarSimExclusao');
+            const textoDesc = document.getElementById('textoConfirmarExclusao');
+            if (textoDesc) {
+                textoDesc.innerText = dataFolder
+                    ? `Esta manobra será removida permanentemente da pasta ${dataFolder}.`
+                    : 'Esta manobra será removida permanentemente do histórico.';
+            }
             modal.classList.remove('hidden');
             btnSim.onclick = function() {
-                executarExclusaoRota(idRota);
+                executarExclusaoRota(idRota, dataFolder);
                 modal.classList.add('hidden');
             };
         }
@@ -1453,14 +1497,32 @@
             document.getElementById('modalConfirmarExclusao').classList.add('hidden');
         }
 
-        function executarExclusaoRota(idRota) {
+        function executarExclusaoRota(idRota, dataFolder = '') {
             const colabAtivo = localStorage.getItem('agro_fixed_colaborador');
-            let history = [];
-            try { history = JSON.parse(localStorage.getItem(`agro_routes_history_${colabAtivo}`) || '[]'); } catch(e){}
-            history = history.filter(r => r && r.id !== idRota);
-            localStorage.setItem(`agro_routes_history_${colabAtivo}`, JSON.stringify(history));
-            loadHistory();
-            showAlert('Manobra excluída com sucesso!', 'info');
+
+            if (dataFolder) {
+                let pastas = {};
+                try { pastas = JSON.parse(localStorage.getItem(`agro_archived_folders_${colabAtivo}`) || '{}'); } catch(e){}
+                if (Array.isArray(pastas[dataFolder])) {
+                    pastas[dataFolder] = pastas[dataFolder].filter(r => r && String(r.id) !== String(idRota));
+                    if (pastas[dataFolder].length === 0) {
+                        delete pastas[dataFolder];
+                        openArchivedFolders.delete(dataFolder);
+                    } else {
+                        openArchivedFolders.add(dataFolder);
+                    }
+                    localStorage.setItem(`agro_archived_folders_${colabAtivo}`, JSON.stringify(pastas));
+                }
+                renderizarConteudoPastas();
+                showAlert('Manobra arquivada excluída com sucesso!', 'info');
+            } else {
+                let history = [];
+                try { history = JSON.parse(localStorage.getItem(`agro_routes_history_${colabAtivo}`) || '[]'); } catch(e){}
+                history = history.filter(r => r && String(r.id) !== String(idRota));
+                localStorage.setItem(`agro_routes_history_${colabAtivo}`, JSON.stringify(history));
+                loadHistory();
+                showAlert('Manobra excluída com sucesso!', 'info');
+            }
         }
 
         function iniciarTimerUI() {
@@ -1644,7 +1706,7 @@
                 const dataHoje = agora.toLocaleDateString('pt-BR');
                 
                 const registro = {
-                    id: Date.now(),
+                    id: Date.now() + Math.floor(Math.random() * 1000),
                     data: dataHoje,
                     colaborador: colabAtivo,
                     fleet: activeRoute.fleet || 'Fiorino Álcool',
@@ -1932,6 +1994,7 @@
                 
                 history.forEach(r => {
                     if(r) {
+                        if (!r.id) r.id = Date.now() + Math.floor(Math.random() * 100000);
                         const dataFolder = r.data || new Date().toLocaleDateString('pt-BR');
                         if (!pastas[dataFolder]) pastas[dataFolder] = [];
                         pastas[dataFolder].push(r);
@@ -1945,77 +2008,103 @@
             }
         }
 
+        function escapeJsString(str) {
+            return String(str || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+        }
+
+        function renderizarConteudoPastas() {
+            const colabAtivo = localStorage.getItem('agro_fixed_colaborador');
+            let pastas = {};
+            try { pastas = JSON.parse(localStorage.getItem(`agro_archived_folders_${colabAtivo}`) || '{}'); } catch(e){}
+
+            const content = document.getElementById('modalPastasContent');
+            if (!content) return;
+            const datas = Object.keys(pastas);
+
+            if (datas.length === 0) {
+                content.innerHTML = '<div class="text-xs text-slate-500 text-left py-6">Nenhuma pasta arquivada.</div>';
+                return;
+            }
+
+            content.innerHTML = datas.map((data, index) => {
+                let totalKmPasta = 0;
+                const listaRotas = Array.isArray(pastas[data]) ? pastas[data] : [];
+                listaRotas.forEach(r => {
+                    if (r && !r.id) r.id = `${data}_${Math.random().toString(36).slice(2, 8)}`;
+                    if (r && r.distance) totalKmPasta += parseFloat(r.distance || 0);
+                });
+
+                const estaAberta = openArchivedFolders.has(data);
+                const dataEscapada = escapeJsString(data);
+
+                return `
+                    <div class="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden transition w-full text-left">
+                        <button type="button" onclick="alternarAcordeaoPasta('pastaContent_${index}', 'icon_${index}', '${dataEscapada}')" class="w-full p-3 bg-slate-800 flex justify-between items-center text-xs font-bold text-amber-400 cursor-pointer text-left">
+                            <span class="flex items-center gap-2 text-left">
+                                <i id="icon_${index}" class="fa-solid ${estaAberta ? 'fa-folder-open text-amber-400' : 'fa-folder text-amber-500'}"></i> 
+                                <span>Pasta: ${data}</span>
+                            </span>
+                            <div class="flex items-center gap-3">
+                                <span class="text-slate-300 font-semibold">${listaRotas.length} rota(s) | ${totalKmPasta.toFixed(2)} km</span>
+                                <i class="fa-solid fa-chevron-down text-slate-400 text-[10px]"></i>
+                            </div>
+                        </button>
+
+                        <div id="pastaContent_${index}" class="${estaAberta ? '' : 'hidden'} p-3 bg-slate-900/90 border-t border-slate-700/60 space-y-3 text-left">
+                            <div class="flex justify-start pt-1">
+                                <button type="button" onclick="visualizarRelatorioPastaData('${dataEscapada}')" class="px-3 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-lg transition cursor-pointer flex items-center gap-1.5 shadow">
+                                    <i class="fa-solid fa-image"></i> Ver Relatório em Imagem Desta Pasta 📸
+                                </button>
+                            </div>
+
+                            ${listaRotas.map((r, i) => r ? `
+                                <div class="bg-slate-800/80 p-2.5 rounded-lg border border-slate-700 text-[11px] space-y-1.5 text-left">
+                                    <div class="flex justify-between items-center text-white font-bold gap-2">
+                                        <span><i class="fa-solid fa-route text-agro-500 mr-1"></i> #${i+1}: ${r.destination || 'Manobra'}</span>
+                                        <span class="text-agro-400 shrink-0">${r.distance || '0.00'} km</span>
+                                    </div>
+                                    <div class="text-slate-400 flex justify-between items-center gap-2">
+                                        <span>Frota: ${r.fleet || '---'} | Saída: ${r.startTime || '--:--'} - Chegada: ${r.endTime || '--:--'}</span>
+                                        <span class="shrink-0">KM: ${r.kmStart || 0} → ${r.kmFinal || 0}</span>
+                                    </div>
+                                    <div class="flex justify-end gap-2 pt-1 border-t border-slate-700/60">
+                                        <button type="button" onclick="abrirModalEditarRota('${escapeJsString(r.id)}', '${dataEscapada}')" class="px-2.5 py-1 bg-slate-900 hover:bg-slate-700 text-amber-400 rounded-lg transition cursor-pointer flex items-center gap-1 font-semibold" title="Editar Manobra Arquivada">
+                                            <i class="fa-solid fa-pen text-[10px]"></i> Editar
+                                        </button>
+                                        <button type="button" onclick="confirmarExclusaoRota('${escapeJsString(r.id)}', '${dataEscapada}')" class="px-2.5 py-1 bg-slate-900 hover:bg-red-950 text-red-400 rounded-lg transition cursor-pointer flex items-center gap-1 font-semibold" title="Excluir Manobra Arquivada">
+                                            <i class="fa-solid fa-trash text-[10px]"></i> Excluir
+                                        </button>
+                                    </div>
+                                </div>
+                            ` : '').join('')}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
         function toggleModalPastas(abrir) {
             const m = document.getElementById('modalPastas');
             if (abrir) {
-                const colabAtivo = localStorage.getItem('agro_fixed_colaborador');
-                let pastas = {};
-                try { pastas = JSON.parse(localStorage.getItem(`agro_archived_folders_${colabAtivo}`) || '{}'); } catch(e){}
-                
-                const content = document.getElementById('modalPastasContent');
-                const datas = Object.keys(pastas);
-
-                if (datas.length === 0) {
-                    content.innerHTML = '<div class="text-xs text-slate-500 text-left py-6">Nenhuma pasta arquivada.</div>';
-                } else {
-                    content.innerHTML = datas.map((data, index) => {
-                        let totalKmPasta = 0;
-                        if(Array.isArray(pastas[data])) {
-                            pastas[data].forEach(r => { if(r && r.distance) totalKmPasta += parseFloat(r.distance || 0); });
-                        }
-
-                        return `
-                            <div class="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden transition w-full text-left">
-                                <button type="button" onclick="alternarAcordeaoPasta('pastaContent_${index}', 'icon_${index}')" class="w-full p-3 bg-slate-800 flex justify-between items-center text-xs font-bold text-amber-400 cursor-pointer text-left">
-                                    <span class="flex items-center gap-2 text-left">
-                                        <i id="icon_${index}" class="fa-solid fa-folder text-amber-500"></i> 
-                                        <span>Pasta: ${data}</span>
-                                    </span>
-                                    <div class="flex items-center gap-3">
-                                        <span class="text-slate-300 font-semibold">${pastas[data].length} rota(s) | ${totalKmPasta.toFixed(2)} km</span>
-                                        <i class="fa-solid fa-chevron-down text-slate-400 text-[10px]"></i>
-                                    </div>
-                                </button>
-
-                                <div id="pastaContent_${index}" class="hidden p-3 bg-slate-900/90 border-t border-slate-700/60 space-y-3 text-left">
-                                    <div class="flex justify-start pt-1">
-                                        <button type="button" onclick="visualizarRelatorioPastaData('${data}')" class="px-3 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-lg transition cursor-pointer flex items-center gap-1.5 shadow">
-                                            <i class="fa-solid fa-image"></i> Ver Relatório em Imagem Desta Pasta 📸
-                                        </button>
-                                    </div>
-
-                                    ${Array.isArray(pastas[data]) ? pastas[data].map((r, i) => r ? `
-                                        <div class="bg-slate-800/80 p-2.5 rounded-lg border border-slate-700 text-[11px] space-y-1 text-left">
-                                            <div class="flex justify-between items-center text-white font-bold">
-                                                <span><i class="fa-solid fa-route text-agro-500 mr-1"></i> #${i+1}: ${r.destination || 'Manobra'}</span>
-                                                <span class="text-agro-400">${r.distance || '0.00'} km</span>
-                                            </div>
-                                            <div class="text-slate-400 flex justify-between">
-                                                <span>Frota: ${r.fleet || '---'} | Saída: ${r.startTime || '--:--'}</span>
-                                                <span>KM Fim: ${r.kmFinal || 0}</span>
-                                            </div>
-                                        </div>
-                                    ` : '').join('') : ''}
-                                </div>
-                            </div>
-                        `;
-                    }).join('');
-                }
+                renderizarConteudoPastas();
                 m.classList.remove('hidden');
             } else {
                 m.classList.add('hidden');
             }
         }
 
-        function alternarAcordeaoPasta(contentId, iconId) {
+        function alternarAcordeaoPasta(contentId, iconId, dataKey = '') {
             const el = document.getElementById(contentId);
             const icon = document.getElementById(iconId);
+            if (!el || !icon) return;
             if (el.classList.contains('hidden')) {
                 el.classList.remove('hidden');
                 icon.className = "fa-solid fa-folder-open text-amber-400";
+                if (dataKey) openArchivedFolders.add(dataKey);
             } else {
                 el.classList.add('hidden');
                 icon.className = "fa-solid fa-folder text-amber-500";
+                if (dataKey) openArchivedFolders.delete(dataKey);
             }
         }
 
