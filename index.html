@@ -163,14 +163,15 @@
     </main>
 
     <script>
-        const FIREBASE_DB_URL = "";
-        const FIREBASE_PROJECT_FALLBACK = "agro-rotas-gps-dcd0d";
+        const FIREBASE_DB_URL = "https://agro-rotas-gps-default-rtdb.firebaseio.com";
+        const FIREBASE_PROJECT_FALLBACK = "agro-rotas-gps-default-rtdb";
         const LISTA_COLABORADORES = ["Fransualdo", "Lucas", "Breno", "Guilherme", "Kaymerson", "Antônio"];
         let activeRoute = null;
 
         function getCleanDbUrl() {
             const manual = (FIREBASE_DB_URL || "").trim().replace(/\/+$/, "");
             if (manual.startsWith("https://")) return manual;
+            if (manual.startsWith("http://")) return manual.replace("http://", "https://");
             return FIREBASE_PROJECT_FALLBACK ? `https://${FIREBASE_PROJECT_FALLBACK}-default-rtdb.firebaseio.com` : "";
         }
 
