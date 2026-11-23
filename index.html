@@ -422,7 +422,7 @@
 
     </main>
 
-    <!-- MODAL: EDITAR ROTA -->
+    <!-- MODAL: EDITAR / CRIAR ROTA -->
     <div id="modalEditarRota" class="fixed inset-0 bg-slate-950/85 backdrop-blur-sm z-[60] hidden flex items-center justify-center p-3 overflow-y-auto">
         <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-5 shadow-2xl space-y-4 text-left">
             <div class="flex justify-between items-center border-b border-slate-800 pb-3">
@@ -437,12 +437,13 @@
             <form id="formEditarRota" onsubmit="event.preventDefault(); salvarEdicaoRota();" class="space-y-3">
                 <input type="hidden" id="editRouteId">
                 <input type="hidden" id="editRouteFolder">
+                <input type="hidden" id="editIsNew" value="0">
                 
                 <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Destino / Manobra *</label>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Destino / Nome da Rota *</label>
                     <div class="relative">
                         <i class="fa-solid fa-location-dot absolute left-3 top-3.5 text-slate-500"></i>
-                        <input type="text" id="editDestination" required class="input-agro">
+                        <input type="text" id="editDestination" required placeholder="Ex: Plataforma / Volta Grande" class="input-agro">
                     </div>
                 </div>
 
@@ -450,7 +451,7 @@
                     <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Frota / Veículo *</label>
                     <div class="relative">
                         <i class="fa-solid fa-truck absolute left-3 top-3.5 text-slate-500"></i>
-                        <input type="text" id="editFleet" required class="input-agro">
+                        <input type="text" id="editFleet" required placeholder="Ex: 336862 ou Fiorino Álcool" class="input-agro">
                     </div>
                 </div>
 
@@ -497,7 +498,7 @@
                     <button type="button" onclick="fecharModalEditarRota()" class="w-1/2 py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl text-xs cursor-pointer">
                         Cancelar
                     </button>
-                    <button type="submit" class="w-1/2 py-3 bg-agro-600 hover:bg-agro-500 text-white font-bold rounded-xl text-xs cursor-pointer shadow-lg">
+                    <button type="submit" id="btnSalvarEdicaoRota" class="w-1/2 py-3 bg-agro-600 hover:bg-agro-500 text-white font-bold rounded-xl text-xs cursor-pointer shadow-lg">
                         Salvar Alterações
                     </button>
                 </div>
@@ -633,7 +634,7 @@
 
     <!-- SCRIPT DA APLICAÇÃO -->
     <script>
-        const APP_VERSION = "9.2"; 
+        const APP_VERSION = "9.3"; 
 
         let timerInterval = null;
         let watchId = null;
@@ -1388,6 +1389,42 @@
             }
         }
 
+        function abrirNovaManobraNaPasta(dataFolder) {
+            const colabAtivo = localStorage.getItem('agro_fixed_colaborador');
+            const alvo = obterListaRotasAlvo(colabAtivo, dataFolder);
+            const ultimaRota = alvo.lista.length > 0 ? alvo.lista[alvo.lista.length - 1] : null;
+
+            const kmSugerido = ultimaRota
+                ? (parseFloat(ultimaRota.kmFinal || ultimaRota.kmStart || 0) || 0).toFixed(1)
+                : (localStorage.getItem(`agro_last_km_${colabAtivo}`) || '0.0');
+
+            const frotaSugerida = ultimaRota?.fleet || localStorage.getItem(`agro_last_fleet_${colabAtivo}`) || 'Fiorino Álcool';
+            const horaSugerida = ultimaRota?.endTime || new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+
+            const tituloModal = document.getElementById('modalEditarTitulo');
+            if (tituloModal) {
+                tituloModal.innerHTML = `<i class="fa-solid fa-plus-circle text-emerald-400"></i> Nova Manobra na Pasta (${dataFolder})`;
+            }
+            const btnSalvar = document.getElementById('btnSalvarEdicaoRota');
+            if (btnSalvar) {
+                btnSalvar.innerHTML = `<i class="fa-solid fa-plus mr-1"></i> Adicionar Manobra`;
+            }
+
+            document.getElementById('editRouteId').value = String(Date.now() + Math.floor(Math.random() * 10000));
+            document.getElementById('editRouteFolder').value = dataFolder;
+            document.getElementById('editIsNew').value = '1';
+            document.getElementById('editDestination').value = '';
+            document.getElementById('editFleet').value = frotaSugerida;
+            document.getElementById('editKmStart').value = kmSugerido;
+            document.getElementById('editKmFinal').value = kmSugerido;
+            document.getElementById('editStartTime').value = horaSugerida;
+            document.getElementById('editEndTime').value = horaSugerida;
+            document.getElementById('editPreviewDistance').innerText = '0.00 KM';
+
+            document.getElementById('modalEditarRota').classList.remove('hidden');
+            setTimeout(() => document.getElementById('editDestination')?.focus(), 50);
+        }
+
         function abrirModalEditarRota(idRota, dataFolder = '') {
             const colabAtivo = localStorage.getItem('agro_fixed_colaborador');
             const alvo = obterListaRotasAlvo(colabAtivo, dataFolder);
@@ -1404,16 +1441,24 @@
                     ? `<i class="fa-solid fa-pen-to-square text-amber-400"></i> Editar Manobra Arquivada (${dataFolder})`
                     : `<i class="fa-solid fa-pen-to-square text-amber-400"></i> Editar Manobra / Rota`;
             }
+            const btnSalvar = document.getElementById('btnSalvarEdicaoRota');
+            if (btnSalvar) {
+                btnSalvar.innerHTML = `Salvar Alterações`;
+            }
 
-            document.getElementById('editRouteId').value = rota.id;
+            const kmIniVal = Number.isFinite(parseFloat(rota.kmStart)) ? parseFloat(rota.kmStart) : 0;
+            const kmFinVal = Number.isFinite(parseFloat(rota.kmFinal)) ? parseFloat(rota.kmFinal) : kmIniVal;
+
+            document.getElementById('editRouteId').value = String(rota.id);
             document.getElementById('editRouteFolder').value = dataFolder || '';
+            document.getElementById('editIsNew').value = '0';
             document.getElementById('editDestination').value = rota.destination || '';
             document.getElementById('editFleet').value = rota.fleet || '';
-            document.getElementById('editKmStart').value = rota.kmStart || 0;
-            document.getElementById('editKmFinal').value = rota.kmFinal || 0;
+            document.getElementById('editKmStart').value = kmIniVal;
+            document.getElementById('editKmFinal').value = kmFinVal;
             document.getElementById('editStartTime').value = rota.startTime || '00:00';
             document.getElementById('editEndTime').value = rota.endTime || '00:00';
-            document.getElementById('editPreviewDistance').innerText = `${parseFloat(rota.distance || 0).toFixed(2)} KM`;
+            recalcularKmEdicao();
 
             document.getElementById('modalEditarRota').classList.remove('hidden');
         }
@@ -1421,6 +1466,7 @@
         function fecharModalEditarRota() {
             document.getElementById('modalEditarRota').classList.add('hidden');
             document.getElementById('editRouteFolder').value = '';
+            document.getElementById('editIsNew').value = '0';
         }
 
         function recalcularKmEdicao() {
@@ -1433,13 +1479,23 @@
         function salvarEdicaoRota() {
             const idRota = document.getElementById('editRouteId').value;
             const dataFolder = document.getElementById('editRouteFolder').value.trim();
+            const isNew = document.getElementById('editIsNew').value === '1';
+
             const novoDestino = document.getElementById('editDestination').value.trim();
             const novaFrota = document.getElementById('editFleet').value.trim();
-            const kmIniNum = parseFloat(document.getElementById('editKmStart').value);
-            const kmFinNum = parseFloat(document.getElementById('editKmFinal').value);
+            const kmIniNum = parseFloat(String(document.getElementById('editKmStart').value).replace(',', '.'));
+            const kmFinNum = parseFloat(String(document.getElementById('editKmFinal').value).replace(',', '.'));
             const novoStartTime = document.getElementById('editStartTime').value.trim();
             const novoEndTime = document.getElementById('editEndTime').value.trim();
 
+            if (!novoDestino || !novaFrota) {
+                showAlert('Preencha o nome da rota/destino e a frota.', 'error');
+                return;
+            }
+            if (Number.isNaN(kmIniNum) || Number.isNaN(kmFinNum)) {
+                showAlert('Informe valores válidos de KM Inicial e KM Final.', 'error');
+                return;
+            }
             if (kmFinNum < kmIniNum) {
                 showAlert('O KM Final não pode ser menor que o KM Inicial!', 'error');
                 return;
@@ -1447,20 +1503,42 @@
 
             const colabAtivo = localStorage.getItem('agro_fixed_colaborador');
             const alvo = obterListaRotasAlvo(colabAtivo, dataFolder);
-            const index = alvo.lista.findIndex(r => r && String(r.id) === String(idRota));
+            const distanciaCalculada = (kmFinNum - kmIniNum).toFixed(2);
 
-            if (index === -1) {
-                showAlert('Erro ao encontrar rota para salvar.', 'error');
-                return;
+            if (isNew) {
+                const novaRota = {
+                    id: idRota || (Date.now() + Math.floor(Math.random() * 10000)),
+                    data: dataFolder || new Date().toLocaleDateString('pt-BR'),
+                    colaborador: colabAtivo,
+                    fleet: novaFrota,
+                    kmStart: kmIniNum.toFixed(1),
+                    kmFinal: kmFinNum.toFixed(1),
+                    destination: novoDestino,
+                    notes: '',
+                    startTime: novoStartTime || '--:--',
+                    endTime: novoEndTime || '--:--',
+                    duration: '00:00:00',
+                    distance: distanciaCalculada
+                };
+                alvo.lista.push(novaRota);
+            } else {
+                const index = alvo.lista.findIndex(r => r && String(r.id) === String(idRota));
+                if (index === -1) {
+                    showAlert('Erro ao encontrar rota para salvar.', 'error');
+                    return;
+                }
+
+                alvo.lista[index] = {
+                    ...alvo.lista[index],
+                    destination: novoDestino,
+                    fleet: novaFrota,
+                    kmStart: kmIniNum.toFixed(1),
+                    kmFinal: kmFinNum.toFixed(1),
+                    distance: distanciaCalculada,
+                    startTime: novoStartTime || alvo.lista[index].startTime || '--:--',
+                    endTime: novoEndTime || alvo.lista[index].endTime || '--:--'
+                };
             }
-
-            alvo.lista[index].destination = novoDestino;
-            alvo.lista[index].fleet = novaFrota;
-            alvo.lista[index].kmStart = kmIniNum.toFixed(1);
-            alvo.lista[index].kmFinal = kmFinNum.toFixed(1);
-            alvo.lista[index].distance = (kmFinNum - kmIniNum).toFixed(2);
-            if (novoStartTime) alvo.lista[index].startTime = novoStartTime;
-            if (novoEndTime) alvo.lista[index].endTime = novoEndTime;
 
             if (dataFolder) {
                 alvo.pastas[dataFolder] = alvo.lista;
@@ -1468,12 +1546,12 @@
                 openArchivedFolders.add(dataFolder);
                 fecharModalEditarRota();
                 renderizarConteudoPastas();
-                showAlert('Manobra arquivada atualizada com sucesso!', 'success');
+                showAlert(isNew ? 'Nova manobra adicionada à pasta!' : 'Manobra arquivada atualizada por completo!', 'success');
             } else {
                 localStorage.setItem(`agro_routes_history_${colabAtivo}`, JSON.stringify(alvo.lista));
                 fecharModalEditarRota();
                 loadHistory();
-                showAlert('Manobra atualizada com sucesso!', 'success');
+                showAlert('Manobra atualizada por completo!', 'success');
             }
         }
 
@@ -1786,10 +1864,10 @@
                             </div>
                             <div class="flex items-center gap-2">
                                 <div class="text-right font-bold text-agro-400 mr-1">${item.distance || '0.00'} KM</div>
-                                <button type="button" onclick="abrirModalEditarRota(${item.id})" class="p-2 bg-slate-800 hover:bg-slate-700 text-amber-400 rounded-lg transition cursor-pointer" title="Editar Manobra">
+                                <button type="button" onclick="abrirModalEditarRota('${escapeJsString(item.id)}')" class="p-2 bg-slate-800 hover:bg-slate-700 text-amber-400 rounded-lg transition cursor-pointer" title="Editar Manobra">
                                     <i class="fa-solid fa-pen text-xs"></i>
                                 </button>
-                                <button type="button" onclick="confirmarExclusaoRota(${item.id})" class="p-2 bg-slate-800 hover:bg-red-950 text-red-400 rounded-lg transition cursor-pointer" title="Excluir Manobra">
+                                <button type="button" onclick="confirmarExclusaoRota('${escapeJsString(item.id)}')" class="p-2 bg-slate-800 hover:bg-red-950 text-red-400 rounded-lg transition cursor-pointer" title="Excluir Manobra">
                                     <i class="fa-solid fa-trash text-xs"></i>
                                 </button>
                             </div>
@@ -2051,9 +2129,12 @@
                         </button>
 
                         <div id="pastaContent_${index}" class="${estaAberta ? '' : 'hidden'} p-3 bg-slate-900/90 border-t border-slate-700/60 space-y-3 text-left">
-                            <div class="flex justify-start pt-1">
+                            <div class="flex flex-wrap gap-2 justify-start pt-1">
                                 <button type="button" onclick="visualizarRelatorioPastaData('${dataEscapada}')" class="px-3 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-lg transition cursor-pointer flex items-center gap-1.5 shadow">
                                     <i class="fa-solid fa-image"></i> Ver Relatório em Imagem Desta Pasta 📸
+                                </button>
+                                <button type="button" onclick="abrirNovaManobraNaPasta('${dataEscapada}')" class="px-3 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-lg transition cursor-pointer flex items-center gap-1.5 shadow">
+                                    <i class="fa-solid fa-plus"></i> Nova Manobra
                                 </button>
                             </div>
 
