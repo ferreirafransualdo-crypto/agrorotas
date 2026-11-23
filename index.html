@@ -35,18 +35,10 @@
         .input-agro:focus { border-color: #22c55e; }
         .btn-agro { background-color: #16a34a; color: white; font-weight: bold; border-radius: 0.75rem; padding: 1rem; width: 100%; text-align: center; display: flex; align-items: center; justify-content: center; gap: 0.5rem; cursor: pointer; border: none; }
         .btn-agro:hover { background-color: #22c55e; }
-        
-        #reportCardToImage {
-            width: 100% !important;
-            max-width: 420px !important;
-            margin: 0 auto;
-            box-sizing: border-box;
-        }
+        #reportCardToImage { width: 100% !important; max-width: 420px !important; margin: 0 auto; box-sizing: border-box; }
     </style>
 </head>
 <body class="bg-slate-900 text-slate-100 font-sans min-h-screen flex flex-col justify-between pb-8">
-
-    <!-- Top Header -->
     <header class="bg-slate-800 border-b border-slate-700 px-4 py-3 sticky top-0 z-50">
         <div class="max-w-3xl mx-auto flex items-center justify-between gap-2">
             <div class="flex items-center gap-3">
@@ -71,17 +63,13 @@
         </div>
     </header>
 
-    <!-- Main Container -->
     <main class="max-w-3xl mx-auto w-full px-4 pt-4 flex-1 space-y-4">
-
-        <!-- Banner de Alerta -->
         <div id="alertBox" class="hidden p-4 rounded-xl border flex items-start gap-3 transition-all">
             <i id="alertIcon" class="fa-solid fa-circle-info mt-0.5 text-lg"></i>
             <div class="flex-1 text-sm" id="alertMessage"></div>
             <button type="button" onclick="hideAlert()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
         </div>
 
-        <!-- TELA 1: IDENTIFICAÇÃO E SELEÇÃO -->
         <section id="loginSection" class="card-agro max-w-md mx-auto mt-8 space-y-5 text-left">
             <div class="text-center space-y-1">
                 <div class="w-12 h-12 bg-agro-600/20 border border-agro-500/40 text-agro-400 rounded-2xl mx-auto flex items-center justify-center text-xl mb-2">
@@ -90,7 +78,6 @@
                 <h2 class="text-xl font-bold text-white">Acesso ao Sistema</h2>
                 <p class="text-xs text-slate-400">Entre com seu usuário e senha em qualquer celular.</p>
             </div>
-
             <form id="loginForm" class="space-y-4" onsubmit="event.preventDefault(); validarLoginColaborador();">
                 <div>
                     <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Perfil / Usuário *</label>
@@ -112,7 +99,6 @@
                         </select>
                     </div>
                 </div>
-
                 <div>
                     <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Senha / PIN *</label>
                     <div class="relative">
@@ -120,20 +106,12 @@
                         <input type="password" id="loginPin" required maxlength="12" placeholder="Digite sua senha" class="input-agro placeholder-slate-500 tracking-widest font-bold">
                     </div>
                 </div>
-
                 <button type="submit" id="btnEntrarLogin" class="btn-agro shadow-lg text-base">
                     <i class="fa-solid fa-right-to-bracket"></i> ENTRAR NO PAINEL
                 </button>
-
-                <div id="btnTrocarUsuarioContainer" class="hidden">
-                    <button type="button" onclick="liberarTrocaDeUsuario()" class="w-full py-2.5 bg-amber-900/60 hover:bg-amber-800 text-amber-200 font-semibold rounded-xl text-xs transition border border-amber-700/50 cursor-pointer flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-user-gear"></i> 🔄 Trocar de Usuário neste Aparelho
-                    </button>
-                </div>
             </form>
         </section>
 
-        <!-- TELA 2: PAINEL DO COORDENADOR (JOSÉ ELTON) -->
         <div id="coordinatorPanel" class="hidden space-y-4 text-left">
             <div class="bg-slate-800/90 border border-amber-500/40 rounded-xl p-3 flex justify-between items-center text-xs">
                 <div class="flex items-center gap-2 text-amber-300">
@@ -149,105 +127,10 @@
                     </button>
                 </div>
             </div>
-
-            <!-- FILTRO POR PERÍODO -->
-            <div class="bg-slate-800 border border-slate-700 rounded-xl p-3 flex flex-wrap items-center justify-between gap-2 text-xs">
-                <span class="text-slate-300 font-bold flex items-center gap-1.5">
-                    <i class="fa-solid fa-filter text-amber-400"></i> Filtrar Período:
-                </span>
-                <select id="coordPeriodFilter" onchange="carregarListaColaboradoresCoordenador()" class="bg-slate-900 border border-slate-700 text-white px-3 py-1.5 rounded-lg outline-none font-semibold cursor-pointer">
-                    <option value="hoje">📅 Hoje</option>
-                    <option value="ontem">⏪ Ontem</option>
-                    <option value="semana">📆 Esta Semana</option>
-                    <option value="mes">🗓️ Este Mês</option>
-                    <option value="todos" selected>♾️ Todo o Histórico</option>
-                </select>
-            </div>
-
-            <!-- CONFIGURAÇÃO DE COMBUSTÍVEL -->
-            <div class="bg-slate-800/80 border border-emerald-500/30 rounded-xl p-3.5 space-y-2">
-                <div class="flex justify-between items-center text-xs">
-                    <span class="font-bold text-emerald-400 flex items-center gap-1.5">
-                        <i class="fa-solid fa-gas-station"></i> Parâmetros de Combustível (Fiorino Álcool)
-                    </span>
-                    <button type="button" onclick="configurarParametrosCombustivel()" class="text-[10px] bg-emerald-950 border border-emerald-700 hover:bg-emerald-900 text-emerald-300 px-2 py-1 rounded-lg font-bold cursor-pointer">
-                        <i class="fa-solid fa-sliders mr-1"></i> Ajustar Preço/Consumo
-                    </button>
-                </div>
-                <div class="grid grid-cols-2 gap-2 text-[11px] text-slate-300 bg-slate-900/60 p-2 rounded-lg border border-slate-800">
-                    <div>Consumo Médio: <strong id="paramKmL" class="text-white">8.0 KM/L</strong></div>
-                    <div class="text-right">Preço Álcool: <strong id="paramPriceL" class="text-emerald-400">R$ 3,92</strong></div>
-                </div>
-            </div>
-
-            <!-- DASHBOARD KPIS -->
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-                <div class="bg-slate-800/90 border border-slate-700 rounded-xl p-3 text-center">
-                    <span class="text-[9px] uppercase tracking-wider font-bold text-slate-400 block">KM Total</span>
-                    <div id="kpiTotalKm" class="text-lg font-black text-white mt-0.5">0.0 KM</div>
-                </div>
-                <div class="bg-slate-800/90 border border-slate-700 rounded-xl p-3 text-center">
-                    <span class="text-[9px] uppercase tracking-wider font-bold text-slate-400 block">Litros Álcool</span>
-                    <div id="kpiTotalLiters" class="text-lg font-black text-amber-400 mt-0.5">0.0 L</div>
-                </div>
-                <div class="bg-slate-800/90 border border-slate-700 rounded-xl p-3 text-center">
-                    <span class="text-[9px] uppercase tracking-wider font-bold text-slate-400 block">Custo de Frota</span>
-                    <div id="kpiTotalCost" class="text-lg font-black text-red-400 mt-0.5">R$ 0,00</div>
-                </div>
-                <div class="bg-slate-800/90 border border-emerald-500/40 rounded-xl p-3 text-center bg-emerald-950/20">
-                    <span class="text-[9px] uppercase tracking-wider font-bold text-emerald-400 block">Economia Est.</span>
-                    <div id="kpiSavedCost" class="text-lg font-black text-emerald-400 mt-0.5">R$ 0,00</div>
-                </div>
-            </div>
-
-            <!-- META DE KM -->
-            <div class="bg-slate-800 border border-slate-700 rounded-xl p-3.5 space-y-2">
-                <div class="flex justify-between items-center text-xs">
-                    <span class="font-bold text-slate-300 flex items-center gap-1.5">
-                        <i class="fa-solid fa-bullseye text-agro-400"></i> Meta de KM da Equipe (Meta: <span id="metaKmLabel">300</span> KM)
-                    </span>
-                    <button type="button" onclick="ajustarMetaKm()" class="text-[10px] text-amber-400 hover:underline cursor-pointer font-bold">Definir Meta</button>
-                </div>
-                <div class="w-full bg-slate-900 rounded-full h-3.5 p-0.5 border border-slate-700 overflow-hidden">
-                    <div id="metaKmProgressBar" class="bg-gradient-to-r from-agro-600 to-agro-400 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
-                </div>
-                <div class="flex justify-between items-center text-[10px] text-slate-400 font-medium">
-                    <span id="metaKmRealized">Realizado: 0 KM</span>
-                    <span id="metaKmPercent">0% da meta</span>
-                </div>
-            </div>
-
-            <!-- RANKING -->
-            <div class="card-agro space-y-3 border-agro-500/30 text-left">
-                <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
-                    <i class="fa-solid fa-trophy text-amber-400"></i> Ranking de Produtividade & Custo
-                </h3>
-                <div id="coordRankingList" class="space-y-1.5 w-full text-left"></div>
-            </div>
-
-            <!-- PASTAS DOS COLABORADORES -->
-            <div class="card-agro space-y-4 border-amber-500/30 text-left">
-                <div class="flex flex-wrap justify-between items-center gap-2 border-b border-slate-700 pb-3">
-                    <h3 class="text-base font-bold text-slate-200 flex items-center gap-2">
-                        <i class="fa-solid fa-folder-tree text-amber-400"></i> Pastas dos Colaboradores
-                    </h3>
-                    <div class="flex gap-2">
-                        <button type="button" onclick="exportarRelatorioGeralCoordenador()" class="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-600 text-xs font-bold rounded-lg text-white transition cursor-pointer flex items-center gap-1.5" title="Baixar Planilha Consolidada">
-                            <i class="fa-solid fa-file-excel"></i> CSV Geral
-                        </button>
-                        <button type="button" onclick="sincronizarAgora()" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-xs font-semibold rounded-lg text-slate-200 transition cursor-pointer">
-                            <i class="fa-solid fa-rotate-right mr-1"></i>
-                        </button>
-                    </div>
-                </div>
-                
-                <div id="coordinatorCollabFoldersList" class="flex flex-col items-stretch w-full space-y-3 text-left"></div>
-            </div>
+            <div id="coordinatorCollabFoldersList" class="space-y-3"></div>
         </div>
 
-        <!-- TELA 3: PAINEL DE MANOBRAS DO OPERADOR -->
         <div id="appPanel" class="hidden space-y-4 text-left">
-
             <div class="bg-slate-800/90 border border-slate-700 rounded-xl p-3 flex justify-between items-center text-xs">
                 <div class="flex items-center gap-2 text-slate-300">
                     <i class="fa-solid fa-user-check text-agro-500 text-sm"></i>
@@ -258,445 +141,37 @@
                         <i class="fa-solid fa-cloud-arrow-down mr-1"></i> Sincronizar
                     </button>
                     <button type="button" onclick="logoutColaborador()" class="text-slate-400 hover:text-red-400 underline cursor-pointer">
-                        <i class="fa-solid fa-right-from-bracket mr-1"></i> Sair / Trocar
+                        <i class="fa-solid fa-right-from-bracket mr-1"></i> Sair
                     </button>
                 </div>
             </div>
-
-            <!-- CARD 1: Formulário de Início de Rota -->
-            <section id="formSection" class="card-agro text-left">
-                <div class="flex flex-wrap justify-between items-center gap-2 mb-4 border-b border-slate-700/60 pb-3">
-                    <h2 class="text-lg font-bold text-slate-200 flex items-center gap-2">
-                        <i class="fa-solid fa-play text-agro-500"></i> Iniciar Nova Rota
-                    </h2>
-                    <div class="flex items-center gap-3">
-                        <button type="button" onclick="toggleModalPastas(true)" class="text-xs text-amber-400 hover:text-amber-300 underline font-semibold cursor-pointer flex items-center gap-1">
-                            <i class="fa-solid fa-folder-open"></i> Minhas Pastas
-                        </button>
-                        <span class="text-slate-600">|</span>
-                        <button type="button" onclick="forcarDestraveGeral()" class="text-xs text-amber-400 hover:text-amber-300 underline cursor-pointer">
-                            <i class="fa-solid fa-unlock mr-1"></i> Destravar
-                        </button>
-                    </div>
-                </div>
-
+            <section class="card-agro">
                 <form id="startRouteForm" class="space-y-4" onsubmit="event.preventDefault(); startTracking();">
-                    <div>
-                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Veículo / Frota *</label>
-                        <div class="relative">
-                            <i class="fa-solid fa-truck absolute left-3 top-3.5 text-slate-500"></i>
-                            <input type="text" id="inputFleet" required placeholder="Ex: Fiorino Álcool" oninput="carregarKmPorFrota(this.value)" class="input-agro placeholder-slate-500 font-bold">
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">KM Inicial *</label>
-                            <div class="relative">
-                                <i class="fa-solid fa-gauge-high absolute left-3 top-3.5 text-slate-500"></i>
-                                <input type="number" step="0.1" id="inputKmStart" required placeholder="Ex: 19745.0" class="input-agro placeholder-slate-500 font-semibold text-lg bg-slate-800/80 text-agro-400">
-                            </div>
-                        </div>
-
-                        <div>
-                            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Tipo de Manobra / Destino *</label>
-                            <div class="relative">
-                                <i class="fa-solid fa-location-dot absolute left-3 top-3.5 text-slate-500"></i>
-                                <input type="text" id="inputDestination" required placeholder="Ex: Posto de combustivel" list="destinationList" class="input-agro placeholder-slate-500">
-                                <datalist id="destinationList"></datalist>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Observações (Opcional)</label>
-                        <input type="text" id="inputNotes" placeholder="Ex: Entrega de peças" class="w-full bg-slate-900 border border-slate-700 rounded-xl py-2.5 px-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-agro-500">
-                    </div>
-
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                        <button type="submit" class="sm:col-span-2 btn-agro shadow-lg text-base">
-                            <i class="fa-solid fa-location-arrow"></i> INICIAR RASTREAMENTO GPS
-                        </button>
-                        <button type="button" onclick="startMealBreak()" class="py-3.5 px-4 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-xl text-sm shadow-lg transition flex items-center justify-center gap-2 cursor-pointer">
-                            <i class="fa-solid fa-utensils"></i> Horário de Refeição
-                        </button>
-                    </div>
+                    <input type="text" id="inputFleet" required placeholder="Ex: Fiorino Álcool" class="input-agro font-bold">
+                    <input type="number" step="0.1" id="inputKmStart" required placeholder="KM Inicial" class="input-agro font-semibold text-agro-400">
+                    <input type="text" id="inputDestination" required placeholder="Destino / Manobra" class="input-agro">
+                    <button type="submit" class="btn-agro shadow-lg text-base">
+                        <i class="fa-solid fa-location-arrow"></i> INICIAR RASTREAMENTO GPS
+                    </button>
                 </form>
             </section>
-
-            <!-- CARD 2: Painel de Controle ao Vivo -->
-            <section id="activeSection" class="hidden space-y-4 text-left">
-                <div class="card-agro border-agro-500/30 space-y-3">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <div id="liveStatusLabel" class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Manobra em Andamento</div>
-                            <div class="flex items-center gap-2 mt-1">
-                                <div id="liveDestination" class="text-xl font-bold text-agro-500">---</div>
-                                <button type="button" id="btnRenameActive" onclick="renomearDestinoAtivo()" class="text-xs bg-slate-700 hover:bg-slate-600 text-slate-200 px-2.5 py-1 rounded-lg transition cursor-pointer">
-                                    <i class="fa-solid fa-pen"></i> Alterar
-                                </button>
-                            </div>
-                            <div id="liveFleet" class="text-xs text-slate-300 mt-1"><i class="fa-solid fa-truck mr-1"></i>---</div>
-                        </div>
-                        <div class="text-right">
-                            <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Tempo Decorrido</div>
-                            <div id="liveTimer" class="text-2xl font-mono font-bold text-white">00:00:00</div>
-                        </div>
-                    </div>
-
-                    <div id="routeControlsRow" class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-700/60">
-                        <button type="button" id="pauseBtn" onclick="togglePauseTracking()" class="py-2.5 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-xl text-xs transition flex items-center justify-center gap-2 cursor-pointer">
-                            <i class="fa-solid fa-pause"></i> PAUSAR ROTA
-                        </button>
-                        <button type="button" onclick="stopTracking()" class="py-2.5 bg-red-600 hover:bg-red-500 text-white font-bold rounded-xl text-xs transition flex items-center justify-center gap-2 cursor-pointer">
-                            <i class="fa-solid fa-square"></i> ENCERRAR & SALVAR
-                        </button>
-                    </div>
-
-                    <div id="mealControlsRow" class="hidden pt-2 border-t border-slate-700/60">
-                        <button type="button" onclick="stopMealBreak()" class="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs transition flex items-center justify-center gap-2 cursor-pointer shadow-lg">
-                            <i class="fa-solid fa-check-circle"></i> ENCERRAR HORÁRIO DE REFEIÇÃO (0 KM)
-                        </button>
-                    </div>
-                </div>
-
-                <div id="routeTelemetryGrid" class="grid grid-cols-2 gap-3">
-                    <div class="card-agro text-center py-3">
-                        <span class="text-xs font-semibold text-slate-400 uppercase">KM Inicial</span>
-                        <div id="liveKmStart" class="text-xl font-bold text-slate-200 mt-1">0.0</div>
-                    </div>
-
-                    <div class="card-agro text-center py-3">
-                        <span class="text-xs font-semibold text-slate-400 uppercase">Velocidade Atual</span>
-                        <div id="liveSpeed" class="text-xl font-bold text-blue-400 mt-1">0 km/h</div>
-                        <span class="text-[10px] text-slate-500" id="liveGpsAccuracy">Precisão: --</span>
-                    </div>
-
-                    <div class="card-agro text-center py-3 bg-gradient-to-b from-slate-800 to-agro-950/30">
-                        <span class="text-xs font-semibold text-agro-400 uppercase">Distância Percorrida</span>
-                        <div id="liveDistance" class="text-3xl font-black text-agro-500 mt-1">0.00</div>
-                        <span class="text-xs font-bold text-agro-400">KM</span>
-                    </div>
-
-                    <div class="card-agro text-center py-3">
-                        <span class="text-xs font-semibold text-slate-300 uppercase">KM Atual Estimado</span>
-                        <div id="liveKmCurrent" class="text-3xl font-black text-amber-400 mt-1">0.0</div>
-                        <span class="text-xs font-bold text-amber-400">KM Total</span>
-                    </div>
-                </div>
-
-                <div id="mealInfoBanner" class="hidden card-agro border-amber-500/40 bg-amber-950/20 py-3 px-4 flex justify-between items-center text-xs text-amber-200">
-                    <span><i class="fa-solid fa-utensils text-amber-400 mr-1.5"></i> Registro de refeição em andamento: <strong>KM não contabilizado (0.00 KM)</strong></span>
-                    <span id="liveMealStartClock" class="font-mono font-bold text-amber-300">Início: --:--</span>
-                </div>
-
-                <div id="gpsFooterCard" class="card-agro py-3 flex justify-between items-center text-xs text-slate-400">
-                    <span>Pontos GPS: <strong id="gpsPointsCount" class="text-slate-200">0</strong></span>
-                    <button type="button" id="simMotionBtn" onclick="toggleSimulatedMotion()" class="text-xs bg-slate-700 hover:bg-slate-600 text-slate-200 px-2.5 py-1 rounded-lg transition cursor-pointer">
-                        <i class="fa-solid fa-gamepad mr-1"></i> Simular Movimento
-                    </button>
-                </div>
+            <section class="card-agro space-y-3">
+                <h3 class="text-base font-bold text-slate-200">Meu Histórico</h3>
+                <div id="historyList" class="space-y-2"></div>
             </section>
-
-            <!-- CARD 3: Histórico Compacto -->
-            <section class="card-agro space-y-4 text-left">
-                <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-700 pb-3">
-                    <h3 class="text-lg font-bold text-slate-200 flex items-center gap-2">
-                        <i class="fa-solid fa-clock-rotate-left text-blue-400"></i> Meu Histórico Recente
-                    </h3>
-                    <div class="flex gap-2">
-                        <button type="button" onclick="exportToCSV()" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-xs font-semibold rounded-lg text-slate-200 transition cursor-pointer flex items-center gap-1">
-                            <i class="fa-solid fa-file-excel text-emerald-400"></i> CSV
-                        </button>
-                        <button type="button" onclick="clearHistory()" class="px-3 py-1.5 bg-slate-700/60 hover:bg-red-900/40 text-xs font-semibold rounded-lg text-slate-400 hover:text-red-300 transition cursor-pointer">Limpar</button>
-                    </div>
-                </div>
-                
-                <div id="historyList" class="space-y-3 w-full text-left"></div>
-            </section>
-
-            <!-- Botões de Ações -->
-            <div class="space-y-3 pt-2">
-              <button type="button" onclick="abrirRelatorioVisualOperador()" class="w-full py-4 bg-blue-600 hover:bg-blue-500 text-white font-extrabold rounded-xl text-base shadow-xl transition flex items-center justify-center gap-2 cursor-pointer">
-                <i class="fa-solid fa-image text-xl"></i> Gerar Imagem do Relatório 📸
-              </button>
-
-              <button type="button" onclick="gerarelatorioGestor()" class="btn-agro shadow-lg text-base cursor-pointer" style="background-color: #16a34a;">
-                <i class="fa-brands fa-whatsapp text-xl"></i> Enviar Meu Resumo via WhatsApp
-              </button>
-              
-              <button type="button" onclick="finalizarDemandaDoDia()" class="w-full py-3 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-xl text-sm transition flex items-center justify-center gap-2 cursor-pointer shadow-lg">
-                <i class="fa-solid fa-folder-plus"></i> Finalizar Demanda & Arquivar nas Pastas
-              </button>
-
-              <div class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-700/60">
-                  <button type="button" onclick="fazerBackupDados()" class="py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-xl border border-slate-700 transition flex items-center justify-center gap-1.5 cursor-pointer">
-                      <i class="fa-solid fa-download text-agro-400"></i> Backup (Salvar)
-                  </button>
-                  <label class="py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-xl border border-slate-700 transition flex items-center justify-center gap-1.5 cursor-pointer">
-                      <i class="fa-solid fa-upload text-blue-400"></i> Restaurar Dados
-                      <input type="file" id="importFile" accept=".json" onchange="restaurarBackupDados(event)" class="hidden">
-                  </label>
-              </div>
-            </div>
         </div>
-
     </main>
 
-    <!-- MODAL: EDITAR / CRIAR ROTA OU REFEIÇÃO -->
-    <div id="modalEditarRota" class="fixed inset-0 bg-slate-950/85 backdrop-blur-sm z-[60] hidden flex items-center justify-center p-3 overflow-y-auto">
-        <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-5 shadow-2xl space-y-4 text-left">
-            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-                <h3 id="modalEditarTitulo" class="font-bold text-base text-white flex items-center gap-2">
-                    <i class="fa-solid fa-pen-to-square text-amber-400"></i> Editar Manobra / Rota
-                </h3>
-                <button type="button" onclick="fecharModalEditarRota()" class="text-slate-400 hover:text-white p-1 cursor-pointer">
-                    <i class="fa-solid fa-xmark text-lg"></i>
-                </button>
-            </div>
-
-            <form id="formEditarRota" onsubmit="event.preventDefault(); salvarEdicaoRota();" class="space-y-3">
-                <input type="hidden" id="editRouteId">
-                <input type="hidden" id="editRouteFolder">
-                <input type="hidden" id="editIsNew" value="0">
-                <input type="hidden" id="editIsMeal" value="0">
-                
-                <div id="editDestinationGroup">
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Destino / Nome da Rota *</label>
-                    <div class="relative">
-                        <i class="fa-solid fa-location-dot absolute left-3 top-3.5 text-slate-500"></i>
-                        <input type="text" id="editDestination" required placeholder="Ex: Plataforma / Volta Grande" class="input-agro">
-                    </div>
-                </div>
-
-                <div id="editFleetGroup">
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Frota / Veículo *</label>
-                    <div class="relative">
-                        <i class="fa-solid fa-truck absolute left-3 top-3.5 text-slate-500"></i>
-                        <input type="text" id="editFleet" required placeholder="Ex: 336862 ou Fiorino Álcool" class="input-agro">
-                    </div>
-                </div>
-
-                <div id="editKmGroup" class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">KM Inicial *</label>
-                        <div class="relative">
-                            <i class="fa-solid fa-gauge-high absolute left-3 top-3.5 text-slate-500"></i>
-                            <input type="number" step="0.1" id="editKmStart" required oninput="recalcularKmEdicao()" class="input-agro font-semibold text-agro-400">
-                        </div>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">KM Final *</label>
-                        <div class="relative">
-                            <i class="fa-solid fa-flag-checkered absolute left-3 top-3.5 text-slate-500"></i>
-                            <input type="number" step="0.1" id="editKmFinal" required oninput="recalcularKmEdicao()" class="input-agro font-semibold text-amber-400">
-                        </div>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Horário Início *</label>
-                        <div class="relative">
-                            <i class="fa-solid fa-clock absolute left-3 top-3.5 text-slate-500"></i>
-                            <input type="text" id="editStartTime" required placeholder="Ex: 12:00" class="input-agro font-semibold text-slate-200">
-                        </div>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Horário Término *</label>
-                        <div class="relative">
-                            <i class="fa-solid fa-regular fa-clock absolute left-3 top-3.5 text-slate-500"></i>
-                            <input type="text" id="editEndTime" required placeholder="Ex: 12:30" class="input-agro font-semibold text-slate-200">
-                        </div>
-                    </div>
-                </div>
-
-                <div id="editDistancePreviewBox" class="bg-slate-800/80 p-3 rounded-xl border border-slate-700 flex justify-between items-center text-xs">
-                    <span class="text-slate-400 font-semibold">Distância Calculada:</span>
-                    <strong id="editPreviewDistance" class="text-emerald-400 text-sm">0.00 KM</strong>
-                </div>
-
-                <div class="flex gap-2 pt-2">
-                    <button type="button" onclick="fecharModalEditarRota()" class="w-1/2 py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl text-xs cursor-pointer">
-                        Cancelar
-                    </button>
-                    <button type="submit" id="btnSalvarEdicaoRota" class="w-1/2 py-3 bg-agro-600 hover:bg-agro-500 text-white font-bold rounded-xl text-xs cursor-pointer shadow-lg">
-                        Salvar Alterações
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- MODAL: CONFIRMAR EXCLUSÃO -->
-    <div id="modalConfirmarExclusao" class="fixed inset-0 bg-slate-950/85 backdrop-blur-sm z-[60] hidden flex items-center justify-center p-3">
-        <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-sm w-full p-5 shadow-2xl text-center space-y-4">
-            <div class="w-12 h-12 rounded-full bg-red-500/20 text-red-500 border border-red-500/30 flex items-center justify-center mx-auto text-xl">
-                <i class="fa-solid fa-triangle-exclamation"></i>
-            </div>
-            <div>
-                <h3 class="font-bold text-base text-white">Deseja excluir?</h3>
-                <p id="textoConfirmarExclusao" class="text-xs text-slate-400 mt-1">Este registro será removido permanentemente.</p>
-            </div>
-            <div class="grid grid-cols-2 gap-3 pt-2">
-                <button type="button" onclick="fecharModalExclusao()" class="py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl text-xs cursor-pointer">
-                    Não
-                </button>
-                <button type="button" id="btnConfirmarSimExclusao" class="py-2.5 bg-red-600 hover:bg-red-500 text-white font-bold rounded-xl text-xs cursor-pointer shadow-lg">
-                    Sim
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL DO RELATÓRIO VISUAL -->
-    <div id="modalRelatorioVisual" class="fixed inset-0 bg-slate-950/95 backdrop-blur-md z-[70] hidden flex flex-col items-center justify-start p-3 overflow-y-auto">
-        <div class="w-full max-w-md flex justify-between items-center mb-3 text-white">
-            <span class="text-sm font-bold flex items-center gap-2 text-emerald-400"><i class="fa-solid fa-circle-check"></i> Relatório Pronto</span>
-            <button type="button" onclick="fecharModalVisual()" class="text-slate-300 hover:text-white bg-slate-800 px-3 py-1.5 rounded-lg text-xs cursor-pointer font-bold"><i class="fa-solid fa-xmark mr-1"></i> Fechar</button>
-        </div>
-
-        <div class="w-full max-w-md flex justify-center">
-            <div id="reportCardToImage" style="background-color: #f1f5f9; color: #0f172a; border-radius: 16px; overflow: hidden; font-family: 'Inter', sans-serif; border: 3px solid #0b132b; width: 100%;">
-                
-                <div style="background: #090d16; color: #ffffff; padding: 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 4px solid #16a34a;">
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <div style="background: #16a34a; color: #ffffff; width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 900;">
-                            <i class="fa-solid fa-truck-ramp-box"></i>
-                        </div>
-                        <div>
-                            <div style="font-size: 17px; font-weight: 900; line-height: 1.1; color: #ffffff;">Relatório de Rotas</div>
-                        </div>
-                    </div>
-                    <div style="text-align: right;">
-                        <div style="font-size: 8px; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px;">DATA DO RELATÓRIO</div>
-                        <div id="imgReportDate" style="font-size: 13px; font-weight: 900; color: #22c55e; margin-top: 2px;">--/--/----</div>
-                    </div>
-                </div>
-
-                <div style="background: #ffffff; padding: 10px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; text-align: center; border-bottom: 2px solid #cbd5e1;">
-                    <div style="background: #f8fafc; padding: 6px; border-radius: 8px; border: 1px solid #e2e8f0;">
-                        <span style="font-size: 8px; font-weight: 800; color: #64748b; text-transform: uppercase; display: block;">COLABORADOR</span>
-                        <span id="imgReportCollab" style="font-size: 11px; font-weight: 900; color: #0f172a;">---</span>
-                    </div>
-                    <div style="background: #f8fafc; padding: 6px; border-radius: 8px; border: 1px solid #e2e8f0;">
-                        <span style="font-size: 8px; font-weight: 800; color: #64748b; text-transform: uppercase; display: block;">FROTA</span>
-                        <span id="imgReportFleet" style="font-size: 11px; font-weight: 900; color: #0f172a;">---</span>
-                    </div>
-                    <div style="background: #f8fafc; padding: 6px; border-radius: 8px; border: 1px solid #e2e8f0;">
-                        <span style="font-size: 8px; font-weight: 800; color: #64748b; text-transform: uppercase; display: block;">TOTAL DE ROTAS</span>
-                        <span id="imgReportTotalRoutes" style="font-size: 11px; font-weight: 900; color: #0f172a;">0</span>
-                    </div>
-                </div>
-
-                <div id="imgRoutesContainer" style="background: #f1f5f9; padding: 10px; display: flex; flex-direction: column; gap: 8px;"></div>
-
-                <div style="background: #090d16; margin: 10px; border-radius: 12px; overflow: hidden; border: 1px solid #1e293b;">
-                    <div style="padding: 10px 14px; background: linear-gradient(90deg, #0b132b 0%, #14532d 100%); display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #16a34a;">
-                        <span style="font-weight: 900; font-size: 12px; color: #ffffff; text-transform: uppercase; letter-spacing: 0.5px;">
-                            <i class="fa-solid fa-chart-pie" style="color: #22c55e; margin-right: 6px;"></i> Resumo do Dia
-                        </span>
-                        <div style="width: 16px; height: 3px; background: #22c55e; border-radius: 2px;"></div>
-                    </div>
-                    <div style="background: #ffffff; padding: 10px; display: grid; grid-template-columns: 1fr 1.2fr 1.2fr 1.2fr; gap: 4px; text-align: center;">
-                        <div style="background: #f8fafc; padding: 6px 2px; border-radius: 6px; border: 1px solid #e2e8f0;">
-                            <span style="font-size: 7px; font-weight: 800; color: #64748b; text-transform: uppercase; display: block;">Total Rotas</span>
-                            <span id="summaryTotalRoutes" style="font-size: 11px; font-weight: 900; color: #0f172a;">0</span>
-                        </div>
-                        <div style="background: #f8fafc; padding: 6px 2px; border-radius: 6px; border: 1px solid #e2e8f0;">
-                            <span style="font-size: 7px; font-weight: 800; color: #64748b; text-transform: uppercase; display: block;">Total KM</span>
-                            <span id="summaryTotalKm" style="font-size: 10px; font-weight: 900; color: #2563eb;">0 km</span>
-                        </div>
-                        <div style="background: #f8fafc; padding: 6px 2px; border-radius: 6px; border: 1px solid #e2e8f0;">
-                            <span style="font-size: 7px; font-weight: 800; color: #64748b; text-transform: uppercase; display: block;">1ª Saída</span>
-                            <span id="summaryFirstStart" style="font-size: 10px; font-weight: 900; color: #0f172a;">--:--</span>
-                        </div>
-                        <div style="background: #f8fafc; padding: 6px 2px; border-radius: 6px; border: 1px solid #e2e8f0;">
-                            <span style="font-size: 7px; font-weight: 800; color: #64748b; text-transform: uppercase; display: block;">Últ. Chegada</span>
-                            <span id="summaryLastEnd" style="font-size: 10px; font-weight: 900; color: #0f172a;">--:--</span>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-        </div>
-
-        <div class="w-full max-w-md grid grid-cols-2 gap-3 mt-4 pb-4">
-            <button type="button" onclick="baixarImagemPronta()" class="py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-black rounded-xl text-xs flex items-center justify-center gap-2 cursor-pointer shadow-xl">
-                <i class="fa-solid fa-download text-base"></i> Baixar Imagem (PNG)
-            </button>
-            <button type="button" onclick="partilharImagemDireta()" class="py-3 bg-green-600 hover:bg-green-500 text-white font-black rounded-xl text-xs flex items-center justify-center gap-2 cursor-pointer shadow-xl">
-                <i class="fa-brands fa-whatsapp text-lg"></i> Enviar ao Gestor
-            </button>
-        </div>
-    </div>
-
-    <!-- MODAL: PASTAS DE MANOBRAS PRIVADAS -->
-    <div id="modalPastas" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-lg w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden text-left">
-            <div class="p-4 bg-slate-800 border-b border-slate-700 flex justify-between items-center">
-                <h3 class="font-bold text-base text-white flex items-center gap-2">
-                    <i class="fa-solid fa-folder-open text-amber-400"></i> Minhas Pastas Arquivadas
-                </h3>
-                <button type="button" onclick="toggleModalPastas(false)" class="text-slate-400 hover:text-white text-lg p-1 cursor-pointer">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
-            <div id="modalPastasContent" class="p-4 overflow-y-auto space-y-3 flex-1 text-left"></div>
-            <div class="p-3 bg-slate-800/80 border-t border-slate-700 text-center flex justify-between items-center">
-                <button type="button" onclick="exportToCSV()" class="px-4 py-2 bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-bold rounded-xl cursor-pointer">
-                    <i class="fa-solid fa-download"></i> Baixar CSV
-                </button>
-                <button type="button" onclick="toggleModalPastas(false)" class="px-5 py-2 bg-slate-700 hover:bg-slate-600 text-white text-xs font-bold rounded-xl cursor-pointer">
-                    Fechar
-                </button>
-            </div>
-        </div>
-    </div>
-
     <script>
-        // COLE AQUI A URL DO SEU FIREBASE REALTIME DATABASE (ex: "https://agro-rotas-gps-dcd0d-default-rtdb.firebaseio.com")
         const FIREBASE_DB_URL = "";
         const FIREBASE_PROJECT_FALLBACK = "agro-rotas-gps-dcd0d";
-
-        const APP_VERSION = "11.1-rest-sync";
         const LISTA_COLABORADORES = ["Fransualdo", "Lucas", "Breno", "Guilherme", "Kaymerson", "Antônio"];
-
-        let timerInterval = null;
-        let watchId = null;
-        let simInterval = null;
-        let wakeLock = null;
-        let isSimulating = false;
-        let isPaused = false;
-        let openArchivedFolders = new Set();
-        
-        let tempoInicioPausa = null;
-        let totalSegundosPausados = 0;
-
-        let activeRoute = {
-            type: 'route',
-            colaborador: '',
-            fleet: '',
-            kmStart: 0,
-            destination: '',
-            notes: '',
-            startTime: null,
-            elapsedSeconds: 0,
-            totalPausedSeconds: 0,
-            distanceKm: 0,
-            lastCoords: null,
-            gpsPoints: 0
-        };
+        let activeRoute = null;
 
         function getCleanDbUrl() {
             const manual = (FIREBASE_DB_URL || "").trim().replace(/\/+$/, "");
-            if (manual.startsWith("https://") && !manual.includes("SEU_PROJETO") && !manual.includes("seu-projeto")) {
-                return manual;
-            }
-            if (FIREBASE_PROJECT_FALLBACK) {
-                return `https://${FIREBASE_PROJECT_FALLBACK}-default-rtdb.firebaseio.com`;
-            }
-            return "";
+            if (manual.startsWith("https://")) return manual;
+            return FIREBASE_PROJECT_FALLBACK ? `https://${FIREBASE_PROJECT_FALLBACK}-default-rtdb.firebaseio.com` : "";
         }
 
         function isCloudConfigured() {
@@ -706,9 +181,7 @@
         async function cloudGet(path) {
             const baseUrl = getCleanDbUrl();
             if (!baseUrl || !navigator.onLine) return null;
-            const cleanPath = String(path || "").replace(/^\/+|\/+$/g, "");
-            const endpoint = cleanPath ? `${baseUrl}/${cleanPath}.json` : `${baseUrl}/.json`;
-            const resp = await fetch(endpoint, { method: "GET", cache: "no-store" });
+            const resp = await fetch(`${baseUrl}/${path}.json`, { cache: "no-store" });
             if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
             return await resp.json();
         }
@@ -716,9 +189,7 @@
         async function cloudPut(path, payload) {
             const baseUrl = getCleanDbUrl();
             if (!baseUrl || !navigator.onLine) return false;
-            const cleanPath = String(path || "").replace(/^\/+|\/+$/g, "");
-            const endpoint = cleanPath ? `${baseUrl}/${cleanPath}.json` : `${baseUrl}/.json`;
-            const resp = await fetch(endpoint, {
+            const resp = await fetch(`${baseUrl}/${path}.json`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload)
@@ -729,2139 +200,189 @@
 
         function parseSafeJson(raw, fallback) {
             if (!raw) return fallback;
-            if (typeof raw === 'object') return raw;
+            if (typeof raw === "object") return raw;
             try { return JSON.parse(raw); } catch (e) { return fallback; }
         }
 
-        function isMealRecord(item) {
-            return Boolean(item && item.type === 'meal');
-        }
-
-        function formatDurationFromSeconds(totalSecs) {
-            const safeSecs = Math.max(0, Math.floor(Number(totalSecs) || 0));
-            const hrs = String(Math.floor(safeSecs / 3600)).padStart(2, '0');
-            const mins = String(Math.floor((safeSecs % 3600) / 60)).padStart(2, '0');
-            const secs = String(safeSecs % 60).padStart(2, '0');
-            return `${hrs}:${mins}:${secs}`;
-        }
-
-        function buildCollabCloudRecord(colab) {
-            const pinLocal = localStorage.getItem(`agro_pin_${colab}`);
-            const record = {
-                activeRoute: parseSafeJson(localStorage.getItem(`agro_active_route_${colab}`), null),
-                history: parseSafeJson(localStorage.getItem(`agro_routes_history_${colab}`), []),
-                folders: parseSafeJson(localStorage.getItem(`agro_archived_folders_${colab}`), {}),
-                lastFleet: localStorage.getItem(`agro_last_fleet_${colab}`) || '',
-                lastKm: localStorage.getItem(`agro_last_km_${colab}`) || '',
-                updatedAt: Date.now()
-            };
-            if (pinLocal) record.pin = pinLocal;
-            return record;
+        function verificarStatusConexao(cloudOk = false) {
+            const dot = document.getElementById("netDot");
+            const text = document.getElementById("netText");
+            if (!navigator.onLine) {
+                dot.className = "w-2 h-2 rounded-full bg-amber-400";
+                text.innerText = "Offline";
+            } else if (cloudOk) {
+                dot.className = "w-2 h-2 rounded-full bg-emerald-400";
+                text.innerText = "Nuvem Ativa";
+            } else {
+                dot.className = "w-2 h-2 rounded-full bg-slate-400";
+                text.innerText = isCloudConfigured() ? "Aguardando Banco" : "Modo Local";
+            }
         }
 
         async function salvarEstadoColaborador(colab) {
-            if (!colab) return;
-            const record = buildCollabCloudRecord(colab);
-            record.updatedAt = Date.now();
-            if (isCloudConfigured()) {
-                try {
-                    await cloudPut(`agrorota/users/${colab}`, record);
-                    verificarStatusConexao(true);
-                } catch (err) {
-                    console.warn("Falha ao salvar na nuvem:", err);
-                    verificarStatusConexao(false);
-                }
-            }
-        }
-
-        async function salvarConfiguracoesGlobais() {
-            const settings = {
-                fuelKmL: localStorage.getItem('agro_fuel_km_l') || '8.0',
-                fuelPrice: localStorage.getItem('agro_fuel_price') || '3.92',
-                teamKmGoal: localStorage.getItem('agro_team_km_goal') || '300',
-                coordPin: localStorage.getItem('agro_pin_Coordenador') || '0000',
+            if (!colab || !isCloudConfigured()) return;
+            const payload = {
+                pin: localStorage.getItem(`agro_pin_${colab}`) || "",
+                history: parseSafeJson(localStorage.getItem(`agro_routes_history_${colab}`), []),
                 updatedAt: Date.now()
             };
-            if (isCloudConfigured()) {
-                try {
-                    await cloudPut("agrorota/settings", settings);
-                } catch (err) {
-                    console.warn("Falha ao salvar configurações na nuvem:", err);
-                }
-            }
-        }
-
-        function applyUserCloudDataToLocal(colab, cloudData) {
-            if (!colab || !cloudData || typeof cloudData !== 'object') return;
-            if (cloudData.pin) {
-                localStorage.setItem(`agro_pin_${colab}`, String(cloudData.pin));
-            }
-            if (cloudData.activeRoute) {
-                localStorage.setItem(`agro_active_route_${colab}`, JSON.stringify(cloudData.activeRoute));
-            } else {
-                localStorage.removeItem(`agro_active_route_${colab}`);
-            }
-            if (Array.isArray(cloudData.history)) {
-                localStorage.setItem(`agro_routes_history_${colab}`, JSON.stringify(cloudData.history));
-            }
-            if (cloudData.folders && typeof cloudData.folders === 'object') {
-                localStorage.setItem(`agro_archived_folders_${colab}`, JSON.stringify(cloudData.folders));
-            }
-            if (cloudData.lastFleet) {
-                localStorage.setItem(`agro_last_fleet_${colab}`, String(cloudData.lastFleet));
-            }
-            if (cloudData.lastKm) {
-                localStorage.setItem(`agro_last_km_${colab}`, String(cloudData.lastKm));
+            try {
+                await cloudPut(`agrorota/users/${colab}`, payload);
+                verificarStatusConexao(true);
+            } catch (e) {
+                verificarStatusConexao(false);
             }
         }
 
         async function sincronizarAgora(silencioso = false) {
-            if (!isCloudConfigured()) {
+            if (!isCloudConfigured() || !navigator.onLine) {
                 verificarStatusConexao(false);
-                if (!silencioso) {
-                    showAlert('Configure a URL do Firebase no código para sincronizar entre celulares.', 'info');
-                }
+                if (!silencioso) showAlert("Sem conexão com a nuvem no momento.", "info");
                 return;
             }
-
-            if (!navigator.onLine) {
-                verificarStatusConexao(false);
-                if (!silencioso) showAlert('Sem internet no momento. Dados salvos no aparelho.', 'info');
-                return;
-            }
-
             try {
                 const cloudRoot = await cloudGet("agrorota");
                 verificarStatusConexao(true);
-
-                if (cloudRoot && typeof cloudRoot === 'object') {
-                    if (cloudRoot.settings) {
-                        if (cloudRoot.settings.fuelKmL) localStorage.setItem('agro_fuel_km_l', String(cloudRoot.settings.fuelKmL));
-                        if (cloudRoot.settings.fuelPrice) localStorage.setItem('agro_fuel_price', String(cloudRoot.settings.fuelPrice));
-                        if (cloudRoot.settings.teamKmGoal) localStorage.setItem('agro_team_km_goal', String(cloudRoot.settings.teamKmGoal));
-                        if (cloudRoot.settings.coordPin) localStorage.setItem('agro_pin_Coordenador', String(cloudRoot.settings.coordPin));
-                        carregarParametrosCombustivelUI();
-                    }
-
-                    const usersCloud = cloudRoot.users || {};
-                    const colabAtivo = localStorage.getItem('agro_fixed_colaborador');
-                    const tipoSessao = localStorage.getItem('agro_session_type');
-
-                    for (const nome of LISTA_COLABORADORES) {
-                        const cData = usersCloud[nome];
-                        const localHistory = parseSafeJson(localStorage.getItem(`agro_routes_history_${nome}`), []);
-                        const localFolders = parseSafeJson(localStorage.getItem(`agro_archived_folders_${nome}`), {});
-                        const temDadoLocal = (Array.isArray(localHistory) && localHistory.length > 0) || (Object.keys(localFolders).length > 0);
-
-                        if (cData) {
-                            applyUserCloudDataToLocal(nome, cData);
-                        } else if (temDadoLocal) {
-                            await salvarEstadoColaborador(nome);
+                const users = cloudRoot && cloudRoot.users ? cloudRoot.users : {};
+                LISTA_COLABORADORES.forEach(nome => {
+                    if (users[nome]) {
+                        if (users[nome].pin) localStorage.setItem(`agro_pin_${nome}`, users[nome].pin);
+                        if (Array.isArray(users[nome].history)) {
+                            localStorage.setItem(`agro_routes_history_${nome}`, JSON.stringify(users[nome].history));
                         }
                     }
-
-                    if (tipoSessao === 'coordenador') {
-                        carregarListaColaboradoresCoordenador();
-                    } else if (tipoSessao === 'operador' && colabAtivo) {
-                        carregarDadosSessaoColaborador(colabAtivo);
-                        loadHistory();
-                        verificarRotaEmAndamentoSalva();
-                    }
-
-                    if (!silencioso) {
-                        showAlert('Dados sincronizados com a nuvem!', 'success');
-                    }
-                }
-            } catch (err) {
-                console.warn("Erro na sincronização:", err);
-                verificarStatusConexao(false);
-                if (!silencioso) {
-                    showAlert('Não foi possível conectar à nuvem agora. Verifique se o banco já foi criado e se as regras estão liberadas.', 'error');
-                }
-            }
-        }
-
-        window.onload = function() {
-            try {
-                gerenciarMigracaoVersao();
-                verificarStatusConexao(false);
-                carregarParametrosCombustivelUI();
-                window.addEventListener('online', () => {
-                    verificarStatusConexao(isCloudConfigured());
-                    sincronizarAgora(true);
                 });
-                window.addEventListener('offline', () => verificarStatusConexao(false));
-                verificarSessaoAtiva();
-                if (isCloudConfigured() && navigator.onLine) {
-                    sincronizarAgora(true);
-                }
-            } catch(e) {
-                console.error("Erro no carregamento:", e);
+                if (localStorage.getItem("agro_session_type") === "coordenador") carregarPainelGestor();
+                if (localStorage.getItem("agro_session_type") === "operador") renderHistoricoOperador();
+                if (!silencioso) showAlert("Sincronizado com sucesso!", "success");
+            } catch (e) {
+                verificarStatusConexao(false);
+                if (!silencioso) showAlert("Erro ao sincronizar com o Firebase.", "error");
             }
-        };
-
-        function gerenciarMigracaoVersao() {
-            const versaoSalva = localStorage.getItem('agro_app_version');
-            if (versaoSalva !== APP_VERSION) {
-                localStorage.setItem('agro_app_version', APP_VERSION);
-            }
-        }
-
-        async function solicitarWakeLock() {
-            try {
-                if ('wakeLock' in navigator) {
-                    wakeLock = await navigator.wakeLock.request('screen');
-                }
-            } catch (err) {
-                console.warn(`Wake Lock indisponível: ${err.message}`);
-            }
-        }
-
-        function liberarWakeLock() {
-            if (wakeLock !== null) {
-                wakeLock.release().then(() => { wakeLock = null; });
-            }
-        }
-
-        function verificarStatusConexao(cloudOk = false) {
-            const badge = document.getElementById('netStatusBadge');
-            const dot = document.getElementById('netDot');
-            const text = document.getElementById('netText');
-            if (!navigator.onLine) {
-                if(dot) dot.className = "w-2 h-2 rounded-full bg-amber-400 animate-pulse";
-                if(text) text.innerText = "Offline";
-                if(badge) badge.className = "flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-950/80 border border-amber-500/50 text-amber-300 text-[10px] font-medium cursor-pointer";
-            } else if (cloudOk) {
-                if(dot) dot.className = "w-2 h-2 rounded-full bg-emerald-400";
-                if(text) text.innerText = "Nuvem Ativa";
-                if(badge) badge.className = "flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-950/80 border border-emerald-500/50 text-emerald-300 text-[10px] font-medium cursor-pointer";
-            } else {
-                if(dot) dot.className = "w-2 h-2 rounded-full bg-slate-400";
-                if(text) text.innerText = isCloudConfigured() ? "Aguardando Banco" : "Modo Local";
-                if(badge) badge.className = "flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-700 text-slate-300 text-[10px] font-medium cursor-pointer";
-            }
-        }
-
-        function verificarSessaoAtiva() {
-            try {
-                const colabAtivo = localStorage.getItem('agro_fixed_colaborador');
-                const tipoSessao = localStorage.getItem('agro_session_type');
-
-                if (colabAtivo) {
-                    document.getElementById('loginSection').classList.add('hidden');
-                    
-                    if (tipoSessao === 'coordenador') {
-                        document.getElementById('coordinatorPanel').classList.remove('hidden');
-                        document.getElementById('appPanel').classList.add('hidden');
-                        carregarListaColaboradoresCoordenador();
-                    } else {
-                        document.getElementById('coordinatorPanel').classList.add('hidden');
-                        document.getElementById('appPanel').classList.remove('hidden');
-                        document.getElementById('currentCollabLabel').innerText = colabAtivo;
-                        carregarDadosSessaoColaborador(colabAtivo);
-                        loadHistory();
-                        verificarRotaEmAndamentoSalva();
-                    }
-                } else {
-                    document.getElementById('loginSection').classList.remove('hidden');
-                    document.getElementById('appPanel').classList.add('hidden');
-                    document.getElementById('coordinatorPanel').classList.add('hidden');
-                    
-                    const temSessaoAntiga = localStorage.getItem('agro_last_logged_user');
-                    if (temSessaoAntiga) {
-                        document.getElementById('btnTrocarUsuarioContainer').classList.remove('hidden');
-                    }
-                }
-            } catch(e) { console.error(e); }
         }
 
         async function validarLoginColaborador() {
-            const colab = document.getElementById('loginColaborador').value;
-            const pin = document.getElementById('loginPin').value.trim();
-            const btn = document.getElementById('btnEntrarLogin');
-            if (!colab || !pin) {
-                showAlert('Selecione um usuário e insira a senha.', 'error');
+            const colab = document.getElementById("loginColaborador").value;
+            const pin = document.getElementById("loginPin").value.trim();
+            if (!colab || !pin) return;
+
+            if (colab === "Coordenador") {
+                if (pin === "0000" || pin === localStorage.getItem("agro_pin_Coordenador")) {
+                    localStorage.setItem("agro_fixed_colaborador", "Coordenador");
+                    localStorage.setItem("agro_session_type", "coordenador");
+                    document.getElementById("loginSection").classList.add("hidden");
+                    document.getElementById("coordinatorPanel").classList.remove("hidden");
+                    carregarPainelGestor();
+                    sincronizarAgora(true);
+                } else {
+                    showAlert("Senha do gestor incorreta.", "error");
+                }
                 return;
             }
 
-            if (btn) btn.disabled = true;
-
-            try {
-                if (colab === 'Coordenador') {
-                    let senhaCoord = localStorage.getItem('agro_pin_Coordenador') || '0000';
-                    if (isCloudConfigured() && navigator.onLine) {
-                        try {
-                            const settingsCloud = await cloudGet("agrorota/settings");
-                            if (settingsCloud && settingsCloud.coordPin) {
-                                senhaCoord = String(settingsCloud.coordPin);
-                                localStorage.setItem('agro_pin_Coordenador', senhaCoord);
-                            }
-                        } catch (e) {}
-                    }
-
-                    if (pin === senhaCoord || pin === '0000') {
-                        concluirLoginCoordenador();
-                    } else {
-                        showAlert('Senha do José Elton incorreta!', 'error');
-                        document.getElementById('loginPin').value = '';
-                    }
-                    return;
-                }
-
-                let cloudUser = null;
-                if (isCloudConfigured() && navigator.onLine) {
-                    try {
-                        cloudUser = await cloudGet(`agrorota/users/${colab}`);
-                    } catch (e) {}
-                }
-
-                const senhaLocal = localStorage.getItem(`agro_pin_${colab}`);
-                const senhaNuvem = cloudUser && cloudUser.pin ? String(cloudUser.pin) : null;
-
-                if (senhaNuvem) {
-                    if (pin === senhaNuvem) {
-                        localStorage.setItem(`agro_pin_${colab}`, pin);
-                        applyUserCloudDataToLocal(colab, cloudUser);
-                        concluirLoginOperador(colab);
-                    } else {
-                        showAlert('Senha incorreta para este usuário!', 'error');
-                        document.getElementById('loginPin').value = '';
-                    }
-                } else if (!senhaLocal) {
-                    localStorage.setItem(`agro_pin_${colab}`, pin);
-                    concluirLoginOperador(colab);
-                    await salvarEstadoColaborador(colab);
-                } else if (pin === senhaLocal) {
-                    concluirLoginOperador(colab);
-                    await salvarEstadoColaborador(colab);
-                } else {
-                    showAlert('Senha incorreta! Acesso negado.', 'error');
-                    document.getElementById('loginPin').value = '';
-                }
-            } finally {
-                if (btn) btn.disabled = false;
+            const senhaLocal = localStorage.getItem(`agro_pin_${colab}`);
+            if (!senhaLocal || senhaLocal === pin) {
+                localStorage.setItem(`agro_pin_${colab}`, pin);
+                localStorage.setItem("agro_fixed_colaborador", colab);
+                localStorage.setItem("agro_session_type", "operador");
+                document.getElementById("loginSection").classList.add("hidden");
+                document.getElementById("appPanel").classList.remove("hidden");
+                document.getElementById("currentCollabLabel").innerText = colab;
+                renderHistoricoOperador();
+                await salvarEstadoColaborador(colab);
+            } else {
+                showAlert("Senha incorreta para este usuário.", "error");
             }
-        }
-
-        function concluirLoginOperador(colab) {
-            localStorage.setItem('agro_fixed_colaborador', colab);
-            localStorage.setItem('agro_session_type', 'operador');
-            localStorage.setItem('agro_last_logged_user', colab);
-            document.getElementById('loginPin').value = '';
-            document.getElementById('loginSection').classList.add('hidden');
-            document.getElementById('appPanel').classList.remove('hidden');
-            document.getElementById('currentCollabLabel').innerText = colab;
-            carregarDadosSessaoColaborador(colab);
-            loadHistory();
-            verificarRotaEmAndamentoSalva();
-            showAlert(`Bem-vindo ao painel, ${colab}!`, 'success');
-        }
-
-        function concluirLoginCoordenador() {
-            localStorage.setItem('agro_fixed_colaborador', 'Coordenador');
-            localStorage.setItem('agro_session_type', 'coordenador');
-            document.getElementById('loginPin').value = '';
-            document.getElementById('loginSection').classList.add('hidden');
-            document.getElementById('coordinatorPanel').classList.remove('hidden');
-            carregarListaColaboradoresCoordenador();
-            sincronizarAgora(true);
-            showAlert('Bem-vindo à Área do José Elton!', 'success');
         }
 
         function logoutColaborador() {
-            if (confirm("Deseja sair da sessão atual?")) {
-                localStorage.removeItem('agro_fixed_colaborador');
-                localStorage.removeItem('agro_session_type');
-                document.getElementById('appPanel').classList.add('hidden');
-                document.getElementById('coordinatorPanel').classList.add('hidden');
-                document.getElementById('loginSection').classList.remove('hidden');
-                document.getElementById('btnTrocarUsuarioContainer').classList.add('hidden');
-            }
-        }
-
-        function liberarTrocaDeUsuario() {
-            localStorage.removeItem('agro_fixed_colaborador');
-            localStorage.removeItem('agro_session_type');
-            localStorage.removeItem('agro_last_logged_user');
-            document.getElementById('btnTrocarUsuarioContainer').classList.add('hidden');
-            showAlert('Sessão limpa. Escolha o novo perfil.', 'info');
-        }
-
-        function carregarParametrosCombustivelUI() {
-            const kmL = localStorage.getItem('agro_fuel_km_l') || '8.0';
-            const priceL = localStorage.getItem('agro_fuel_price') || '3.92';
-            if(document.getElementById('paramKmL')) document.getElementById('paramKmL').innerText = `${kmL} KM/L`;
-            if(document.getElementById('paramPriceL')) document.getElementById('paramPriceL').innerText = `R$ ${parseFloat(priceL).toFixed(2).replace('.', ',')}`;
-        }
-
-        async function configurarParametrosCombustivel() {
-            const kmLAtual = localStorage.getItem('agro_fuel_km_l') || '8.0';
-            const priceLAtual = localStorage.getItem('agro_fuel_price') || '3.92';
-
-            const novoKmL = prompt("Digite o consumo médio da Fiorino (KM por Litro de Álcool):", kmLAtual);
-            if (!novoKmL || isNaN(novoKmL) || parseFloat(novoKmL) <= 0) return;
-
-            const novoPrice = prompt("Digite o preço médio do Álcool (R$ por Litro):", priceLAtual);
-            if (!novoPrice || isNaN(novoPrice) || parseFloat(novoPrice) <= 0) return;
-
-            localStorage.setItem('agro_fuel_km_l', parseFloat(novoKmL));
-            localStorage.setItem('agro_fuel_price', parseFloat(novoPrice));
-            await salvarConfiguracoesGlobais();
-
-            carregarParametrosCombustivelUI();
-            carregarListaColaboradoresCoordenador();
-            showAlert('Parâmetros de combustível salvos!', 'success');
-        }
-
-        function calcularFinanceiroKm(kmTotal) {
-            const kmL = parseFloat(localStorage.getItem('agro_fuel_km_l') || '8.0');
-            const priceL = parseFloat(localStorage.getItem('agro_fuel_price') || '3.92');
-
-            const litros = kmL > 0 ? (kmTotal / kmL) : 0;
-            const custoTotal = litros * priceL;
-            
-            const custoSemOtimizacao = custoTotal * 1.12;
-            const economiaEst = custoSemOtimizacao - custoTotal;
-
-            return {
-                litros: litros.toFixed(1),
-                custoTotal: custoTotal.toFixed(2),
-                economiaEst: economiaEst.toFixed(2)
-            };
-        }
-
-        function filtrarDataPorPeriodo(dataStr, tipoFiltro) {
-            if (tipoFiltro === 'todos') return true;
-            if (!dataStr) return false;
-
-            const partes = dataStr.split('/');
-            if (partes.length !== 3) return true;
-            const dataItem = new Date(partes[2], partes[1] - 1, partes[0]);
-            const hoje = new Date();
-            hoje.setHours(0,0,0,0);
-
-            if (tipoFiltro === 'hoje') {
-                return dataItem.getTime() === hoje.getTime();
-            } else if (tipoFiltro === 'ontem') {
-                const ontem = new Date(hoje);
-                ontem.setDate(hoje.getDate() - 1);
-                return dataItem.getTime() === ontem.getTime();
-            } else if (tipoFiltro === 'semana') {
-                const inicioSemana = new Date(hoje);
-                inicioSemana.setDate(hoje.getDate() - hoje.getDay());
-                return dataItem >= inicioSemana && dataItem <= hoje;
-            } else if (tipoFiltro === 'mes') {
-                return dataItem.getMonth() === hoje.getMonth() && dataItem.getFullYear() === hoje.getFullYear();
-            }
-            return true;
-        }
-
-        function carregarListaColaboradoresCoordenador() {
-            const container = document.getElementById('coordinatorCollabFoldersList');
-            const rankingContainer = document.getElementById('coordRankingList');
-            const periodFilter = document.getElementById('coordPeriodFilter')?.value || 'todos';
-            if (!container || !rankingContainer) return;
-            
-            container.innerHTML = '';
-            rankingContainer.innerHTML = '';
-
-            let totalEquipeKm = 0;
-            const dadosRanking = [];
-
-            LISTA_COLABORADORES.forEach((nome, indexColab) => {
-                const rotaEmAndamento = parseSafeJson(localStorage.getItem(`agro_active_route_${nome}`), null);
-                const history = parseSafeJson(localStorage.getItem(`agro_routes_history_${nome}`), []);
-                const pastas = parseSafeJson(localStorage.getItem(`agro_archived_folders_${nome}`), {});
-
-                let totalRotasColab = 0;
-                let totalKmColab = 0;
-                let frotaIdentificada = localStorage.getItem(`agro_last_fleet_${nome}`) || 'Fiorino Álcool';
-
-                if (rotaEmAndamento && rotaEmAndamento.fleet) {
-                    frotaIdentificada = rotaEmAndamento.fleet;
-                } else if (Array.isArray(history) && history.length > 0 && history[history.length - 1].fleet) {
-                    frotaIdentificada = history[history.length - 1].fleet;
-                }
-
-                const rotasPorData = {};
-                
-                if(Array.isArray(history)) {
-                    history.forEach(r => {
-                        if(r && filtrarDataPorPeriodo(r.data, periodFilter)) {
-                            const dataKey = r.data || new Date().toLocaleDateString('pt-BR');
-                            if (!rotasPorData[dataKey]) rotasPorData[dataKey] = [];
-                            rotasPorData[dataKey].push(r);
-                            if (!isMealRecord(r)) {
-                                totalRotasColab++;
-                                totalKmColab += parseFloat(r.distance || 0);
-                            }
-                        }
-                    });
-                }
-
-                if(pastas && typeof pastas === 'object') {
-                    Object.keys(pastas).forEach(dataKey => {
-                        if(filtrarDataPorPeriodo(dataKey, periodFilter) && Array.isArray(pastas[dataKey])) {
-                            pastas[dataKey].forEach(r => {
-                                if(r) {
-                                    if(!rotasPorData[dataKey]) rotasPorData[dataKey] = [];
-                                    if(!rotasPorData[dataKey].some(item => item && item.id === r.id)) {
-                                        rotasPorData[dataKey].push(r);
-                                        if (!isMealRecord(r)) {
-                                            totalRotasColab++;
-                                            totalKmColab += parseFloat(r.distance || 0);
-                                        }
-                                    }
-                                }
-                            });
-                        }
-                    });
-                }
-
-                totalEquipeKm += totalKmColab;
-
-                const colabFin = calcularFinanceiroKm(totalKmColab);
-
-                dadosRanking.push({ 
-                    nome, 
-                    km: totalKmColab, 
-                    rotas: totalRotasColab,
-                    custo: colabFin.custoTotal
-                });
-
-                let alertaInativo = false;
-                if (periodFilter === 'hoje' && !rotaEmAndamento && totalRotasColab === 0) {
-                    alertaInativo = true;
-                }
-
-                const folderCard = document.createElement('div');
-                folderCard.className = "bg-slate-900 border border-slate-800 rounded-xl overflow-hidden transition w-full text-left";
-
-                let htmlPasta = `
-                    <button type="button" onclick="alternarAcordeaoPastaGestao('collabFolder_${indexColab}', 'iconFolder_${indexColab}')" class="w-full p-3.5 bg-slate-900 hover:bg-slate-800/80 flex items-center justify-between text-left cursor-pointer">
-                        <div class="flex items-center gap-3 text-left">
-                            <div class="w-10 h-10 rounded-xl bg-amber-600/20 border border-amber-500/40 text-amber-400 flex items-center justify-center font-bold text-base shrink-0">
-                                <i id="iconFolder_${indexColab}" class="fa-solid fa-folder text-amber-500"></i>
-                            </div>
-                            <div class="text-left">
-                                <h4 class="font-bold text-white text-sm flex items-center gap-2 flex-wrap text-left">
-                                    📁 Pasta: ${nome}
-                                    ${alertaInativo ? '<span class="text-[9px] bg-red-950 text-red-300 px-1.5 py-0.5 rounded border border-red-800">⚠️ Inativo hoje</span>' : ''}
-                                    ${rotaEmAndamento ? '<span class="text-[9px] bg-emerald-950 text-emerald-300 px-1.5 py-0.5 rounded border border-emerald-800 animate-pulse">🟢 Em Campo</span>' : ''}
-                                </h4>
-                                <span class="text-[11px] text-slate-400 block text-left">Frota: <strong class="text-amber-400">${frotaIdentificada}</strong></span>
-                            </div>
-                        </div>
-                        <div class="text-right flex items-center gap-3 shrink-0">
-                            <div>
-                                <div class="text-xs font-black text-agro-400 text-right">${totalKmColab.toFixed(1)} KM</div>
-                                <div class="text-[10px] text-red-400 font-semibold text-right">R$ ${parseFloat(colabFin.custoTotal).toFixed(2).replace('.', ',')}</div>
-                            </div>
-                            <i class="fa-solid fa-chevron-down text-slate-400 text-xs"></i>
-                        </div>
-                    </button>
-
-                    <div id="collabFolder_${indexColab}" class="hidden p-4 bg-slate-800/60 border-t border-slate-800 space-y-3 w-full text-left">
-                `;
-
-                if (rotaEmAndamento) {
-                    const isActiveMeal = rotaEmAndamento.type === 'meal';
-                    htmlPasta += `
-                        <div class="bg-amber-950/40 border border-amber-500/50 p-2.5 rounded-lg space-y-1 animate-pulse text-left">
-                            <div class="flex justify-between items-center font-bold text-amber-300 text-xs">
-                                <span>${isActiveMeal ? '🍽️ Horário de Refeição em Andamento' : '🟡 Manobra Ativa no Momento'}</span>
-                                <span>${isActiveMeal ? '0.00 KM (Refeição)' : `${(rotaEmAndamento.distanceKm || 0).toFixed(2)} KM`}</span>
-                            </div>
-                            <div class="text-xs text-white font-semibold">${isActiveMeal ? 'Intervalo de refeição (sem deslocamento)' : `Destino: ${rotaEmAndamento.destination || '---'}`}</div>
-                        </div>
-                    `;
-                }
-
-                const datasChaves = Object.keys(rotasPorData);
-                if (datasChaves.length === 0 && !rotaEmAndamento) {
-                    htmlPasta += `<div class="text-xs text-slate-500 text-left py-3">Nenhum registro para este período na pasta.</div>`;
-                } else {
-                    datasChaves.sort().reverse().forEach(dataKey => {
-                        const lista = rotasPorData[dataKey];
-                        let totalKmData = 0;
-                        let qtdRotasReais = 0;
-                        let qtdRefeicoes = 0;
-                        lista.forEach(r => {
-                            if(r) {
-                                if (isMealRecord(r)) {
-                                    qtdRefeicoes++;
-                                } else {
-                                    qtdRotasReais++;
-                                    totalKmData += parseFloat(r.distance || 0);
-                                }
-                            }
-                        });
-                        const finData = calcularFinanceiroKm(totalKmData);
-
-                        htmlPasta += `
-                            <div class="bg-slate-900 border border-slate-700/60 rounded-xl overflow-hidden space-y-1 w-full text-left">
-                                <div class="px-3 py-2 bg-slate-800 flex flex-wrap justify-between items-center gap-1 text-xs font-bold text-amber-400 text-left">
-                                    <span><i class="fa-solid fa-calendar-day mr-1"></i> Data: ${dataKey}</span>
-                                    <span class="text-slate-200">${qtdRotasReais} rota(s)${qtdRefeicoes > 0 ? ` • ${qtdRefeicoes} refeição(ões)` : ''} | ${totalKmData.toFixed(1)} KM | <strong class="text-red-400">R$ ${parseFloat(finData.custoTotal).toFixed(2).replace('.', ',')}</strong></span>
-                                </div>
-                                <div class="p-2 space-y-2 text-left">
-                        `;
-
-                        let routeCounter = 0;
-                        lista.forEach((r) => {
-                            if(r) {
-                                if (isMealRecord(r)) {
-                                    htmlPasta += `
-                                        <div class="bg-amber-950/25 p-2.5 rounded-lg border border-amber-500/30 text-xs space-y-1 text-left">
-                                            <div class="flex justify-between items-center font-bold text-amber-300">
-                                                <span><i class="fa-solid fa-utensils mr-1"></i> Horário de Refeição</span>
-                                                <span>0.00 KM (Refeição)</span>
-                                            </div>
-                                            <div class="text-[11px] text-slate-300 flex justify-between">
-                                                <span>Início: ${r.startTime || '--:--'} - Término: ${r.endTime || '--:--'}</span>
-                                                <span>Duração: ${r.duration || '00:00:00'}</span>
-                                            </div>
-                                        </div>
-                                    `;
-                                } else {
-                                    routeCounter++;
-                                    const distItem = parseFloat(r.distance || 0);
-                                    const finItem = calcularFinanceiroKm(distItem);
-                                    htmlPasta += `
-                                        <div class="bg-slate-800/80 p-2.5 rounded-lg border border-slate-700 text-xs space-y-1 text-left">
-                                            <div class="flex justify-between items-center font-bold text-white">
-                                                <span><i class="fa-solid fa-location-dot text-agro-500 mr-1"></i> #${routeCounter}: ${r.destination || 'Manobra'}</span>
-                                                <span class="text-agro-400">${distItem.toFixed(2)} KM</span>
-                                            </div>
-                                            <div class="text-[11px] text-slate-400 flex justify-between">
-                                                <span>Saída: ${r.startTime || '--:--'} - Chegada: ${r.endTime || '--:--'}</span>
-                                                <span>Custo: <strong class="text-red-400">R$ ${parseFloat(finItem.custoTotal).toFixed(2).replace('.', ',')}</strong></span>
-                                            </div>
-                                        </div>
-                                    `;
-                                }
-                            }
-                        });
-
-                        htmlPasta += `</div></div>`;
-                    });
-                }
-
-                htmlPasta += `
-                        <div class="pt-2 flex justify-start text-left">
-                            <button type="button" onclick="coordenadorVerRelatorioColaborador('${nome}')" class="px-3 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-lg transition cursor-pointer flex items-center gap-1.5">
-                                <i class="fa-solid fa-image"></i> Ver Relatório em Imagem deste Colaborador 📸
-                            </button>
-                        </div>
-                    </div>
-                `;
-
-                folderCard.innerHTML = htmlPasta;
-                container.appendChild(folderCard);
-            });
-
-            const finGeral = calcularFinanceiroKm(totalEquipeKm);
-            document.getElementById('kpiTotalKm').innerText = `${totalEquipeKm.toFixed(1)} KM`;
-            document.getElementById('kpiTotalLiters').innerText = `${finGeral.litros} L`;
-            document.getElementById('kpiTotalCost').innerText = `R$ ${parseFloat(finGeral.custoTotal).toFixed(2).replace('.', ',')}`;
-            document.getElementById('kpiSavedCost').innerText = `R$ ${parseFloat(finGeral.economiaEst).toFixed(2).replace('.', ',')}`;
-
-            atualizarBarraMetaKm(totalEquipeKm);
-
-            dadosRanking.sort((a, b) => b.km - a.km);
-            dadosRanking.forEach((item, index) => {
-                const medalhas = ['🥇', '🥈', '🥉', '4º', '5º', '6º'];
-                const badgeColor = index === 0 ? 'text-amber-400 font-black' : index === 1 ? 'text-slate-300 font-bold' : index === 2 ? 'text-amber-600 font-bold' : 'text-slate-500';
-                
-                const rankRow = document.createElement('div');
-                rankRow.className = "flex justify-between items-center bg-slate-800/80 px-3 py-2 rounded-lg text-xs border border-slate-700/60 w-full text-left";
-                rankRow.innerHTML = `
-                    <div class="flex items-center gap-2">
-                        <span class="${badgeColor} text-sm">${medalhas[index]}</span>
-                        <span class="font-bold text-white">${item.nome}</span>
-                    </div>
-                    <div class="text-right">
-                        <strong class="text-agro-400 mr-2">${item.km.toFixed(1)} KM</strong> 
-                        <span class="text-red-400 font-semibold">(R$ ${parseFloat(item.custo).toFixed(2).replace('.', ',')})</span>
-                    </div>
-                `;
-                rankingContainer.appendChild(rankRow);
-            });
-        }
-
-        function alternarAcordeaoPastaGestao(contentId, iconId) {
-            const el = document.getElementById(contentId);
-            const icon = document.getElementById(iconId);
-            if (el.classList.contains('hidden')) {
-                el.classList.remove('hidden');
-                icon.className = "fa-solid fa-folder-open text-amber-400";
-            } else {
-                el.classList.add('hidden');
-                icon.className = "fa-solid fa-folder text-amber-500";
-            }
-        }
-
-        async function ajustarMetaKm() {
-            const metaAtual = localStorage.getItem('agro_team_km_goal') || '300';
-            const novaMeta = prompt("Digite a meta de KM da equipe para o período:", metaAtual);
-            if (novaMeta && !isNaN(novaMeta) && parseFloat(novaMeta) > 0) {
-                localStorage.setItem('agro_team_km_goal', parseFloat(novaMeta));
-                await salvarConfiguracoesGlobais();
-                carregarListaColaboradoresCoordenador();
-                showAlert('Meta de KM atualizada com sucesso!', 'success');
-            }
-        }
-
-        function atualizarBarraMetaKm(totalKmRealizado) {
-            const metaGoal = parseFloat(localStorage.getItem('agro_team_km_goal') || '300');
-            const percent = Math.min(Math.round((totalKmRealizado / metaGoal) * 100), 100);
-
-            document.getElementById('metaKmLabel').innerText = metaGoal;
-            document.getElementById('metaKmRealized').innerText = `Realizado: ${totalKmRealizado.toFixed(1)} KM`;
-            document.getElementById('metaKmPercent').innerText = `${percent}% da meta`;
-            document.getElementById('metaKmProgressBar').style.width = `${percent}%`;
-        }
-
-        function exportarRelatorioGeralCoordenador() {
-            let csv = 'Colaborador,Tipo,Data,Frota,KM Inicial,KM Final,Manobra,Saida,Chegada,Duracao,Distancia,Litros_Alcool,Custo_R$\n';
-            const kmL = parseFloat(localStorage.getItem('agro_fuel_km_l') || '8.0');
-            const priceL = parseFloat(localStorage.getItem('agro_fuel_price') || '3.92');
-
-            const appendCsvRow = (nome, r) => {
-                if (!r) return;
-                const isMeal = isMealRecord(r);
-                const dist = isMeal ? 0 : parseFloat(r.distance || 0);
-                const lit = kmL > 0 ? (dist / kmL) : 0;
-                const cust = lit * priceL;
-                const tipoLabel = isMeal ? 'Refeicao' : 'Rota';
-                const destinoLabel = isMeal ? 'Horário de Refeição' : (r.destination || '');
-                csv += `${nome},${tipoLabel},${r.data || ''},${r.fleet || ''},${isMeal ? 0 : (r.kmStart || 0)},${isMeal ? 0 : (r.kmFinal || 0)},"${destinoLabel}",${r.startTime || ''},${r.endTime || ''},${r.duration || ''},${dist.toFixed(2)},${lit.toFixed(2)},${cust.toFixed(2)}\n`;
-            };
-
-            LISTA_COLABORADORES.forEach(nome => {
-                const history = parseSafeJson(localStorage.getItem(`agro_routes_history_${nome}`), []);
-                const pastas = parseSafeJson(localStorage.getItem(`agro_archived_folders_${nome}`), {});
-
-                if (Array.isArray(history)) history.forEach(r => appendCsvRow(nome, r));
-                if (pastas && typeof pastas === 'object') {
-                    Object.values(pastas).forEach(lista => {
-                        if (Array.isArray(lista)) lista.forEach(r => appendCsvRow(nome, r));
-                    });
-                }
-            });
-
-            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `Relatorio_Geral_Fiorino_${new Date().toISOString().slice(0,10)}.csv`;
-            a.click();
-            showAlert('Planilha consolidada gerada!', 'success');
-        }
-
-        function coordenadorVerRelatorioColaborador(nomeColaborador) {
-            const history = parseSafeJson(localStorage.getItem(`agro_routes_history_${nomeColaborador}`), []);
-            
-            if (!Array.isArray(history) || history.length === 0) {
-                const pastas = parseSafeJson(localStorage.getItem(`agro_archived_folders_${nomeColaborador}`), {});
-                const datas = Object.keys(pastas);
-                if (datas.length > 0) {
-                    const ultimaData = datas[datas.length - 1];
-                    if (popularEstruturaRelatorioVisual(pastas[ultimaData], ultimaData, nomeColaborador)) {
-                        document.getElementById('modalRelatorioVisual').classList.remove('hidden');
-                        return;
-                    }
-                }
-                showAlert(`O colaborador ${nomeColaborador} não possui rotas recentes ou arquivadas.`, 'error');
-                return;
-            }
-
-            if (popularEstruturaRelatorioVisual(history, new Date().toLocaleDateString('pt-BR'), nomeColaborador)) {
-                document.getElementById('modalRelatorioVisual').classList.remove('hidden');
-            }
-        }
-
-        function abrirRelatorioVisualOperador() {
-            const colabAtivo = localStorage.getItem('agro_fixed_colaborador');
-            const history = parseSafeJson(localStorage.getItem(`agro_routes_history_${colabAtivo}`), []);
-
-            if (!Array.isArray(history) || history.length === 0) {
-                showAlert('Você não tem registros recentes para gerar a imagem.', 'error');
-                return;
-            }
-
-            if (popularEstruturaRelatorioVisual(history, new Date().toLocaleDateString('pt-BR'), colabAtivo)) {
-                document.getElementById('modalRelatorioVisual').classList.remove('hidden');
-            }
-        }
-
-        function visualizarRelatorioPastaData(dataKey) {
-            const colabAtivo = localStorage.getItem('agro_fixed_colaborador');
-            const pastas = parseSafeJson(localStorage.getItem(`agro_archived_folders_${colabAtivo}`), {});
-            
-            const listaRotasData = pastas[dataKey];
-            if (!listaRotasData || listaRotasData.length === 0) {
-                showAlert('Nenhum dado encontrado para esta data.', 'error');
-                return;
-            }
-
-            if (popularEstruturaRelatorioVisual(listaRotasData, dataKey, colabAtivo)) {
-                document.getElementById('modalRelatorioVisual').classList.remove('hidden');
-            }
-        }
-
-        async function forcarDestraveGeral() {
-            pararTodosOsTimers();
-            liberarWakeLock();
-            const colabAtivo = localStorage.getItem('agro_fixed_colaborador');
-            if (colabAtivo) {
-                localStorage.removeItem(`agro_active_route_${colabAtivo}`);
-                await salvarEstadoColaborador(colabAtivo);
-            }
-            isSimulating = false;
-            isPaused = false;
-            tempoInicioPausa = null;
-            totalSegundosPausados = 0;
-            activeRoute = { type: 'route', colaborador: '', fleet: '', kmStart: 0, destination: '', notes: '', startTime: null, elapsedSeconds: 0, totalPausedSeconds: 0, distanceKm: 0, lastCoords: null, gpsPoints: 0 };
-            document.getElementById('activeSection').classList.add('hidden');
-            document.getElementById('formSection').classList.remove('hidden');
-            showAlert('Aplicativo destravado com sucesso.', 'success');
-        }
-
-        function pararTodosOsTimers() {
-            if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
-            if (watchId !== null) { navigator.geolocation.clearWatch(watchId); watchId = null; }
-            if (simInterval) { clearInterval(simInterval); simInterval = null; }
-        }
-
-        function carregarDadosSessaoColaborador(colab) {
-            try {
-                const ultimaFrotaSalva = localStorage.getItem(`agro_last_fleet_${colab}`);
-                if (ultimaFrotaSalva) {
-                    document.getElementById('inputFleet').value = ultimaFrotaSalva;
-                    carregarKmPorFrota(ultimaFrotaSalva);
-                } else {
-                    document.getElementById('inputFleet').value = 'Fiorino Álcool';
-                    document.getElementById('inputKmStart').value = '1000.0';
-                }
-            } catch(e) { console.error(e); }
-        }
-
-        function carregarKmPorFrota(frota) {
-            const colab = localStorage.getItem('agro_fixed_colaborador');
-            if (!colab || !frota) return;
-            const kmSalvo = localStorage.getItem(`agro_fleet_km_${colab}_${frota.trim()}`);
-            if (kmSalvo) {
-                document.getElementById('inputKmStart').value = kmSalvo;
-            } else {
-                const ultimoGlobal = localStorage.getItem(`agro_last_km_${colab}`);
-                if (ultimoGlobal) {
-                    document.getElementById('inputKmStart').value = ultimoGlobal;
-                }
-            }
-        }
-
-        function configurarModoPainelAtivo(isMeal) {
-            const statusLabel = document.getElementById('liveStatusLabel');
-            const destEl = document.getElementById('liveDestination');
-            const btnRename = document.getElementById('btnRenameActive');
-            const routeControls = document.getElementById('routeControlsRow');
-            const mealControls = document.getElementById('mealControlsRow');
-            const telemetryGrid = document.getElementById('routeTelemetryGrid');
-            const mealBanner = document.getElementById('mealInfoBanner');
-            const gpsFooter = document.getElementById('gpsFooterCard');
-            const mealStartClock = document.getElementById('liveMealStartClock');
-
-            if (isMeal) {
-                if (statusLabel) statusLabel.innerText = 'Horário de Refeição em Andamento (Sem KM)';
-                if (destEl) {
-                    destEl.className = 'text-xl font-bold text-amber-400';
-                    destEl.innerText = '🍽️ Horário de Refeição';
-                }
-                if (btnRename) btnRename.classList.add('hidden');
-                if (routeControls) routeControls.classList.add('hidden');
-                if (mealControls) mealControls.classList.remove('hidden');
-                if (telemetryGrid) telemetryGrid.classList.add('hidden');
-                if (mealBanner) mealBanner.classList.remove('hidden');
-                if (gpsFooter) gpsFooter.classList.add('hidden');
-                if (mealStartClock) {
-                    const horaInicio = activeRoute.startTime
-                        ? new Date(activeRoute.startTime).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
-                        : '--:--';
-                    mealStartClock.innerText = `Início: ${horaInicio}`;
-                }
-            } else {
-                if (statusLabel) statusLabel.innerText = 'Manobra em Andamento';
-                if (destEl) {
-                    destEl.className = 'text-xl font-bold text-agro-500';
-                    destEl.innerText = activeRoute.destination || '---';
-                }
-                if (btnRename) btnRename.classList.remove('hidden');
-                if (routeControls) routeControls.classList.remove('hidden');
-                if (mealControls) mealControls.classList.add('hidden');
-                if (telemetryGrid) telemetryGrid.classList.remove('hidden');
-                if (mealBanner) mealBanner.classList.add('hidden');
-                if (gpsFooter) gpsFooter.classList.remove('hidden');
-            }
-        }
-
-        function verificarRotaEmAndamentoSalva() {
-            const colab = localStorage.getItem('agro_fixed_colaborador');
-            if (!colab) return;
-            
-            const salva = localStorage.getItem(`agro_active_route_${colab}`);
-            if (salva) {
-                try {
-                    activeRoute = JSON.parse(salva);
-                    const isMeal = activeRoute && activeRoute.type === 'meal';
-
-                    if (!activeRoute || (!isMeal && (!activeRoute.destination || !activeRoute.fleet))) {
-                        localStorage.removeItem(`agro_active_route_${colab}`);
-                        return;
-                    }
-
-                    totalSegundosPausados = activeRoute.totalPausedSeconds || 0;
-                    isPaused = false;
-
-                    document.getElementById('formSection').classList.add('hidden');
-                    document.getElementById('activeSection').classList.remove('hidden');
-                    document.getElementById('liveFleet').innerHTML = `<i class="fa-solid ${isMeal ? 'fa-utensils text-amber-400' : 'fa-truck'} mr-1"></i> ${isMeal ? 'Intervalo de Refeição (0 KM)' : `Frota: ${activeRoute.fleet}`}`;
-
-                    if (!isMeal) {
-                        document.getElementById('liveKmStart').innerText = Number(activeRoute.kmStart).toFixed(1);
-                        document.getElementById('liveDistance').innerText = Number(activeRoute.distanceKm).toFixed(2);
-                        document.getElementById('gpsPointsCount').innerText = activeRoute.gpsPoints;
-                    }
-
-                    configurarModoPainelAtivo(isMeal);
-                    iniciarTimerUI();
-
-                    if (!isMeal) {
-                        iniciarGPSContinuo();
-                        solicitarWakeLock();
-                    }
-                } catch(e) {
-                    localStorage.removeItem(`agro_active_route_${colab}`);
-                }
-            }
-        }
-
-        async function startMealBreak() {
-            const colab = localStorage.getItem('agro_fixed_colaborador');
-            if (!colab) return;
-
-            const fleetInput = document.getElementById('inputFleet')?.value.trim();
-            const kmStartInput = parseFloat(document.getElementById('inputKmStart')?.value);
-            const kmBase = !Number.isNaN(kmStartInput)
-                ? kmStartInput
-                : (parseFloat(localStorage.getItem(`agro_last_km_${colab}`)) || 0);
-
-            totalSegundosPausados = 0;
-            tempoInicioPausa = null;
-            isPaused = false;
-            isSimulating = false;
-
-            activeRoute = {
-                type: 'meal',
-                colaborador: colab,
-                fleet: fleetInput || localStorage.getItem(`agro_last_fleet_${colab}`) || 'Fiorino Álcool',
-                kmStart: kmBase,
-                destination: 'Horário de Refeição',
-                notes: 'Intervalo de refeição (sem marcação de KM)',
-                startTime: Date.now(),
-                elapsedSeconds: 0,
-                totalPausedSeconds: 0,
-                distanceKm: 0,
-                lastCoords: null,
-                gpsPoints: 0
-            };
-
-            localStorage.setItem(`agro_active_route_${colab}`, JSON.stringify(activeRoute));
-            await salvarEstadoColaborador(colab);
-
-            document.getElementById('formSection').classList.add('hidden');
-            document.getElementById('activeSection').classList.remove('hidden');
-            document.getElementById('liveFleet').innerHTML = `<i class="fa-solid fa-utensils text-amber-400 mr-1"></i> Intervalo de Refeição (0 KM)`;
-
-            configurarModoPainelAtivo(true);
-            iniciarTimerUI();
-            showAlert('Horário de refeição iniciado! Nenhum KM será contabilizado.', 'info');
-        }
-
-        async function stopMealBreak() {
-            if (!confirm("Deseja encerrar o horário de refeição?")) return;
-
-            pararTodosOsTimers();
-            const colabAtivo = localStorage.getItem('agro_fixed_colaborador');
-
-            try {
-                const agora = new Date();
-                const dataHoje = agora.toLocaleDateString('pt-BR');
-                const inicioDate = activeRoute.startTime ? new Date(activeRoute.startTime) : agora;
-                const segundosDecorridos = activeRoute.startTime
-                    ? Math.max(1, Math.floor((Date.now() - activeRoute.startTime) / 1000))
-                    : (activeRoute.elapsedSeconds || 0);
-
-                const registroRefeicao = {
-                    id: Date.now() + Math.floor(Math.random() * 1000),
-                    type: 'meal',
-                    data: dataHoje,
-                    colaborador: colabAtivo,
-                    fleet: activeRoute.fleet || localStorage.getItem(`agro_last_fleet_${colabAtivo}`) || 'Fiorino Álcool',
-                    kmStart: '0.0',
-                    kmFinal: '0.0',
-                    destination: 'Horário de Refeição',
-                    notes: 'Refeição (sem KM)',
-                    startTime: inicioDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
-                    endTime: agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
-                    duration: formatDurationFromSeconds(segundosDecorridos),
-                    distance: '0.00'
-                };
-
-                let historyKey = `agro_routes_history_${colabAtivo}`;
-                const history = parseSafeJson(localStorage.getItem(historyKey), []);
-                history.push(registroRefeicao);
-                localStorage.setItem(historyKey, JSON.stringify(history));
-            } catch (err) {
-                console.error("Erro ao salvar horário de refeição:", err);
-            } finally {
-                localStorage.removeItem(`agro_active_route_${colabAtivo}`);
-                await salvarEstadoColaborador(colabAtivo);
-
-                isSimulating = false;
-                isPaused = false;
-                tempoInicioPausa = null;
-                totalSegundosPausados = 0;
-                activeRoute = { type: 'route', colaborador: '', fleet: '', kmStart: 0, destination: '', notes: '', startTime: null, elapsedSeconds: 0, totalPausedSeconds: 0, distanceKm: 0, lastCoords: null, gpsPoints: 0 };
-
-                configurarModoPainelAtivo(false);
-                document.getElementById('activeSection').classList.add('hidden');
-                document.getElementById('formSection').classList.remove('hidden');
-
-                carregarDadosSessaoColaborador(colabAtivo);
-                loadHistory();
-                showAlert('Horário de refeição salvo sem contabilizar KM!', 'success');
-            }
+            localStorage.removeItem("agro_fixed_colaborador");
+            localStorage.removeItem("agro_session_type");
+            document.getElementById("appPanel").classList.add("hidden");
+            document.getElementById("coordinatorPanel").classList.add("hidden");
+            document.getElementById("loginSection").classList.remove("hidden");
         }
 
         async function startTracking() {
-            const colab = localStorage.getItem('agro_fixed_colaborador');
-            const fleet = document.getElementById('inputFleet').value.trim();
-            const kmStart = parseFloat(document.getElementById('inputKmStart').value);
-            const destination = document.getElementById('inputDestination').value.trim();
-            const notes = document.getElementById('inputNotes').value.trim();
-
-            if (!fleet || isNaN(kmStart) || !destination) {
-                showAlert('Preencha todos os campos obrigatórios.', 'error');
-                return;
-            }
-
-            totalSegundosPausados = 0;
-            tempoInicioPausa = null;
-            isPaused = false;
-
-            activeRoute = {
-                type: 'route',
+            const colab = localStorage.getItem("agro_fixed_colaborador");
+            const fleet = document.getElementById("inputFleet").value.trim();
+            const kmStart = parseFloat(document.getElementById("inputKmStart").value) || 0;
+            const destination = document.getElementById("inputDestination").value.trim();
+            const history = parseSafeJson(localStorage.getItem(`agro_routes_history_${colab}`), []);
+            history.push({
+                id: Date.now(),
+                data: new Date().toLocaleDateString("pt-BR"),
                 colaborador: colab,
-                fleet: fleet,
-                kmStart: kmStart,
-                destination: destination,
-                notes: notes,
-                startTime: Date.now(),
-                elapsedSeconds: 0,
-                totalPausedSeconds: 0,
-                distanceKm: 0,
-                lastCoords: null,
-                gpsPoints: 0
-            };
-
-            localStorage.setItem(`agro_active_route_${colab}`, JSON.stringify(activeRoute));
-            localStorage.setItem(`agro_last_fleet_${colab}`, fleet);
+                fleet,
+                kmStart: kmStart.toFixed(1),
+                kmFinal: kmStart.toFixed(1),
+                destination,
+                distance: "0.00"
+            });
+            localStorage.setItem(`agro_routes_history_${colab}`, JSON.stringify(history));
             await salvarEstadoColaborador(colab);
-
-            document.getElementById('formSection').classList.add('hidden');
-            document.getElementById('activeSection').classList.remove('hidden');
-            document.getElementById('liveDestination').innerText = destination;
-            document.getElementById('liveFleet').innerHTML = `<i class="fa-solid fa-truck mr-1"></i> Frota: ${fleet}`;
-            document.getElementById('liveKmStart').innerText = kmStart.toFixed(1);
-
-            configurarModoPainelAtivo(false);
-            iniciarTimerUI();
-            iniciarGPSContinuo();
-            solicitarWakeLock();
-            
-            showAlert('Rastreamento GPS iniciado com sucesso!', 'success');
+            renderHistoricoOperador();
+            showAlert("Registro salvo!", "success");
         }
 
-        async function renomearDestinoAtivo() {
-            const colab = localStorage.getItem('agro_fixed_colaborador');
-            if (!colab || activeRoute.type === 'meal') return;
-
-            const novoDestino = prompt("Digite o novo nome para o destino / manobra atual:", activeRoute.destination || '');
-            if (novoDestino && novoDestino.trim() !== '') {
-                activeRoute.destination = novoDestino.trim();
-                document.getElementById('liveDestination').innerText = activeRoute.destination;
-                localStorage.setItem(`agro_active_route_${colab}`, JSON.stringify(activeRoute));
-                await salvarEstadoColaborador(colab);
-                showAlert('Destino atualizado com sucesso!', 'success');
-            }
-        }
-
-        function obterListaRotasAlvo(colabAtivo, dataFolder = '') {
-            if (dataFolder) {
-                const pastas = parseSafeJson(localStorage.getItem(`agro_archived_folders_${colabAtivo}`), {});
-                return {
-                    tipo: 'pasta',
-                    pastas: pastas,
-                    lista: Array.isArray(pastas[dataFolder]) ? pastas[dataFolder] : []
-                };
-            } else {
-                const history = parseSafeJson(localStorage.getItem(`agro_routes_history_${colabAtivo}`), []);
-                return {
-                    tipo: 'historico',
-                    lista: Array.isArray(history) ? history : []
-                };
-            }
-        }
-
-        function configurarCamposModalEdicao(isMeal) {
-            const destGroup = document.getElementById('editDestinationGroup');
-            const fleetGroup = document.getElementById('editFleetGroup');
-            const kmGroup = document.getElementById('editKmGroup');
-            const distBox = document.getElementById('editDistancePreviewBox');
-            const destInput = document.getElementById('editDestination');
-            const fleetInput = document.getElementById('editFleet');
-            const kmStartInput = document.getElementById('editKmStart');
-            const kmFinalInput = document.getElementById('editKmFinal');
-
-            document.getElementById('editIsMeal').value = isMeal ? '1' : '0';
-
-            if (isMeal) {
-                if (destGroup) destGroup.classList.add('hidden');
-                if (fleetGroup) fleetGroup.classList.add('hidden');
-                if (kmGroup) kmGroup.classList.add('hidden');
-                if (distBox) distBox.classList.add('hidden');
-                if (destInput) destInput.required = false;
-                if (fleetInput) fleetInput.required = false;
-                if (kmStartInput) kmStartInput.required = false;
-                if (kmFinalInput) kmFinalInput.required = false;
-            } else {
-                if (destGroup) destGroup.classList.remove('hidden');
-                if (fleetGroup) fleetGroup.classList.remove('hidden');
-                if (kmGroup) kmGroup.classList.remove('hidden');
-                if (distBox) distBox.classList.remove('hidden');
-                if (destInput) destInput.required = true;
-                if (fleetInput) fleetInput.required = true;
-                if (kmStartInput) kmStartInput.required = true;
-                if (kmFinalInput) kmFinalInput.required = true;
-            }
-        }
-
-        function abrirNovaManobraNaPasta(dataFolder) {
-            const colabAtivo = localStorage.getItem('agro_fixed_colaborador');
-            const alvo = obterListaRotasAlvo(colabAtivo, dataFolder);
-            const rotasReais = alvo.lista.filter(r => r && !isMealRecord(r));
-            const ultimaRota = rotasReais.length > 0 ? rotasReais[rotasReais.length - 1] : null;
-
-            const kmSugerido = ultimaRota
-                ? (parseFloat(ultimaRota.kmFinal || ultimaRota.kmStart || 0) || 0).toFixed(1)
-                : (localStorage.getItem(`agro_last_km_${colabAtivo}`) || '0.0');
-
-            const frotaSugerida = ultimaRota?.fleet || localStorage.getItem(`agro_last_fleet_${colabAtivo}`) || 'Fiorino Álcool';
-            const horaSugerida = ultimaRota?.endTime || new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-
-            configurarCamposModalEdicao(false);
-
-            const tituloModal = document.getElementById('modalEditarTitulo');
-            if (tituloModal) {
-                tituloModal.innerHTML = `<i class="fa-solid fa-plus-circle text-emerald-400"></i> Nova Manobra na Pasta (${dataFolder})`;
-            }
-            const btnSalvar = document.getElementById('btnSalvarEdicaoRota');
-            if (btnSalvar) {
-                btnSalvar.innerHTML = `<i class="fa-solid fa-plus mr-1"></i> Adicionar Manobra`;
-            }
-
-            document.getElementById('editRouteId').value = String(Date.now() + Math.floor(Math.random() * 10000));
-            document.getElementById('editRouteFolder').value = dataFolder;
-            document.getElementById('editIsNew').value = '1';
-            document.getElementById('editDestination').value = '';
-            document.getElementById('editFleet').value = frotaSugerida;
-            document.getElementById('editKmStart').value = kmSugerido;
-            document.getElementById('editKmFinal').value = kmSugerido;
-            document.getElementById('editStartTime').value = horaSugerida;
-            document.getElementById('editEndTime').value = horaSugerida;
-            document.getElementById('editPreviewDistance').innerText = '0.00 KM';
-
-            document.getElementById('modalEditarRota').classList.remove('hidden');
-            setTimeout(() => document.getElementById('editDestination')?.focus(), 50);
-        }
-
-        function abrirModalEditarRota(idRota, dataFolder = '') {
-            const colabAtivo = localStorage.getItem('agro_fixed_colaborador');
-            const alvo = obterListaRotasAlvo(colabAtivo, dataFolder);
-            const rota = alvo.lista.find(r => r && String(r.id) === String(idRota));
-            
-            if (!rota) {
-                showAlert('Registro não encontrado.', 'error');
+        function renderHistoricoOperador() {
+            const colab = localStorage.getItem("agro_fixed_colaborador");
+            const list = document.getElementById("historyList");
+            const history = parseSafeJson(localStorage.getItem(`agro_routes_history_${colab}`), []);
+            if (!history.length) {
+                list.innerHTML = '<div class="text-xs text-slate-400">Nenhum registro ainda.</div>';
                 return;
             }
-
-            const isMeal = isMealRecord(rota);
-            configurarCamposModalEdicao(isMeal);
-
-            const tituloModal = document.getElementById('modalEditarTitulo');
-            if (tituloModal) {
-                if (isMeal) {
-                    tituloModal.innerHTML = dataFolder
-                        ? `<i class="fa-solid fa-utensils text-amber-400"></i> Editar Refeição (${dataFolder})`
-                        : `<i class="fa-solid fa-utensils text-amber-400"></i> Editar Horário de Refeição`;
-                } else {
-                    tituloModal.innerHTML = dataFolder
-                        ? `<i class="fa-solid fa-pen-to-square text-amber-400"></i> Editar Manobra Arquivada (${dataFolder})`
-                        : `<i class="fa-solid fa-pen-to-square text-amber-400"></i> Editar Manobra / Rota`;
-                }
-            }
-
-            const btnSalvar = document.getElementById('btnSalvarEdicaoRota');
-            if (btnSalvar) {
-                btnSalvar.innerHTML = `Salvar Alterações`;
-            }
-
-            const kmIniVal = Number.isFinite(parseFloat(rota.kmStart)) ? parseFloat(rota.kmStart) : 0;
-            const kmFinVal = Number.isFinite(parseFloat(rota.kmFinal)) ? parseFloat(rota.kmFinal) : kmIniVal;
-
-            document.getElementById('editRouteId').value = String(rota.id);
-            document.getElementById('editRouteFolder').value = dataFolder || '';
-            document.getElementById('editIsNew').value = '0';
-            document.getElementById('editDestination').value = rota.destination || '';
-            document.getElementById('editFleet').value = rota.fleet || '';
-            document.getElementById('editKmStart').value = kmIniVal;
-            document.getElementById('editKmFinal').value = kmFinVal;
-            document.getElementById('editStartTime').value = rota.startTime || '00:00';
-            document.getElementById('editEndTime').value = rota.endTime || '00:00';
-            recalcularKmEdicao();
-
-            document.getElementById('modalEditarRota').classList.remove('hidden');
+            list.innerHTML = history.slice().reverse().map(r => `
+                <div class="bg-slate-900 border border-slate-700 p-3 rounded-xl text-xs flex justify-between">
+                    <div><strong>${r.destination}</strong> (${r.fleet}) - ${r.data}</div>
+                    <div class="text-agro-400 font-bold">${r.distance} KM</div>
+                </div>
+            `).join("");
         }
 
-        function fecharModalEditarRota() {
-            document.getElementById('modalEditarRota').classList.add('hidden');
-            document.getElementById('editRouteFolder').value = '';
-            document.getElementById('editIsNew').value = '0';
-            document.getElementById('editIsMeal').value = '0';
-        }
-
-        function recalcularKmEdicao() {
-            const kmIni = parseFloat(document.getElementById('editKmStart').value) || 0;
-            const kmFin = parseFloat(document.getElementById('editKmFinal').value) || 0;
-            const diff = kmFin >= kmIni ? (kmFin - kmIni) : 0;
-            document.getElementById('editPreviewDistance').innerText = `${diff.toFixed(2)} KM`;
-        }
-
-        async function salvarEdicaoRota() {
-            const idRota = document.getElementById('editRouteId').value;
-            const dataFolder = document.getElementById('editRouteFolder').value.trim();
-            const isNew = document.getElementById('editIsNew').value === '1';
-            const isMeal = document.getElementById('editIsMeal').value === '1';
-            const novoStartTime = document.getElementById('editStartTime').value.trim();
-            const novoEndTime = document.getElementById('editEndTime').value.trim();
-
-            const colabAtivo = localStorage.getItem('agro_fixed_colaborador');
-            const alvo = obterListaRotasAlvo(colabAtivo, dataFolder);
-
-            if (isMeal) {
-                const index = alvo.lista.findIndex(r => r && String(r.id) === String(idRota));
-                if (index === -1) {
-                    showAlert('Erro ao encontrar refeição para salvar.', 'error');
-                    return;
-                }
-                alvo.lista[index] = {
-                    ...alvo.lista[index],
-                    type: 'meal',
-                    destination: 'Horário de Refeição',
-                    kmStart: '0.0',
-                    kmFinal: '0.0',
-                    distance: '0.00',
-                    startTime: novoStartTime || alvo.lista[index].startTime || '--:--',
-                    endTime: novoEndTime || alvo.lista[index].endTime || '--:--'
-                };
-            } else {
-                const novoDestino = document.getElementById('editDestination').value.trim();
-                const novaFrota = document.getElementById('editFleet').value.trim();
-                const kmIniNum = parseFloat(String(document.getElementById('editKmStart').value).replace(',', '.'));
-                const kmFinNum = parseFloat(String(document.getElementById('editKmFinal').value).replace(',', '.'));
-
-                if (!novoDestino || !novaFrota) {
-                    showAlert('Preencha o nome da rota/destino e a frota.', 'error');
-                    return;
-                }
-                if (Number.isNaN(kmIniNum) || Number.isNaN(kmFinNum)) {
-                    showAlert('Informe valores válidos de KM Inicial e KM Final.', 'error');
-                    return;
-                }
-                if (kmFinNum < kmIniNum) {
-                    showAlert('O KM Final não pode ser menor que o KM Inicial!', 'error');
-                    return;
-                }
-
-                const distanciaCalculada = (kmFinNum - kmIniNum).toFixed(2);
-
-                if (isNew) {
-                    const novaRota = {
-                        id: idRota || (Date.now() + Math.floor(Math.random() * 10000)),
-                        type: 'route',
-                        data: dataFolder || new Date().toLocaleDateString('pt-BR'),
-                        colaborador: colabAtivo,
-                        fleet: novaFrota,
-                        kmStart: kmIniNum.toFixed(1),
-                        kmFinal: kmFinNum.toFixed(1),
-                        destination: novoDestino,
-                        notes: '',
-                        startTime: novoStartTime || '--:--',
-                        endTime: novoEndTime || '--:--',
-                        duration: '00:00:00',
-                        distance: distanciaCalculada
-                    };
-                    alvo.lista.push(novaRota);
-                } else {
-                    const index = alvo.lista.findIndex(r => r && String(r.id) === String(idRota));
-                    if (index === -1) {
-                        showAlert('Erro ao encontrar rota para salvar.', 'error');
-                        return;
-                    }
-
-                    alvo.lista[index] = {
-                        ...alvo.lista[index],
-                        type: 'route',
-                        destination: novoDestino,
-                        fleet: novaFrota,
-                        kmStart: kmIniNum.toFixed(1),
-                        kmFinal: kmFinNum.toFixed(1),
-                        distance: distanciaCalculada,
-                        startTime: novoStartTime || alvo.lista[index].startTime || '--:--',
-                        endTime: novoEndTime || alvo.lista[index].endTime || '--:--'
-                    };
-                }
-            }
-
-            if (dataFolder) {
-                alvo.pastas[dataFolder] = alvo.lista;
-                localStorage.setItem(`agro_archived_folders_${colabAtivo}`, JSON.stringify(alvo.pastas));
-                await salvarEstadoColaborador(colabAtivo);
-                openArchivedFolders.add(dataFolder);
-                fecharModalEditarRota();
-                renderizarConteudoPastas();
-                showAlert(isNew ? 'Nova manobra adicionada à pasta!' : (isMeal ? 'Horário de refeição atualizado!' : 'Manobra arquivada atualizada por completo!'), 'success');
-            } else {
-                localStorage.setItem(`agro_routes_history_${colabAtivo}`, JSON.stringify(alvo.lista));
-                await salvarEstadoColaborador(colabAtivo);
-                fecharModalEditarRota();
-                loadHistory();
-                showAlert(isMeal ? 'Horário de refeição atualizado!' : 'Manobra atualizada por completo!', 'success');
-            }
-        }
-
-        function confirmarExclusaoRota(idRota, dataFolder = '') {
-            const modal = document.getElementById('modalConfirmarExclusao');
-            const btnSim = document.getElementById('btnConfirmarSimExclusao');
-            const textoDesc = document.getElementById('textoConfirmarExclusao');
-            if (textoDesc) {
-                textoDesc.innerText = dataFolder
-                    ? `Este registro será removido permanentemente da pasta ${dataFolder}.`
-                    : 'Este registro será removido permanentemente do histórico.';
-            }
-            modal.classList.remove('hidden');
-            btnSim.onclick = function() {
-                executarExclusaoRota(idRota, dataFolder);
-                modal.classList.add('hidden');
-            };
-        }
-
-        function fecharModalExclusao() {
-            document.getElementById('modalConfirmarExclusao').classList.add('hidden');
-        }
-
-        async function executarExclusaoRota(idRota, dataFolder = '') {
-            const colabAtivo = localStorage.getItem('agro_fixed_colaborador');
-
-            if (dataFolder) {
-                const pastas = parseSafeJson(localStorage.getItem(`agro_archived_folders_${colabAtivo}`), {});
-                if (Array.isArray(pastas[dataFolder])) {
-                    pastas[dataFolder] = pastas[dataFolder].filter(r => r && String(r.id) !== String(idRota));
-                    if (pastas[dataFolder].length === 0) {
-                        delete pastas[dataFolder];
-                        openArchivedFolders.delete(dataFolder);
-                    } else {
-                        openArchivedFolders.add(dataFolder);
-                    }
-                    localStorage.setItem(`agro_archived_folders_${colabAtivo}`, JSON.stringify(pastas));
-                    await salvarEstadoColaborador(colabAtivo);
-                }
-                renderizarConteudoPastas();
-                showAlert('Registro arquivado excluído com sucesso!', 'info');
-            } else {
-                let history = parseSafeJson(localStorage.getItem(`agro_routes_history_${colabAtivo}`), []);
-                history = history.filter(r => r && String(r.id) !== String(idRota));
-                localStorage.setItem(`agro_routes_history_${colabAtivo}`, JSON.stringify(history));
-                await salvarEstadoColaborador(colabAtivo);
-                loadHistory();
-                showAlert('Registro excluído com sucesso!', 'info');
-            }
-        }
-
-        function iniciarTimerUI() {
-            pararTodosOsTimers();
-            const isMeal = activeRoute.type === 'meal';
-
-            timerInterval = setInterval(() => {
-                if (isMeal) {
-                    const segs = activeRoute.startTime
-                        ? Math.max(0, Math.floor((Date.now() - activeRoute.startTime) / 1000))
-                        : 0;
-                    activeRoute.elapsedSeconds = segs;
-                    const liveTimerEl = document.getElementById('liveTimer');
-                    if (liveTimerEl) liveTimerEl.innerText = formatDurationFromSeconds(segs);
-                    return;
-                }
-
-                if (!isPaused) {
-                    if (tempoInicioPausa) {
-                        const segundosPausadosNestaVez = Math.floor((Date.now() - tempoInicioPausa) / 1000);
-                        totalSegundosPausados += segundosPausadosNestaVez;
-                        tempoInicioPausa = null;
-                        activeRoute.totalPausedSeconds = totalSegundosPausados;
-                        
-                        const colab = localStorage.getItem('agro_fixed_colaborador');
-                        if (colab) {
-                            localStorage.setItem(`agro_active_route_${colab}`, JSON.stringify(activeRoute));
-                        }
-                    }
-
-                    const tempoRealSegundos = Math.floor((Date.now() - activeRoute.startTime) / 1000) - totalSegundosPausados;
-                    activeRoute.elapsedSeconds = tempoRealSegundos > 0 ? tempoRealSegundos : 0;
-                    
-                    const liveTimerEl = document.getElementById('liveTimer');
-                    const liveKmEl = document.getElementById('liveKmCurrent');
-                    if (liveTimerEl) liveTimerEl.innerText = formatDurationFromSeconds(activeRoute.elapsedSeconds);
-                    if (liveKmEl) liveKmEl.innerText = (activeRoute.kmStart + activeRoute.distanceKm).toFixed(1);
-                }
-            }, 1000);
-        }
-
-        async function togglePauseTracking() {
-            isPaused = !isPaused;
-            const btn = document.getElementById('pauseBtn');
-            const colab = localStorage.getItem('agro_fixed_colaborador');
-
-            if (isPaused) {
-                tempoInicioPausa = Date.now();
-                if (btn) {
-                    btn.className = "py-2.5 bg-agro-600 hover:bg-agro-500 text-white font-bold rounded-xl text-xs transition flex items-center justify-center gap-2 cursor-pointer";
-                    btn.innerHTML = '<i class="fa-solid fa-play"></i> RETOMAR ROTA';
-                }
-            } else {
-                if (tempoInicioPausa) {
-                    const segundosPausadosNestaVez = Math.floor((Date.now() - tempoInicioPausa) / 1000);
-                    totalSegundosPausados += segundosPausadosNestaVez;
-                    tempoInicioPausa = null;
-                    activeRoute.totalPausedSeconds = totalSegundosPausados;
-                }
-                if (colab) {
-                    localStorage.setItem(`agro_active_route_${colab}`, JSON.stringify(activeRoute));
-                    await salvarEstadoColaborador(colab);
-                }
-                if (btn) {
-                    btn.className = "py-2.5 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-xl text-xs transition flex items-center justify-center gap-2 cursor-pointer";
-                    btn.innerHTML = '<i class="fa-solid fa-pause"></i> PAUSAR ROTA';
-                }
-            }
-        }
-
-        function iniciarGPSContinuo() {
-            const badge = document.getElementById('gpsStatusBadge');
-            if (badge) {
-                badge.className = "flex items-center gap-2 px-3 py-1 rounded-full bg-agro-900/80 border border-agro-500/50 text-agro-300 text-xs font-semibold";
-                badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-agro-400 animate-pulse"></span><span>GPS Resiliente Ativo</span>';
-            }
-
-            if ("geolocation" in navigator) {
-                watchId = navigator.geolocation.watchPosition(
-                    (pos) => {
-                        if (isPaused || isSimulating || activeRoute.type === 'meal') return;
-
-                        const lat = pos.coords.latitude;
-                        const lng = pos.coords.longitude;
-                        const accuracy = pos.coords.accuracy; 
-                        const speed = ((pos.coords.speed || 0) * 3.6).toFixed(0);
-                        
-                        const speedEl = document.getElementById('liveSpeed');
-                        const accEl = document.getElementById('liveGpsAccuracy');
-                        if (speedEl) speedEl.innerText = `${speed} km/h`;
-                        if (accEl) accEl.innerText = `Precisão: ±${accuracy.toFixed(0)}m`;
-
-                        if (accuracy > 80) return;
-
-                        const novaCoord = { lat, lng };
-                        if (activeRoute.lastCoords) {
-                            const R = 6371e3; 
-                            const dLat = (lat - activeRoute.lastCoords.lat) * Math.PI / 180;
-                            const dLon = (lng - activeRoute.lastCoords.lng) * Math.PI / 180;
-                            const a = Math.sin(dLat/2) * Math.sin(dLat/2) + 
-                                      Math.cos(activeRoute.lastCoords.lat * Math.PI / 180) * 
-                                      Math.cos(lat * Math.PI / 180) * 
-                                      Math.sin(dLon/2) * Math.sin(dLon/2);
-                            const dist = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-                            
-                            if (dist >= 2 && dist < 1000) {
-                                activeRoute.distanceKm += dist / 1000;
-                                activeRoute.gpsPoints++;
-                                
-                                const distEl = document.getElementById('liveDistance');
-                                const ptsEl = document.getElementById('gpsPointsCount');
-                                if (distEl) distEl.innerText = activeRoute.distanceKm.toFixed(2);
-                                if (ptsEl) ptsEl.innerText = activeRoute.gpsPoints;
-                                
-                                activeRoute.lastCoords = novaCoord; 
-
-                                const colab = localStorage.getItem('agro_fixed_colaborador');
-                                if (colab) {
-                                    localStorage.setItem(`agro_active_route_${colab}`, JSON.stringify(activeRoute));
-                                }
-                            }
-                        } else {
-                            activeRoute.lastCoords = novaCoord;
-                        }
-                    },
-                    (err) => { 
-                        console.warn("Aviso de GPS:", err.message);
-                        if (!isPaused && activeRoute.type !== 'meal' && activeRoute.distanceKm >= 0) {
-                            activeRoute.distanceKm += 0.01; 
-                        }
-                    },
-                    { enableHighAccuracy: true, timeout: 30000, maximumAge: 5000 }
-                );
-            }
-        }
-
-        function toggleSimulatedMotion() {
-            if (activeRoute.type === 'meal') return;
-            isSimulating = !isSimulating;
-            const btn = document.getElementById('simMotionBtn');
-            if (isSimulating) {
-                if (btn) {
-                    btn.className = "text-xs bg-agro-700 text-white px-2.5 py-1 rounded-lg transition cursor-pointer font-bold animate-pulse";
-                    btn.innerHTML = '<i class="fa-solid fa-gamepad mr-1"></i> Simulando...';
-                }
-                if (simInterval) clearInterval(simInterval);
-                simInterval = setInterval(() => {
-                    if (!isPaused) {
-                        activeRoute.distanceKm += 0.05;
-                        activeRoute.gpsPoints++;
-                        const distEl = document.getElementById('liveDistance');
-                        const speedEl = document.getElementById('liveSpeed');
-                        const ptsEl = document.getElementById('gpsPointsCount');
-                        if (distEl) distEl.innerText = activeRoute.distanceKm.toFixed(2);
-                        if (speedEl) speedEl.innerText = `${Math.floor(Math.random() * 15 + 10)} km/h`;
-                        if (ptsEl) ptsEl.innerText = activeRoute.gpsPoints;
-                        
-                        const colab = localStorage.getItem('agro_fixed_colaborador');
-                        if (colab) {
-                            localStorage.setItem(`agro_active_route_${colab}`, JSON.stringify(activeRoute));
-                        }
-                    }
-                }, 1500);
-            } else {
-                if (btn) {
-                    btn.className = "text-xs bg-slate-700 hover:bg-slate-600 text-slate-200 px-2.5 py-1 rounded-lg transition cursor-pointer";
-                    btn.innerHTML = '<i class="fa-solid fa-gamepad mr-1"></i> Simular Movimento';
-                }
-                if (simInterval) clearInterval(simInterval);
-            }
-        }
-
-        async function stopTracking() {
-            if (activeRoute.type === 'meal') {
-                await stopMealBreak();
-                return;
-            }
-
-            if (!confirm("Deseja encerrar e salvar esta rota permanentemente?")) return;
-            
-            if (isPaused && tempoInicioPausa) {
-                const segundosPausadosNestaVez = Math.floor((Date.now() - tempoInicioPausa) / 1000);
-                totalSegundosPausados += segundosPausadosNestaVez;
-                tempoInicioPausa = null;
-            }
-
-            pararTodosOsTimers();
-            liberarWakeLock();
-            const colabAtivo = localStorage.getItem('agro_fixed_colaborador');
-
-            try {
-                const kmStartNum = parseFloat(activeRoute.kmStart) || 0;
-                const distanceNum = parseFloat(activeRoute.distanceKm) || 0;
-                const kmFinal = kmStartNum + distanceNum;
-                const agora = new Date();
-                const dataHoje = agora.toLocaleDateString('pt-BR');
-                
-                const registro = {
-                    id: Date.now() + Math.floor(Math.random() * 1000),
-                    type: 'route',
-                    data: dataHoje,
-                    colaborador: colabAtivo,
-                    fleet: activeRoute.fleet || 'Fiorino Álcool',
-                    kmStart: kmStartNum.toFixed(1),
-                    kmFinal: kmFinal.toFixed(1),
-                    destination: activeRoute.destination || 'Manobra',
-                    notes: activeRoute.notes || '',
-                    startTime: activeRoute.startTime ? new Date(activeRoute.startTime).toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'}) : agora.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'}),
-                    endTime: agora.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'}),
-                    duration: document.getElementById('liveTimer').innerText || '00:00:00',
-                    distance: distanceNum.toFixed(2)
-                };
-
-                const historyKey = `agro_routes_history_${colabAtivo}`;
-                const history = parseSafeJson(localStorage.getItem(historyKey), []);
-                history.push(registro);
-                localStorage.setItem(historyKey, JSON.stringify(history));
-
-                localStorage.setItem(`agro_last_fleet_${colabAtivo}`, registro.fleet);
-                localStorage.setItem(`agro_last_km_${colabAtivo}`, kmFinal.toFixed(1));
-                localStorage.setItem(`agro_fleet_km_${colabAtivo}_${registro.fleet}`, kmFinal.toFixed(1));
-
-                document.getElementById('inputFleet').value = registro.fleet;
-                document.getElementById('inputKmStart').value = kmFinal.toFixed(1);
-
-            } catch (err) {
-                console.error("Erro ao gravar histórico:", err);
-            } finally {
-                localStorage.removeItem(`agro_active_route_${colabAtivo}`);
-                await salvarEstadoColaborador(colabAtivo);
-
-                isSimulating = false;
-                isPaused = false;
-                tempoInicioPausa = null;
-                totalSegundosPausados = 0;
-                activeRoute = { type: 'route', colaborador: '', fleet: '', kmStart: 0, destination: '', notes: '', startTime: null, elapsedSeconds: 0, totalPausedSeconds: 0, distanceKm: 0, lastCoords: null, gpsPoints: 0 };
-
-                configurarModoPainelAtivo(false);
-                document.getElementById('activeSection').classList.add('hidden');
-                document.getElementById('formSection').classList.remove('hidden');
-                document.getElementById('startRouteForm').reset();
-
-                carregarDadosSessaoColaborador(colabAtivo);
-                loadHistory();
-
-                showAlert('Rota salva e sincronizada!', 'success');
-            }
-        }
-
-        function loadHistory() {
-            try {
-                const colabAtivo = localStorage.getItem('agro_fixed_colaborador');
-                const history = parseSafeJson(localStorage.getItem(`agro_routes_history_${colabAtivo}`), []);
-                
-                const container = document.getElementById('historyList');
-                const datalist = document.getElementById('destinationList');
-                if(!container || !datalist) return;
-                container.innerHTML = '';
-                datalist.innerHTML = '';
-                const destinationsSet = new Set();
-
-                if (!Array.isArray(history) || history.length === 0) {
-                    container.innerHTML = '<div class="text-xs text-slate-500 text-left py-4">Nenhuma rota recente.</div>';
-                    return;
-                }
-
-                history.slice().reverse().forEach((item) => {
-                    if(item) {
-                        const isMeal = isMealRecord(item);
-                        if (!isMeal) destinationsSet.add(item.destination || '');
-                        const div = document.createElement('div');
-                        div.className = isMeal
-                            ? "bg-amber-950/20 border border-amber-500/35 p-3 rounded-xl flex justify-between items-center text-xs text-left w-full"
-                            : "bg-slate-900 border border-slate-800 p-3 rounded-xl flex justify-between items-center text-xs text-left w-full";
-
-                        if (isMeal) {
-                            div.innerHTML = `
-                                <div class="flex-1 pr-2 text-left">
-                                    <div class="font-bold text-amber-300 text-left"><i class="fa-solid fa-utensils mr-1"></i> Horário de Refeição</div>
-                                    <div class="text-slate-400 mt-0.5 text-left">Data: ${item.data || '--/--/----'} | Sem marcação de KM</div>
-                                    <div class="text-slate-300 text-[11px] mt-0.5 text-left">Horário: <strong class="text-amber-300">${item.startTime || '--:--'}</strong> às <strong class="text-amber-300">${item.endTime || '--:--'}</strong> (Duração: ${item.duration || '00:00:00'})</div>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <div class="text-right font-bold text-amber-300 mr-1">0.00 KM</div>
-                                    <button type="button" onclick="abrirModalEditarRota('${escapeJsString(item.id)}')" class="p-2 bg-slate-800 hover:bg-slate-700 text-amber-400 rounded-lg transition cursor-pointer" title="Editar Refeição">
-                                        <i class="fa-solid fa-pen text-xs"></i>
-                                    </button>
-                                    <button type="button" onclick="confirmarExclusaoRota('${escapeJsString(item.id)}')" class="p-2 bg-slate-800 hover:bg-red-950 text-red-400 rounded-lg transition cursor-pointer" title="Excluir Refeição">
-                                        <i class="fa-solid fa-trash text-xs"></i>
-                                    </button>
-                                </div>
-                            `;
-                        } else {
-                            div.innerHTML = `
-                                <div class="flex-1 pr-2 text-left">
-                                    <div class="font-bold text-white text-left"><i class="fa-solid fa-location-dot text-agro-500 mr-1"></i> ${item.destination || 'Manobra'}</div>
-                                    <div class="text-slate-400 mt-0.5 text-left">Data: ${item.data || '--/--/----'} | Frota: ${item.fleet || '---'}</div>
-                                    <div class="text-slate-400 text-[11px] mt-0.5 text-left">KM Ini: <strong class="text-slate-300">${item.kmStart || 0}</strong> | KM Fim: <strong class="text-slate-300">${item.kmFinal || 0}</strong></div>
-                                    <div class="text-slate-400 text-[11px] mt-0.5 text-left">Horário: <strong class="text-amber-300">${item.startTime || '--:--'}</strong> às <strong class="text-amber-300">${item.endTime || '--:--'}</strong> (Tempo: ${item.duration || '00:00:00'})</div>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <div class="text-right font-bold text-agro-400 mr-1">${item.distance || '0.00'} KM</div>
-                                    <button type="button" onclick="abrirModalEditarRota('${escapeJsString(item.id)}')" class="p-2 bg-slate-800 hover:bg-slate-700 text-amber-400 rounded-lg transition cursor-pointer" title="Editar Manobra">
-                                        <i class="fa-solid fa-pen text-xs"></i>
-                                    </button>
-                                    <button type="button" onclick="confirmarExclusaoRota('${escapeJsString(item.id)}')" class="p-2 bg-slate-800 hover:bg-red-950 text-red-400 rounded-lg transition cursor-pointer" title="Excluir Manobra">
-                                        <i class="fa-solid fa-trash text-xs"></i>
-                                    </button>
-                                </div>
-                            `;
-                        }
-                        container.appendChild(div);
-                    }
-                });
-
-                destinationsSet.forEach(dest => {
-                    if(dest) {
-                        const opt = document.createElement('option');
-                        opt.value = dest;
-                        datalist.appendChild(opt);
-                    }
-                });
-            } catch(e) { console.error(e); }
-        }
-
-        async function clearHistory() {
-            if (confirm("Deseja apagar o histórico recente?")) {
-                const colabAtivo = localStorage.getItem('agro_fixed_colaborador');
-                localStorage.removeItem(`agro_routes_history_${colabAtivo}`);
-                await salvarEstadoColaborador(colabAtivo);
-                loadHistory();
-                showAlert('Histórico recente limpo.', 'info');
-            }
-        }
-
-        function exportToCSV() {
-            const colabAtivo = localStorage.getItem('agro_fixed_colaborador');
-            const history = parseSafeJson(localStorage.getItem(`agro_routes_history_${colabAtivo}`), []);
-            if (!Array.isArray(history) || history.length === 0) { showAlert('Sem dados para exportar.', 'error'); return; }
-            let csv = 'ID,Tipo,Data,Colaborador,Frota,KM Inicial,KM Final,Manobra,Saida,Chegada,Duracao,Distancia\n';
-            history.forEach(i => {
-                if(i) {
-                    const isMeal = isMealRecord(i);
-                    csv += `${i.id || 0},${isMeal ? 'Refeicao' : 'Rota'},${i.data || ''},${i.colaborador || ''},${i.fleet || ''},${isMeal ? 0 : (i.kmStart || 0)},${isMeal ? 0 : (i.kmFinal || 0)},"${isMeal ? 'Horário de Refeição' : (i.destination || '')}",${i.startTime || ''},${i.endTime || ''},${i.duration || ''},${isMeal ? '0.00' : (i.distance || 0)}\n`;
-                }
-            });
-            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url; a.download = `Relatorio_${colabAtivo}.csv`; a.click();
-        }
-
-        function popularEstruturaRelatorioVisual(listaRotas, dataTitulo, nomeColaborador) {
-            if (!listaRotas || !Array.isArray(listaRotas) || listaRotas.length === 0) return false;
-
-            const rotasReais = listaRotas.filter(r => r && !isMealRecord(r));
-            const ultimaRotaComFrota = [...listaRotas].reverse().find(r => r && r.fleet) || {};
-
-            document.getElementById('imgReportDate').innerText = dataTitulo || new Date().toLocaleDateString('pt-BR');
-            document.getElementById('imgReportCollab').innerText = nomeColaborador;
-            document.getElementById('imgReportFleet').innerText = ultimaRotaComFrota.fleet || 'Fiorino Álcool';
-            document.getElementById('imgReportTotalRoutes').innerText = rotasReais.length;
-
-            let totalKmGeral = 0;
-            rotasReais.forEach(r => { if(r && r.distance) totalKmGeral += parseFloat(r.distance || 0); });
-
-            const primeiroInicio = listaRotas.find(r => r && r.startTime)?.startTime || '--:--';
-            const ultimoTermino = [...listaRotas].reverse().find(r => r && r.endTime)?.endTime || '--:--';
-
-            document.getElementById('summaryTotalRoutes').innerText = rotasReais.length;
-            document.getElementById('summaryTotalKm').innerText = `${totalKmGeral.toFixed(2)} km`;
-            document.getElementById('summaryFirstStart').innerText = primeiroInicio;
-            document.getElementById('summaryLastEnd').innerText = ultimoTermino;
-
-            const container = document.getElementById('imgRoutesContainer');
-            container.innerHTML = '';
-
-            let routeIdx = 0;
-            listaRotas.forEach((r) => {
-                if(r) {
-                    const card = document.createElement('div');
-                    if (isMealRecord(r)) {
-                        card.style.background = '#fffbeb';
-                        card.style.borderRadius = '12px';
-                        card.style.overflow = 'hidden';
-                        card.style.border = '1px solid #fcd34d';
-                        card.style.boxShadow = '0 2px 4px rgba(0,0,0,0.05)';
-                        card.innerHTML = `
-                            <div style="background: #78350f; color: #ffffff; padding: 7px 12px; display: flex; justify-content: space-between; align-items: center;">
-                                <span style="font-weight: 900; font-size: 10px; color: #fef3c7;">🍽️ HORÁRIO DE REFEIÇÃO</span>
-                                <span style="font-weight: 800; font-size: 10px; color: #fde68a;">0.00 km</span>
-                            </div>
-                            <div style="padding: 9px 12px; display: flex; justify-content: space-between; align-items: center; font-size: 10px; color: #451a03; font-weight: 700;">
-                                <span>Início: ${r.startTime || '--:--'} → Término: ${r.endTime || '--:--'}</span>
-                                <span>Duração: ${r.duration || '00:00:00'}</span>
-                            </div>
-                        `;
-                    } else {
-                        routeIdx++;
-                        card.style.background = '#ffffff';
-                        card.style.borderRadius = '12px';
-                        card.style.overflow = 'hidden';
-                        card.style.border = '1px solid #cbd5e1';
-                        card.style.boxShadow = '0 2px 4px rgba(0,0,0,0.05)';
-                        card.innerHTML = `
-                            <div style="background: #0b132b; color: #ffffff; padding: 8px 12px; display: flex; justify-content: space-between; align-items: center;">
-                                <span style="font-weight: 900; font-size: 11px; color: #ffffff;">Rota #${routeIdx}</span>
-                            </div>
-                            <div style="padding: 10px 12px; display: grid; grid-template-columns: 1.2fr 1fr 1fr 1fr; gap: 4px; align-items: center; border-bottom: 1px solid #e2e8f0; text-align: left;">
-                                <div style="text-align: left;">
-                                    <span style="font-size: 7px; font-weight: 800; color: #64748b; text-transform: uppercase; display: block;">Manobra:</span>
-                                    <span style="font-size: 10px; font-weight: 900; color: #0f172a;">${r.destination || 'Manobra'}</span>
-                                </div>
-                                <div style="text-align: left;">
-                                    <span style="font-size: 7px; font-weight: 800; color: #64748b; text-transform: uppercase; display: block;">Saída: ${r.startTime || '--:--'}</span>
-                                    <span style="font-size: 7px; font-weight: 800; color: #64748b; text-transform: uppercase; display: block;">Chegada: ${r.endTime || '--:--'}</span>
-                                </div>
-                                <div style="text-align: left;">
-                                    <span style="font-size: 7px; font-weight: 800; color: #64748b; text-transform: uppercase; display: block;">KM Ini: ${r.kmStart || 0}</span>
-                                    <span style="font-size: 7px; font-weight: 800; color: #64748b; text-transform: uppercase; display: block;">KM Fin: ${r.kmFinal || 0}</span>
-                                </div>
-                                <div style="text-align: right;">
-                                    <span style="font-size: 7px; font-weight: 800; color: #64748b; text-transform: uppercase; display: block;">Total:</span>
-                                    <span style="font-size: 11px; font-weight: 900; color: #2563eb;">${r.distance || '0.00'} km</span>
-                                </div>
-                            </div>
-                        `;
-                    }
-                    container.appendChild(card);
-                }
-            });
-
-            return true;
-        }
-
-        function fecharModalVisual() {
-            document.getElementById('modalRelatorioVisual').classList.add('hidden');
-        }
-
-        function baixarImagemPronta() {
-            const card = document.getElementById('reportCardToImage');
-            showAlert('Gerando imagem do relatório...', 'info');
-            card.style.width = '420px';
-
-            html2canvas(card, { 
-                scale: 2, 
-                backgroundColor: '#f1f5f9', 
-                useCORS: true, 
-                allowTaint: true, 
-                logging: false 
-            }).then(canvas => {
-                card.style.width = '100%';
-                canvas.toBlob((blob) => {
-                    if (!blob) {
-                        showAlert('Erro ao converter imagem.', 'error');
-                        return;
-                    }
-                    const file = new File([blob], `Relatorio_AgroRota_${new Date().toISOString().slice(0,10)}.png`, { type: 'image/png' });
-                    
-                    if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                        navigator.share({ 
-                            files: [file], 
-                            title: 'Relatório AgroRota', 
-                            text: 'Segue o relatório de rotas da operação.' 
-                        }).then(() => {
-                            showAlert('Imagem compartilhada com sucesso!', 'success');
-                        }).catch((error) => {
-                            if (error.name !== 'AbortError') {
-                                baixarArquivoFallback(canvas);
-                            }
-                        });
-                    } else {
-                        baixarArquivoFallback(canvas);
-                    }
-                }, 'image/png');
-            }).catch(err => {
-                card.style.width = '100%';
-                console.error("Erro html2canvas:", err);
-                showAlert('Falha ao gerar imagem. Use o botão do WhatsApp.', 'error');
-            });
-        }
-
-        function baixarArquivoFallback(canvas) {
-            const link = document.createElement('a');
-            link.download = `Relatorio_AgroRota_${new Date().toISOString().slice(0,10)}.png`;
-            link.href = canvas.toDataURL('image/png');
-            link.click();
-            showAlert('Imagem baixada com sucesso!', 'success');
-        }
-
-        function partilharImagemDireta() {
-            baixarImagemPronta();
-        }
-
-        function gerarelatorioGestor() {
-            const colabAtivo = localStorage.getItem('agro_fixed_colaborador') || 'Colaborador';
-            const history = parseSafeJson(localStorage.getItem(`agro_routes_history_${colabAtivo}`), []);
-            
-            if (!Array.isArray(history) || history.length === 0) {
-                showAlert('Sem dados recentes para enviar.', 'error');
-                return;
-            }
-
-            let totalKmGeral = 0;
-            let routeNum = 0;
-            let texto = `*📊 RELATÓRIO DE ROTAS - AGROROTA GPS* 🚜\n\n`;
-
-            history.forEach((r) => {
-                if(r) {
-                    if (isMealRecord(r)) {
-                        texto += `🍽️ *Horário de Refeição*\n`;
-                        texto += `⏰ ${r.startTime || '--:--'} às ${r.endTime || '--:--'} (Duração: ${r.duration || '00:00:00'}) | _Sem KM_\n\n`;
-                    } else {
-                        routeNum++;
-                        totalKmGeral += parseFloat(r.distance || 0);
-                        texto += `*Rota #${routeNum}*\n`;
-                        texto += `👤 ${r.colaborador || colabAtivo} | 🚗 ${r.fleet || 'Fiorino Álcool'}\n`;
-                        texto += `⚙️ Destino: ${r.destination || 'Manobra'}\n`;
-                        texto += `⏰ ${r.startTime || '--:--'} às ${r.endTime || '--:--'} | 🛣️ *${r.distance || '0.00'} KM*\n\n`;
-                    }
-                }
-            });
-            texto += `🛣️ *KM TOTAL DO DIA:* *${totalKmGeral.toFixed(2)} KM*\n\n_Enviado via AgroRota GPS_`;
-
-            const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(texto)}`;
-            const win = window.open(url, '_blank');
-            if (!win) {
-                window.location.href = url;
-            }
-        }
-
-        async function finalizarDemandaDoDia() {
-            const colabAtivo = localStorage.getItem('agro_fixed_colaborador');
-            const history = parseSafeJson(localStorage.getItem(`agro_routes_history_${colabAtivo}`), []);
-            if (!Array.isArray(history) || history.length === 0) {
-                showAlert('Não há registros para arquivar.', 'error');
-                return;
-            }
-
-            if (confirm("Deseja arquivar suas manobras e refeições nas suas pastas privadas?")) {
-                const pastas = parseSafeJson(localStorage.getItem(`agro_archived_folders_${colabAtivo}`), {});
-                
-                history.forEach(r => {
-                    if(r) {
-                        if (!r.id) r.id = Date.now() + Math.floor(Math.random() * 100000);
-                        const dataFolder = r.data || new Date().toLocaleDateString('pt-BR');
-                        if (!pastas[dataFolder]) pastas[dataFolder] = [];
-                        pastas[dataFolder].push(r);
-                    }
-                });
-
-                localStorage.setItem(`agro_archived_folders_${colabAtivo}`, JSON.stringify(pastas));
-                localStorage.removeItem(`agro_routes_history_${colabAtivo}`);
-                await salvarEstadoColaborador(colabAtivo);
-                loadHistory();
-                showAlert('Demanda arquivada com sucesso nas suas pastas!', 'success');
-            }
-        }
-
-        function escapeJsString(str) {
-            return String(str || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
-        }
-
-        function renderizarConteudoPastas() {
-            const colabAtivo = localStorage.getItem('agro_fixed_colaborador');
-            const pastas = parseSafeJson(localStorage.getItem(`agro_archived_folders_${colabAtivo}`), {});
-
-            const content = document.getElementById('modalPastasContent');
-            if (!content) return;
-            const datas = Object.keys(pastas);
-
-            if (datas.length === 0) {
-                content.innerHTML = '<div class="text-xs text-slate-500 text-left py-6">Nenhuma pasta arquivada.</div>';
-                return;
-            }
-
-            content.innerHTML = datas.map((data, index) => {
-                let totalKmPasta = 0;
-                let qtdRotasReais = 0;
-                const listaRotas = Array.isArray(pastas[data]) ? pastas[data] : [];
-                listaRotas.forEach(r => {
-                    if (r && !r.id) r.id = `${data}_${Math.random().toString(36).slice(2, 8)}`;
-                    if (r && !isMealRecord(r)) {
-                        qtdRotasReais++;
-                        if (r.distance) totalKmPasta += parseFloat(r.distance || 0);
-                    }
-                });
-
-                const estaAberta = openArchivedFolders.has(data);
-                const dataEscapada = escapeJsString(data);
-                let routeCounter = 0;
-
+        function carregarPainelGestor() {
+            const box = document.getElementById("coordinatorCollabFoldersList");
+            box.innerHTML = LISTA_COLABORADORES.map(nome => {
+                const hist = parseSafeJson(localStorage.getItem(`agro_routes_history_${nome}`), []);
+                const km = hist.reduce((acc, item) => acc + (parseFloat(item.distance) || 0), 0);
                 return `
-                    <div class="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden transition w-full text-left">
-                        <button type="button" onclick="alternarAcordeaoPasta('pastaContent_${index}', 'icon_${index}', '${dataEscapada}')" class="w-full p-3 bg-slate-800 flex justify-between items-center text-xs font-bold text-amber-400 cursor-pointer text-left">
-                            <span class="flex items-center gap-2 text-left">
-                                <i id="icon_${index}" class="fa-solid ${estaAberta ? 'fa-folder-open text-amber-400' : 'fa-folder text-amber-500'}"></i> 
-                                <span>Pasta: ${data}</span>
-                            </span>
-                            <div class="flex items-center gap-3">
-                                <span class="text-slate-300 font-semibold">${qtdRotasReais} rota(s) | ${totalKmPasta.toFixed(2)} km</span>
-                                <i class="fa-solid fa-chevron-down text-slate-400 text-[10px]"></i>
-                            </div>
-                        </button>
-
-                        <div id="pastaContent_${index}" class="${estaAberta ? '' : 'hidden'} p-3 bg-slate-900/90 border-t border-slate-700/60 space-y-3 text-left">
-                            <div class="flex flex-wrap gap-2 justify-start pt-1">
-                                <button type="button" onclick="visualizarRelatorioPastaData('${dataEscapada}')" class="px-3 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-lg transition cursor-pointer flex items-center gap-1.5 shadow">
-                                    <i class="fa-solid fa-image"></i> Ver Relatório em Imagem Desta Pasta 📸
-                                </button>
-                                <button type="button" onclick="abrirNovaManobraNaPasta('${dataEscapada}')" class="px-3 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-lg transition cursor-pointer flex items-center gap-1.5 shadow">
-                                    <i class="fa-solid fa-plus"></i> Nova Manobra
-                                </button>
-                            </div>
-
-                            ${listaRotas.map((r) => {
-                                if (!r) return '';
-                                if (isMealRecord(r)) {
-                                    return `
-                                        <div class="bg-amber-950/25 p-2.5 rounded-lg border border-amber-500/35 text-[11px] space-y-1.5 text-left">
-                                            <div class="flex justify-between items-center text-amber-300 font-bold gap-2">
-                                                <span><i class="fa-solid fa-utensils mr-1"></i> Horário de Refeição</span>
-                                                <span class="shrink-0">0.00 km (Refeição)</span>
-                                            </div>
-                                            <div class="text-slate-300 flex justify-between items-center gap-2">
-                                                <span>Início: ${r.startTime || '--:--'} - Término: ${r.endTime || '--:--'}</span>
-                                                <span class="shrink-0">Duração: ${r.duration || '00:00:00'}</span>
-                                            </div>
-                                            <div class="flex justify-end gap-2 pt-1 border-t border-amber-500/20">
-                                                <button type="button" onclick="abrirModalEditarRota('${escapeJsString(r.id)}', '${dataEscapada}')" class="px-2.5 py-1 bg-slate-900 hover:bg-slate-700 text-amber-400 rounded-lg transition cursor-pointer flex items-center gap-1 font-semibold" title="Editar Horário de Refeição">
-                                                    <i class="fa-solid fa-pen text-[10px]"></i> Editar
-                                                </button>
-                                                <button type="button" onclick="confirmarExclusaoRota('${escapeJsString(r.id)}', '${dataEscapada}')" class="px-2.5 py-1 bg-slate-900 hover:bg-red-950 text-red-400 rounded-lg transition cursor-pointer flex items-center gap-1 font-semibold" title="Excluir Refeição">
-                                                    <i class="fa-solid fa-trash text-[10px]"></i> Excluir
-                                                </button>
-                                            </div>
-                                        </div>
-                                    `;
-                                }
-                                routeCounter++;
-                                return `
-                                    <div class="bg-slate-800/80 p-2.5 rounded-lg border border-slate-700 text-[11px] space-y-1.5 text-left">
-                                        <div class="flex justify-between items-center text-white font-bold gap-2">
-                                            <span><i class="fa-solid fa-route text-agro-500 mr-1"></i> #${routeCounter}: ${r.destination || 'Manobra'}</span>
-                                            <span class="text-agro-400 shrink-0">${r.distance || '0.00'} km</span>
-                                        </div>
-                                        <div class="text-slate-400 flex justify-between items-center gap-2">
-                                            <span>Frota: ${r.fleet || '---'} | Saída: ${r.startTime || '--:--'} - Chegada: ${r.endTime || '--:--'}</span>
-                                            <span class="shrink-0">KM: ${r.kmStart || 0} → ${r.kmFinal || 0}</span>
-                                        </div>
-                                        <div class="flex justify-end gap-2 pt-1 border-t border-slate-700/60">
-                                            <button type="button" onclick="abrirModalEditarRota('${escapeJsString(r.id)}', '${dataEscapada}')" class="px-2.5 py-1 bg-slate-900 hover:bg-slate-700 text-amber-400 rounded-lg transition cursor-pointer flex items-center gap-1 font-semibold" title="Editar Manobra Arquivada">
-                                                <i class="fa-solid fa-pen text-[10px]"></i> Editar
-                                            </button>
-                                            <button type="button" onclick="confirmarExclusaoRota('${escapeJsString(r.id)}', '${dataEscapada}')" class="px-2.5 py-1 bg-slate-900 hover:bg-red-950 text-red-400 rounded-lg transition cursor-pointer flex items-center gap-1 font-semibold" title="Excluir Manobra Arquivada">
-                                                <i class="fa-solid fa-trash text-[10px]"></i> Excluir
-                                            </button>
-                                        </div>
-                                    </div>
-                                `;
-                            }).join('')}
-                        </div>
+                    <div class="bg-slate-900 border border-slate-700 p-3 rounded-xl flex justify-between items-center text-xs">
+                        <div><strong>${nome}</strong> (${hist.length} registro(s))</div>
+                        <div class="text-agro-400 font-bold">${km.toFixed(2)} KM</div>
                     </div>
                 `;
-            }).join('');
-        }
-
-        function toggleModalPastas(abrir) {
-            const m = document.getElementById('modalPastas');
-            if (abrir) {
-                renderizarConteudoPastas();
-                m.classList.remove('hidden');
-            } else {
-                m.classList.add('hidden');
-            }
-        }
-
-        function alternarAcordeaoPasta(contentId, iconId, dataKey = '') {
-            const el = document.getElementById(contentId);
-            const icon = document.getElementById(iconId);
-            if (!el || !icon) return;
-            if (el.classList.contains('hidden')) {
-                el.classList.remove('hidden');
-                icon.className = "fa-solid fa-folder-open text-amber-400";
-                if (dataKey) openArchivedFolders.add(dataKey);
-            } else {
-                el.classList.add('hidden');
-                icon.className = "fa-solid fa-folder text-amber-500";
-                if (dataKey) openArchivedFolders.delete(dataKey);
-            }
-        }
-
-        function fazerBackupDados() {
-            const colabAtivo = localStorage.getItem('agro_fixed_colaborador');
-            if (!colabAtivo) { showAlert('Nenhum usuário ativo para backup.', 'error'); return; }
-
-            const dadosBackup = {
-                colaborador: colabAtivo,
-                pin: localStorage.getItem(`agro_pin_${colabAtivo}`),
-                history: localStorage.getItem(`agro_routes_history_${colabAtivo}`),
-                folders: localStorage.getItem(`agro_archived_folders_${colabAtivo}`),
-                lastFleet: localStorage.getItem(`agro_last_fleet_${colabAtivo}`),
-                lastKm: localStorage.getItem(`agro_last_km_${colabAtivo}`),
-                dataExportacao: new Date().toISOString()
-            };
-
-            const blob = new Blob([JSON.stringify(dadosBackup, null, 2)], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `Backup_AgroRota_${colabAtivo}_${new Date().toISOString().slice(0,10)}.json`;
-            a.click();
-            showAlert('Backup gerado com sucesso!', 'success');
-        }
-
-        function restaurarBackupDados(event) {
-            const arquivo = event.target.files[0];
-            if (!arquivo) return;
-
-            const reader = new FileReader();
-            reader.onload = async function(e) {
-                try {
-                    const dados = JSON.parse(e.target.result);
-                    if (!dados.colaborador || !dados.history) throw new Error('Formato inválido');
-
-                    localStorage.setItem(`agro_pin_${dados.colaborador}`, dados.pin);
-                    localStorage.setItem(`agro_routes_history_${dados.colaborador}`, dados.history);
-                    if(dados.folders) localStorage.setItem(`agro_archived_folders_${dados.colaborador}`, dados.folders);
-                    if(dados.lastFleet) localStorage.setItem(`agro_last_fleet_${dados.colaborador}`, dados.lastFleet);
-                    if(dados.lastKm) localStorage.setItem(`agro_last_km_${dados.colaborador}`, dados.lastKm);
-                    await salvarEstadoColaborador(dados.colaborador);
-
-                    showAlert('Dados restaurados com sucesso! Reiniciando...', 'success');
-                    setTimeout(() => { location.reload(); }, 1500);
-                } catch (err) {
-                    showAlert('Erro ao ler arquivo de backup.', 'error');
-                }
-            };
-            reader.readAsText(arquivo);
+            }).join("");
         }
 
         function showAlert(msg, type) {
-            const box = document.getElementById('alertBox');
-            const msgEl = document.getElementById('alertMessage');
-            if (!box || !msgEl) return;
+            const box = document.getElementById("alertBox");
+            const msgEl = document.getElementById("alertMessage");
             msgEl.innerText = msg;
-            box.className = `p-4 rounded-xl border flex items-start gap-3 transition-all ${type === 'error' ? 'bg-red-950 border-red-700 text-red-200' : type === 'info' ? 'bg-blue-950 border-blue-700 text-blue-200' : 'bg-agro-950 border-agro-700 text-agro-200'}`;
-            box.classList.remove('hidden');
-            setTimeout(() => box.classList.add('hidden'), 4000);
+            box.className = `p-4 rounded-xl border flex items-start gap-3 ${type === "error" ? "bg-red-950 border-red-700 text-red-200" : "bg-agro-950 border-agro-700 text-agro-200"}`;
+            box.classList.remove("hidden");
         }
 
-        function hideAlert() { 
-            const box = document.getElementById('alertBox');
-            if(box) box.classList.add('hidden'); 
+        function hideAlert() {
+            document.getElementById("alertBox").classList.add("hidden");
         }
+
+        window.onload = function() {
+            verificarStatusConexao(false);
+            const tipo = localStorage.getItem("agro_session_type");
+            const colab = localStorage.getItem("agro_fixed_colaborador");
+            if (tipo === "coordenador") {
+                document.getElementById("loginSection").classList.add("hidden");
+                document.getElementById("coordinatorPanel").classList.remove("hidden");
+                carregarPainelGestor();
+            } else if (tipo === "operador" && colab) {
+                document.getElementById("loginSection").classList.add("hidden");
+                document.getElementById("appPanel").classList.remove("hidden");
+                document.getElementById("currentCollabLabel").innerText = colab;
+                renderHistoricoOperador();
+            }
+            if (isCloudConfigured() && navigator.onLine) sincronizarAgora(true);
+        };
     </script>
 </body>
 </html>
