@@ -579,18 +579,32 @@
                         </div>
                     </div>
 
-                    <div id="routeControlsRow" class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-700/60">
-                        <button type="button" id="pauseBtn" onclick="togglePauseTracking()" class="py-2.5 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-xl text-xs transition flex items-center justify-center gap-2 cursor-pointer">
-                            <i class="fa-solid fa-pause"></i> PAUSAR ROTA
+                    <!-- Controles da Rota em Andamento -->
+                    <div id="routeControlsRow" class="space-y-2 pt-2 border-t border-slate-700/60">
+                        <button type="button" onclick="startGateRelease()" class="w-full py-2.5 bg-sky-700 hover:bg-sky-600 text-white font-bold rounded-xl text-xs transition flex items-center justify-center gap-2 cursor-pointer shadow">
+                            <i class="fa-solid fa-shield-halved"></i> REVISTA E LIBERAÇÃO (PORTARIA)
                         </button>
-                        <button type="button" onclick="stopTracking()" class="py-2.5 bg-red-600 hover:bg-red-500 text-white font-bold rounded-xl text-xs transition flex items-center justify-center gap-2 cursor-pointer">
-                            <i class="fa-solid fa-square"></i> ENCERRAR & SALVAR
-                        </button>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button type="button" id="pauseBtn" onclick="togglePauseTracking()" class="py-2.5 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-xl text-xs transition flex items-center justify-center gap-2 cursor-pointer">
+                                <i class="fa-solid fa-pause"></i> PAUSAR ROTA
+                            </button>
+                            <button type="button" onclick="stopTracking()" class="py-2.5 bg-red-600 hover:bg-red-500 text-white font-bold rounded-xl text-xs transition flex items-center justify-center gap-2 cursor-pointer">
+                                <i class="fa-solid fa-square"></i> ENCERRAR & SALVAR
+                            </button>
+                        </div>
                     </div>
 
+                    <!-- Controle quando em Horário de Refeição -->
                     <div id="mealControlsRow" class="hidden pt-2 border-t border-slate-700/60">
                         <button type="button" onclick="stopMealBreak()" class="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs transition flex items-center justify-center gap-2 cursor-pointer shadow-lg">
                             <i class="fa-solid fa-check-circle"></i> ENCERRAR HORÁRIO DE REFEIÇÃO (0 KM)
+                        </button>
+                    </div>
+
+                    <!-- Controle quando em Revista e Liberação (Portaria) -->
+                    <div id="gateControlsRow" class="hidden pt-2 border-t border-slate-700/60">
+                        <button type="button" onclick="stopGateRelease()" class="w-full py-3 bg-sky-600 hover:bg-sky-500 text-white font-bold rounded-xl text-xs transition flex items-center justify-center gap-2 cursor-pointer shadow-lg">
+                            <i class="fa-solid fa-check-double"></i> CONCLUIR REVISTA E LIBERAÇÃO (PORTARIA)
                         </button>
                     </div>
                 </div>
@@ -623,6 +637,11 @@
                 <div id="mealInfoBanner" class="hidden card-agro border-amber-500/40 bg-amber-950/20 py-3 px-4 flex justify-between items-center text-xs text-amber-200">
                     <span><i class="fa-solid fa-utensils text-amber-400 mr-1.5"></i> Registro de refeição em andamento: <strong>KM não contabilizado (0.00 KM)</strong></span>
                     <span id="liveMealStartClock" class="font-mono font-bold text-amber-300">Início: --:--</span>
+                </div>
+
+                <div id="gateInfoBanner" class="hidden card-agro border-sky-500/40 bg-sky-950/25 py-3 px-4 flex justify-between items-center text-xs text-sky-200">
+                    <span><i class="fa-solid fa-shield-halved text-sky-400 mr-1.5"></i> Revista e Liberação (Portaria): <strong>Deslocamento pausado (0.00 KM)</strong></span>
+                    <span id="liveGateStartClock" class="font-mono font-bold text-sky-300">Início: --:--</span>
                 </div>
 
                 <div id="gpsFooterCard" class="card-agro py-3 flex justify-between items-center text-xs text-slate-400">
@@ -679,7 +698,7 @@
 
     </main>
 
-    <!-- MODAL: EDITAR / CRIAR ROTA OU REFEIÇÃO -->
+    <!-- MODAL: EDITAR / CRIAR ROTA, REFEIÇÃO OU PORTARIA -->
     <div id="modalEditarRota" class="fixed inset-0 bg-slate-950/85 backdrop-blur-sm z-[60] hidden flex items-center justify-center p-3 overflow-y-auto">
         <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-5 shadow-2xl space-y-4 text-left">
             <div class="flex justify-between items-center border-b border-slate-800 pb-3">
@@ -695,7 +714,7 @@
                 <input type="hidden" id="editRouteId">
                 <input type="hidden" id="editRouteFolder">
                 <input type="hidden" id="editIsNew" value="0">
-                <input type="hidden" id="editIsMeal" value="0">
+                <input type="hidden" id="editSpecialType" value="">
                 
                 <div id="editDestinationGroup">
                     <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Destino / Nome da Rota *</label>
@@ -893,7 +912,7 @@
 
     <!-- SCRIPT DA APLICAÇÃO -->
     <script>
-        const APP_VERSION = "9.5"; 
+        const APP_VERSION = "9.6"; 
 
         let timerInterval = null;
         let watchId = null;
@@ -920,11 +939,20 @@
             totalPausedSeconds: 0,
             distanceKm: 0,
             lastCoords: null,
-            gpsPoints: 0
+            gpsPoints: 0,
+            parentRoute: null
         };
 
         function isMealRecord(item) {
             return Boolean(item && item.type === 'meal');
+        }
+
+        function isGateRecord(item) {
+            return Boolean(item && item.type === 'gate');
+        }
+
+        function isZeroKmEvent(item) {
+            return isMealRecord(item) || isGateRecord(item);
         }
 
         function formatDurationFromSeconds(totalSecs) {
@@ -1170,8 +1198,6 @@
             rankingContainer.innerHTML = '';
 
             let totalEquipeKm = 0;
-            let totalEquipeRotas = 0;
-            let operadoresEmCampo = 0;
             const dadosRanking = [];
 
             LISTA_COLABORADORES.forEach((nome, indexColab) => {
@@ -1190,9 +1216,6 @@
 
                 if (rotaEmAndamento && rotaEmAndamento.fleet) {
                     frotaIdentificada = rotaEmAndamento.fleet;
-                    if ((periodFilter === 'todos' || periodFilter === 'hoje') && rotaEmAndamento.type !== 'meal') {
-                        operadoresEmCampo++;
-                    }
                 } else if (history.length > 0 && history[history.length - 1].fleet) {
                     frotaIdentificada = history[history.length - 1].fleet;
                 }
@@ -1205,7 +1228,7 @@
                             const dataKey = r.data || new Date().toLocaleDateString('pt-BR');
                             if (!rotasPorData[dataKey]) rotasPorData[dataKey] = [];
                             rotasPorData[dataKey].push(r);
-                            if (!isMealRecord(r)) {
+                            if (!isZeroKmEvent(r)) {
                                 totalRotasColab++;
                                 totalKmColab += parseFloat(r.distance || 0);
                             }
@@ -1221,7 +1244,7 @@
                                     if(!rotasPorData[dataKey]) rotasPorData[dataKey] = [];
                                     if(!rotasPorData[dataKey].some(item => item && item.id === r.id)) {
                                         rotasPorData[dataKey].push(r);
-                                        if (!isMealRecord(r)) {
+                                        if (!isZeroKmEvent(r)) {
                                             totalRotasColab++;
                                             totalKmColab += parseFloat(r.distance || 0);
                                         }
@@ -1233,7 +1256,6 @@
                 }
 
                 totalEquipeKm += totalKmColab;
-                totalEquipeRotas += totalRotasColab;
 
                 const colabFin = calcularFinanceiroKm(totalKmColab);
 
@@ -1281,13 +1303,26 @@
 
                 if (rotaEmAndamento) {
                     const isActiveMeal = rotaEmAndamento.type === 'meal';
+                    const isActiveGate = rotaEmAndamento.type === 'gate';
+                    let statusTitle = '🟡 Manobra Ativa no Momento';
+                    let statusKm = `${(rotaEmAndamento.distanceKm || 0).toFixed(2)} KM`;
+                    let statusDesc = `Destino: ${rotaEmAndamento.destination || '---'}`;
+                    if (isActiveMeal) {
+                        statusTitle = '🍽️ Horário de Refeição em Andamento';
+                        statusKm = '0.00 KM (Refeição)';
+                        statusDesc = 'Intervalo de refeição (sem deslocamento)';
+                    } else if (isActiveGate) {
+                        statusTitle = '🛡️ Revista e Liberação (Portaria)';
+                        statusKm = '0.00 KM (Portaria)';
+                        statusDesc = 'Revista do veículo e liberação na portaria';
+                    }
                     htmlPasta += `
                         <div class="bg-amber-950/40 border border-amber-500/50 p-2.5 rounded-lg space-y-1 animate-pulse text-left">
                             <div class="flex justify-between items-center font-bold text-amber-300 text-xs">
-                                <span>${isActiveMeal ? '🍽️ Horário de Refeição em Andamento' : '🟡 Manobra Ativa no Momento'}</span>
-                                <span>${isActiveMeal ? '0.00 KM (Refeição)' : `${(rotaEmAndamento.distanceKm || 0).toFixed(2)} KM`}</span>
+                                <span>${statusTitle}</span>
+                                <span>${statusKm}</span>
                             </div>
-                            <div class="text-xs text-white font-semibold">${isActiveMeal ? 'Intervalo de refeição (sem deslocamento)' : `Destino: ${rotaEmAndamento.destination || '---'}`}</div>
+                            <div class="text-xs text-white font-semibold">${statusDesc}</div>
                         </div>
                     `;
                 }
@@ -1301,10 +1336,13 @@
                         let totalKmData = 0;
                         let qtdRotasReais = 0;
                         let qtdRefeicoes = 0;
+                        let qtdPortarias = 0;
                         lista.forEach(r => {
                             if(r) {
                                 if (isMealRecord(r)) {
                                     qtdRefeicoes++;
+                                } else if (isGateRecord(r)) {
+                                    qtdPortarias++;
                                 } else {
                                     qtdRotasReais++;
                                     totalKmData += parseFloat(r.distance || 0);
@@ -1312,12 +1350,16 @@
                             }
                         });
                         const finData = calcularFinanceiroKm(totalKmData);
+                        const extrasLabel = [
+                            qtdRefeicoes > 0 ? `${qtdRefeicoes} refeição(ões)` : '',
+                            qtdPortarias > 0 ? `${qtdPortarias} portaria(s)` : ''
+                        ].filter(Boolean).join(' • ');
 
                         htmlPasta += `
                             <div class="bg-slate-900 border border-slate-700/60 rounded-xl overflow-hidden space-y-1 w-full text-left">
                                 <div class="px-3 py-2 bg-slate-800 flex flex-wrap justify-between items-center gap-1 text-xs font-bold text-amber-400 text-left">
                                     <span><i class="fa-solid fa-calendar-day mr-1"></i> Data: ${dataKey}</span>
-                                    <span class="text-slate-200">${qtdRotasReais} rota(s)${qtdRefeicoes > 0 ? ` • ${qtdRefeicoes} refeição(ões)` : ''} | ${totalKmData.toFixed(1)} KM | <strong class="text-red-400">R$ ${parseFloat(finData.custoTotal).toFixed(2).replace('.', ',')}</strong></span>
+                                    <span class="text-slate-200">${qtdRotasReais} rota(s)${extrasLabel ? ` • ${extrasLabel}` : ''} | ${totalKmData.toFixed(1)} KM | <strong class="text-red-400">R$ ${parseFloat(finData.custoTotal).toFixed(2).replace('.', ',')}</strong></span>
                                 </div>
                                 <div class="p-2 space-y-2 text-left">
                         `;
@@ -1331,6 +1373,19 @@
                                             <div class="flex justify-between items-center font-bold text-amber-300">
                                                 <span><i class="fa-solid fa-utensils mr-1"></i> Horário de Refeição</span>
                                                 <span>0.00 KM (Refeição)</span>
+                                            </div>
+                                            <div class="text-[11px] text-slate-300 flex justify-between">
+                                                <span>Início: ${r.startTime || '--:--'} - Término: ${r.endTime || '--:--'}</span>
+                                                <span>Duração: ${r.duration || '00:00:00'}</span>
+                                            </div>
+                                        </div>
+                                    `;
+                                } else if (isGateRecord(r)) {
+                                    htmlPasta += `
+                                        <div class="bg-sky-950/25 p-2.5 rounded-lg border border-sky-500/30 text-xs space-y-1 text-left">
+                                            <div class="flex justify-between items-center font-bold text-sky-300">
+                                                <span><i class="fa-solid fa-shield-halved mr-1"></i> Revista e Liberação (Portaria)</span>
+                                                <span>0.00 KM (Portaria)</span>
                                             </div>
                                             <div class="text-[11px] text-slate-300 flex justify-between">
                                                 <span>Início: ${r.startTime || '--:--'} - Término: ${r.endTime || '--:--'}</span>
@@ -1443,13 +1498,15 @@
 
             const appendCsvRow = (nome, r) => {
                 if (!r) return;
-                const isMeal = isMealRecord(r);
-                const dist = isMeal ? 0 : parseFloat(r.distance || 0);
+                const zeroKm = isZeroKmEvent(r);
+                const dist = zeroKm ? 0 : parseFloat(r.distance || 0);
                 const lit = kmL > 0 ? (dist / kmL) : 0;
                 const cust = lit * priceL;
-                const tipoLabel = isMeal ? 'Refeicao' : 'Rota';
-                const destinoLabel = isMeal ? 'Horário de Refeição' : (r.destination || '');
-                csv += `${nome},${tipoLabel},${r.data || ''},${r.fleet || ''},${isMeal ? 0 : (r.kmStart || 0)},${isMeal ? 0 : (r.kmFinal || 0)},"${destinoLabel}",${r.startTime || ''},${r.endTime || ''},${r.duration || ''},${dist.toFixed(2)},${lit.toFixed(2)},${cust.toFixed(2)}\n`;
+                const tipoLabel = isMealRecord(r) ? 'Refeicao' : (isGateRecord(r) ? 'Portaria' : 'Rota');
+                const destinoLabel = isMealRecord(r)
+                    ? 'Horário de Refeição'
+                    : (isGateRecord(r) ? 'Revista e Liberação (Portaria)' : (r.destination || ''));
+                csv += `${nome},${tipoLabel},${r.data || ''},${r.fleet || ''},${zeroKm ? 0 : (r.kmStart || 0)},${zeroKm ? 0 : (r.kmFinal || 0)},"${destinoLabel}",${r.startTime || ''},${r.endTime || ''},${r.duration || ''},${dist.toFixed(2)},${lit.toFixed(2)},${cust.toFixed(2)}\n`;
             };
 
             LISTA_COLABORADORES.forEach(nome => {
@@ -1543,7 +1600,8 @@
             isPaused = false;
             tempoInicioPausa = null;
             totalSegundosPausados = 0;
-            activeRoute = { type: 'route', colaborador: '', fleet: '', kmStart: 0, destination: '', notes: '', startTime: null, elapsedSeconds: 0, totalPausedSeconds: 0, distanceKm: 0, lastCoords: null, gpsPoints: 0 };
+            activeRoute = { type: 'route', colaborador: '', fleet: '', kmStart: 0, destination: '', notes: '', startTime: null, elapsedSeconds: 0, totalPausedSeconds: 0, distanceKm: 0, lastCoords: null, gpsPoints: 0, parentRoute: null };
+            configurarModoPainelAtivo('route');
             document.getElementById('activeSection').classList.add('hidden');
             document.getElementById('formSection').classList.remove('hidden');
             showAlert('Aplicativo destravado com sucesso.', 'success');
@@ -1582,16 +1640,22 @@
             }
         }
 
-        function configurarModoPainelAtivo(isMeal) {
+        function configurarModoPainelAtivo(modeType) {
+            const isMeal = modeType === 'meal';
+            const isGate = modeType === 'gate';
+
             const statusLabel = document.getElementById('liveStatusLabel');
             const destEl = document.getElementById('liveDestination');
             const btnRename = document.getElementById('btnRenameActive');
             const routeControls = document.getElementById('routeControlsRow');
             const mealControls = document.getElementById('mealControlsRow');
+            const gateControls = document.getElementById('gateControlsRow');
             const telemetryGrid = document.getElementById('routeTelemetryGrid');
             const mealBanner = document.getElementById('mealInfoBanner');
+            const gateBanner = document.getElementById('gateInfoBanner');
             const gpsFooter = document.getElementById('gpsFooterCard');
             const mealStartClock = document.getElementById('liveMealStartClock');
+            const gateStartClock = document.getElementById('liveGateStartClock');
 
             if (isMeal) {
                 if (statusLabel) statusLabel.innerText = 'Horário de Refeição em Andamento (Sem KM)';
@@ -1602,14 +1666,36 @@
                 if (btnRename) btnRename.classList.add('hidden');
                 if (routeControls) routeControls.classList.add('hidden');
                 if (mealControls) mealControls.classList.remove('hidden');
+                if (gateControls) gateControls.classList.add('hidden');
                 if (telemetryGrid) telemetryGrid.classList.add('hidden');
                 if (mealBanner) mealBanner.classList.remove('hidden');
+                if (gateBanner) gateBanner.classList.add('hidden');
                 if (gpsFooter) gpsFooter.classList.add('hidden');
                 if (mealStartClock) {
                     const horaInicio = activeRoute.startTime
                         ? new Date(activeRoute.startTime).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
                         : '--:--';
                     mealStartClock.innerText = `Início: ${horaInicio}`;
+                }
+            } else if (isGate) {
+                if (statusLabel) statusLabel.innerText = 'Parada na Portaria em Andamento (Sem KM)';
+                if (destEl) {
+                    destEl.className = 'text-xl font-bold text-sky-400';
+                    destEl.innerText = '🛡️ Revista e Liberação (Portaria)';
+                }
+                if (btnRename) btnRename.classList.add('hidden');
+                if (routeControls) routeControls.classList.add('hidden');
+                if (mealControls) mealControls.classList.add('hidden');
+                if (gateControls) gateControls.classList.remove('hidden');
+                if (telemetryGrid) telemetryGrid.classList.add('hidden');
+                if (mealBanner) mealBanner.classList.add('hidden');
+                if (gateBanner) gateBanner.classList.remove('hidden');
+                if (gpsFooter) gpsFooter.classList.add('hidden');
+                if (gateStartClock) {
+                    const horaInicio = activeRoute.startTime
+                        ? new Date(activeRoute.startTime).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+                        : '--:--';
+                    gateStartClock.innerText = `Início: ${horaInicio}`;
                 }
             } else {
                 if (statusLabel) statusLabel.innerText = 'Manobra em Andamento';
@@ -1620,8 +1706,10 @@
                 if (btnRename) btnRename.classList.remove('hidden');
                 if (routeControls) routeControls.classList.remove('hidden');
                 if (mealControls) mealControls.classList.add('hidden');
+                if (gateControls) gateControls.classList.add('hidden');
                 if (telemetryGrid) telemetryGrid.classList.remove('hidden');
                 if (mealBanner) mealBanner.classList.add('hidden');
+                if (gateBanner) gateBanner.classList.add('hidden');
                 if (gpsFooter) gpsFooter.classList.remove('hidden');
             }
         }
@@ -1634,9 +1722,10 @@
             if (salva) {
                 try {
                     activeRoute = JSON.parse(salva);
-                    const isMeal = activeRoute && activeRoute.type === 'meal';
+                    const modeType = activeRoute?.type || 'route';
+                    const isZeroKm = modeType === 'meal' || modeType === 'gate';
 
-                    if (!activeRoute || (!isMeal && (!activeRoute.destination || !activeRoute.fleet))) {
+                    if (!activeRoute || (!isZeroKm && (!activeRoute.destination || !activeRoute.fleet))) {
                         localStorage.removeItem(`agro_active_route_${colab}`);
                         return;
                     }
@@ -1646,18 +1735,23 @@
 
                     document.getElementById('formSection').classList.add('hidden');
                     document.getElementById('activeSection').classList.remove('hidden');
-                    document.getElementById('liveFleet').innerHTML = `<i class="fa-solid ${isMeal ? 'fa-utensils text-amber-400' : 'fa-truck'} mr-1"></i> ${isMeal ? 'Intervalo de Refeição (0 KM)' : `Frota: ${activeRoute.fleet}`}`;
 
-                    if (!isMeal) {
+                    if (modeType === 'meal') {
+                        document.getElementById('liveFleet').innerHTML = `<i class="fa-solid fa-utensils text-amber-400 mr-1"></i> Intervalo de Refeição (0 KM)`;
+                    } else if (modeType === 'gate') {
+                        const destinoRota = activeRoute.parentRoute?.destination || 'Rota';
+                        document.getElementById('liveFleet').innerHTML = `<i class="fa-solid fa-shield-halved text-sky-400 mr-1"></i> Frota: ${activeRoute.fleet || '---'} • Em pausa da rota: ${destinoRota}`;
+                    } else {
+                        document.getElementById('liveFleet').innerHTML = `<i class="fa-solid fa-truck mr-1"></i> Frota: ${activeRoute.fleet}`;
                         document.getElementById('liveKmStart').innerText = Number(activeRoute.kmStart).toFixed(1);
                         document.getElementById('liveDistance').innerText = Number(activeRoute.distanceKm).toFixed(2);
                         document.getElementById('gpsPointsCount').innerText = activeRoute.gpsPoints;
                     }
 
-                    configurarModoPainelAtivo(isMeal);
+                    configurarModoPainelAtivo(modeType);
                     iniciarTimerUI();
 
-                    if (!isMeal) {
+                    if (!isZeroKm) {
                         iniciarGPSContinuo();
                         solicitarWakeLock();
                     }
@@ -1694,7 +1788,8 @@
                 totalPausedSeconds: 0,
                 distanceKm: 0,
                 lastCoords: null,
-                gpsPoints: 0
+                gpsPoints: 0,
+                parentRoute: null
             };
 
             localStorage.setItem(`agro_active_route_${colab}`, JSON.stringify(activeRoute));
@@ -1703,7 +1798,7 @@
             document.getElementById('activeSection').classList.remove('hidden');
             document.getElementById('liveFleet').innerHTML = `<i class="fa-solid fa-utensils text-amber-400 mr-1"></i> Intervalo de Refeição (0 KM)`;
 
-            configurarModoPainelAtivo(true);
+            configurarModoPainelAtivo('meal');
             iniciarTimerUI();
             showAlert('Horário de refeição iniciado! Nenhum KM será contabilizado.', 'info');
         }
@@ -1751,15 +1846,145 @@
                 isPaused = false;
                 tempoInicioPausa = null;
                 totalSegundosPausados = 0;
-                activeRoute = { type: 'route', colaborador: '', fleet: '', kmStart: 0, destination: '', notes: '', startTime: null, elapsedSeconds: 0, totalPausedSeconds: 0, distanceKm: 0, lastCoords: null, gpsPoints: 0 };
+                activeRoute = { type: 'route', colaborador: '', fleet: '', kmStart: 0, destination: '', notes: '', startTime: null, elapsedSeconds: 0, totalPausedSeconds: 0, distanceKm: 0, lastCoords: null, gpsPoints: 0, parentRoute: null };
 
-                configurarModoPainelAtivo(false);
+                configurarModoPainelAtivo('route');
                 document.getElementById('activeSection').classList.add('hidden');
                 document.getElementById('formSection').classList.remove('hidden');
 
                 carregarDadosSessaoColaborador(colabAtivo);
                 loadHistory();
                 showAlert('Horário de refeição salvo sem contabilizar KM!', 'success');
+            }
+        }
+
+        function startGateRelease() {
+            const colab = localStorage.getItem('agro_fixed_colaborador');
+            if (!colab || activeRoute.type !== 'route') return;
+
+            if (simInterval) { clearInterval(simInterval); simInterval = null; }
+            isSimulating = false;
+
+            const snapshotRota = {
+                type: 'route',
+                colaborador: activeRoute.colaborador || colab,
+                fleet: activeRoute.fleet,
+                kmStart: activeRoute.kmStart,
+                destination: activeRoute.destination,
+                notes: activeRoute.notes,
+                startTime: activeRoute.startTime,
+                elapsedSeconds: activeRoute.elapsedSeconds,
+                totalPausedSeconds: totalSegundosPausados,
+                distanceKm: activeRoute.distanceKm,
+                lastCoords: activeRoute.lastCoords,
+                gpsPoints: activeRoute.gpsPoints
+            };
+
+            activeRoute = {
+                type: 'gate',
+                colaborador: colab,
+                fleet: snapshotRota.fleet,
+                kmStart: snapshotRota.kmStart,
+                destination: 'Revista e Liberação (Portaria)',
+                notes: `Revista do veículo e liberação na portaria (${snapshotRota.destination})`,
+                startTime: Date.now(),
+                elapsedSeconds: 0,
+                totalPausedSeconds: 0,
+                distanceKm: 0,
+                lastCoords: null,
+                gpsPoints: 0,
+                parentRoute: snapshotRota
+            };
+
+            localStorage.setItem(`agro_active_route_${colab}`, JSON.stringify(activeRoute));
+            document.getElementById('liveFleet').innerHTML = `<i class="fa-solid fa-shield-halved text-sky-400 mr-1"></i> Frota: ${activeRoute.fleet || '---'} • Em pausa da rota: ${snapshotRota.destination}`;
+
+            configurarModoPainelAtivo('gate');
+            iniciarTimerUI();
+            showAlert('Revista e Liberação (Portaria) iniciada! Rota pausada sem somar KM.', 'info');
+        }
+
+        function stopGateRelease() {
+            if (!confirm("Concluir a revista e liberação na portaria e retomar a rota?")) return;
+
+            pararTodosOsTimers();
+            const colabAtivo = localStorage.getItem('agro_fixed_colaborador');
+            const rotaRetorno = activeRoute.parentRoute ? { ...activeRoute.parentRoute } : null;
+
+            try {
+                const agora = new Date();
+                const dataHoje = agora.toLocaleDateString('pt-BR');
+                const inicioDate = activeRoute.startTime ? new Date(activeRoute.startTime) : agora;
+                const segundosDecorridos = activeRoute.startTime
+                    ? Math.max(1, Math.floor((Date.now() - activeRoute.startTime) / 1000))
+                    : (activeRoute.elapsedSeconds || 0);
+
+                const registroPortaria = {
+                    id: Date.now() + Math.floor(Math.random() * 1000),
+                    type: 'gate',
+                    data: dataHoje,
+                    colaborador: colabAtivo,
+                    fleet: activeRoute.fleet || localStorage.getItem(`agro_last_fleet_${colabAtivo}`) || 'Fiorino Álcool',
+                    kmStart: '0.0',
+                    kmFinal: '0.0',
+                    destination: 'Revista e Liberação (Portaria)',
+                    notes: rotaRetorno?.destination ? `Portaria na rota: ${rotaRetorno.destination}` : 'Revista e liberação na portaria',
+                    startTime: inicioDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+                    endTime: agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+                    duration: formatDurationFromSeconds(segundosDecorridos),
+                    distance: '0.00'
+                };
+
+                let historyKey = `agro_routes_history_${colabAtivo}`;
+                let history = [];
+                try { history = JSON.parse(localStorage.getItem(historyKey) || '[]'); } catch(e){}
+                history.push(registroPortaria);
+                localStorage.setItem(historyKey, JSON.stringify(history));
+            } catch (err) {
+                console.error("Erro ao salvar registro de portaria:", err);
+            }
+
+            if (rotaRetorno) {
+                const duracaoPortariaSegs = activeRoute.startTime
+                    ? Math.max(0, Math.floor((Date.now() - activeRoute.startTime) / 1000))
+                    : 0;
+                totalSegundosPausados = (rotaRetorno.totalPausedSeconds || 0) + duracaoPortariaSegs;
+                tempoInicioPausa = null;
+                isPaused = false;
+                isSimulating = false;
+
+                activeRoute = {
+                    ...rotaRetorno,
+                    type: 'route',
+                    totalPausedSeconds: totalSegundosPausados,
+                    parentRoute: null
+                };
+
+                localStorage.setItem(`agro_active_route_${colabAtivo}`, JSON.stringify(activeRoute));
+                document.getElementById('liveFleet').innerHTML = `<i class="fa-solid fa-truck mr-1"></i> Frota: ${activeRoute.fleet}`;
+                document.getElementById('liveKmStart').innerText = Number(activeRoute.kmStart).toFixed(1);
+                document.getElementById('liveDistance').innerText = Number(activeRoute.distanceKm).toFixed(2);
+                document.getElementById('gpsPointsCount').innerText = activeRoute.gpsPoints;
+
+                configurarModoPainelAtivo('route');
+                iniciarTimerUI();
+                iniciarGPSContinuo();
+                solicitarWakeLock();
+                loadHistory();
+                showAlert('Revista e liberação registrada! Rota retomada.', 'success');
+            } else {
+                localStorage.removeItem(`agro_active_route_${colabAtivo}`);
+                isSimulating = false;
+                isPaused = false;
+                tempoInicioPausa = null;
+                totalSegundosPausados = 0;
+                activeRoute = { type: 'route', colaborador: '', fleet: '', kmStart: 0, destination: '', notes: '', startTime: null, elapsedSeconds: 0, totalPausedSeconds: 0, distanceKm: 0, lastCoords: null, gpsPoints: 0, parentRoute: null };
+                configurarModoPainelAtivo('route');
+                document.getElementById('activeSection').classList.add('hidden');
+                document.getElementById('formSection').classList.remove('hidden');
+                carregarDadosSessaoColaborador(colabAtivo);
+                loadHistory();
+                showAlert('Revista e liberação na portaria salva!', 'success');
             }
         }
 
@@ -1791,7 +2016,8 @@
                 totalPausedSeconds: 0,
                 distanceKm: 0,
                 lastCoords: null,
-                gpsPoints: 0
+                gpsPoints: 0,
+                parentRoute: null
             };
 
             localStorage.setItem(`agro_active_route_${colab}`, JSON.stringify(activeRoute));
@@ -1803,7 +2029,7 @@
             document.getElementById('liveFleet').innerHTML = `<i class="fa-solid fa-truck mr-1"></i> Frota: ${fleet}`;
             document.getElementById('liveKmStart').innerText = kmStart.toFixed(1);
 
-            configurarModoPainelAtivo(false);
+            configurarModoPainelAtivo('route');
             iniciarTimerUI();
             iniciarGPSContinuo();
             solicitarWakeLock();
@@ -1813,7 +2039,7 @@
 
         function renomearDestinoAtivo() {
             const colab = localStorage.getItem('agro_fixed_colaborador');
-            if (!colab || activeRoute.type === 'meal') return;
+            if (!colab || activeRoute.type !== 'route') return;
 
             const novoDestino = prompt("Digite o novo nome para o destino / manobra atual:", activeRoute.destination || '');
             if (novoDestino && novoDestino.trim() !== '') {
@@ -1843,7 +2069,8 @@
             }
         }
 
-        function configurarCamposModalEdicao(isMeal) {
+        function configurarCamposModalEdicao(specialType) {
+            const isZeroKm = specialType === 'meal' || specialType === 'gate';
             const destGroup = document.getElementById('editDestinationGroup');
             const fleetGroup = document.getElementById('editFleetGroup');
             const kmGroup = document.getElementById('editKmGroup');
@@ -1853,9 +2080,9 @@
             const kmStartInput = document.getElementById('editKmStart');
             const kmFinalInput = document.getElementById('editKmFinal');
 
-            document.getElementById('editIsMeal').value = isMeal ? '1' : '0';
+            document.getElementById('editSpecialType').value = specialType || '';
 
-            if (isMeal) {
+            if (isZeroKm) {
                 if (destGroup) destGroup.classList.add('hidden');
                 if (fleetGroup) fleetGroup.classList.add('hidden');
                 if (kmGroup) kmGroup.classList.add('hidden');
@@ -1879,7 +2106,7 @@
         function abrirNovaManobraNaPasta(dataFolder) {
             const colabAtivo = localStorage.getItem('agro_fixed_colaborador');
             const alvo = obterListaRotasAlvo(colabAtivo, dataFolder);
-            const rotasReais = alvo.lista.filter(r => r && !isMealRecord(r));
+            const rotasReais = alvo.lista.filter(r => r && !isZeroKmEvent(r));
             const ultimaRota = rotasReais.length > 0 ? rotasReais[rotasReais.length - 1] : null;
 
             const kmSugerido = ultimaRota
@@ -1889,7 +2116,7 @@
             const frotaSugerida = ultimaRota?.fleet || localStorage.getItem(`agro_last_fleet_${colabAtivo}`) || 'Fiorino Álcool';
             const horaSugerida = ultimaRota?.endTime || new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 
-            configurarCamposModalEdicao(false);
+            configurarCamposModalEdicao('');
 
             const tituloModal = document.getElementById('modalEditarTitulo');
             if (tituloModal) {
@@ -1926,7 +2153,9 @@
             }
 
             const isMeal = isMealRecord(rota);
-            configurarCamposModalEdicao(isMeal);
+            const isGate = isGateRecord(rota);
+            const specialType = isMeal ? 'meal' : (isGate ? 'gate' : '');
+            configurarCamposModalEdicao(specialType);
 
             const tituloModal = document.getElementById('modalEditarTitulo');
             if (tituloModal) {
@@ -1934,6 +2163,10 @@
                     tituloModal.innerHTML = dataFolder
                         ? `<i class="fa-solid fa-utensils text-amber-400"></i> Editar Refeição (${dataFolder})`
                         : `<i class="fa-solid fa-utensils text-amber-400"></i> Editar Horário de Refeição`;
+                } else if (isGate) {
+                    tituloModal.innerHTML = dataFolder
+                        ? `<i class="fa-solid fa-shield-halved text-sky-400"></i> Editar Revista e Liberação (${dataFolder})`
+                        : `<i class="fa-solid fa-shield-halved text-sky-400"></i> Editar Revista e Liberação (Portaria)`;
                 } else {
                     tituloModal.innerHTML = dataFolder
                         ? `<i class="fa-solid fa-pen-to-square text-amber-400"></i> Editar Manobra Arquivada (${dataFolder})`
@@ -1967,7 +2200,7 @@
             document.getElementById('modalEditarRota').classList.add('hidden');
             document.getElementById('editRouteFolder').value = '';
             document.getElementById('editIsNew').value = '0';
-            document.getElementById('editIsMeal').value = '0';
+            document.getElementById('editSpecialType').value = '';
         }
 
         function recalcularKmEdicao() {
@@ -1981,23 +2214,26 @@
             const idRota = document.getElementById('editRouteId').value;
             const dataFolder = document.getElementById('editRouteFolder').value.trim();
             const isNew = document.getElementById('editIsNew').value === '1';
-            const isMeal = document.getElementById('editIsMeal').value === '1';
+            const specialType = document.getElementById('editSpecialType').value;
             const novoStartTime = document.getElementById('editStartTime').value.trim();
             const novoEndTime = document.getElementById('editEndTime').value.trim();
 
             const colabAtivo = localStorage.getItem('agro_fixed_colaborador');
             const alvo = obterListaRotasAlvo(colabAtivo, dataFolder);
 
-            if (isMeal) {
+            if (specialType === 'meal' || specialType === 'gate') {
                 const index = alvo.lista.findIndex(r => r && String(r.id) === String(idRota));
                 if (index === -1) {
-                    showAlert('Erro ao encontrar refeição para salvar.', 'error');
+                    showAlert('Erro ao encontrar registro para salvar.', 'error');
                     return;
                 }
+                const destinoPadrao = specialType === 'gate'
+                    ? 'Revista e Liberação (Portaria)'
+                    : 'Horário de Refeição';
                 alvo.lista[index] = {
                     ...alvo.lista[index],
-                    type: 'meal',
-                    destination: 'Horário de Refeição',
+                    type: specialType,
+                    destination: destinoPadrao,
                     kmStart: '0.0',
                     kmFinal: '0.0',
                     distance: '0.00',
@@ -2069,12 +2305,12 @@
                 openArchivedFolders.add(dataFolder);
                 fecharModalEditarRota();
                 renderizarConteudoPastas();
-                showAlert(isNew ? 'Nova manobra adicionada à pasta!' : (isMeal ? 'Horário de refeição atualizado!' : 'Manobra arquivada atualizada por completo!'), 'success');
+                showAlert(isNew ? 'Nova manobra adicionada à pasta!' : 'Registro atualizado com sucesso!', 'success');
             } else {
                 localStorage.setItem(`agro_routes_history_${colabAtivo}`, JSON.stringify(alvo.lista));
                 fecharModalEditarRota();
                 loadHistory();
-                showAlert(isMeal ? 'Horário de refeição atualizado!' : 'Manobra atualizada por completo!', 'success');
+                showAlert('Registro atualizado com sucesso!', 'success');
             }
         }
 
@@ -2128,10 +2364,10 @@
 
         function iniciarTimerUI() {
             pararTodosOsTimers();
-            const isMeal = activeRoute.type === 'meal';
+            const isZeroKm = activeRoute.type === 'meal' || activeRoute.type === 'gate';
 
             timerInterval = setInterval(() => {
-                if (isMeal) {
+                if (isZeroKm) {
                     const segs = activeRoute.startTime
                         ? Math.max(0, Math.floor((Date.now() - activeRoute.startTime) / 1000))
                         : 0;
@@ -2166,6 +2402,7 @@
         }
 
         function togglePauseTracking() {
+            if (activeRoute.type !== 'route') return;
             isPaused = !isPaused;
             const btn = document.getElementById('pauseBtn');
             const colab = localStorage.getItem('agro_fixed_colaborador');
@@ -2203,7 +2440,7 @@
             if ("geolocation" in navigator) {
                 watchId = navigator.geolocation.watchPosition(
                     (pos) => {
-                        if (isPaused || isSimulating || activeRoute.type === 'meal') return;
+                        if (isPaused || isSimulating || activeRoute.type !== 'route') return;
 
                         const lat = pos.coords.latitude;
                         const lng = pos.coords.longitude;
@@ -2250,7 +2487,7 @@
                     },
                     (err) => { 
                         console.warn("Aviso de GPS:", err.message);
-                        if (!isPaused && activeRoute.type !== 'meal' && activeRoute.distanceKm >= 0) {
+                        if (!isPaused && activeRoute.type === 'route' && activeRoute.distanceKm >= 0) {
                             activeRoute.distanceKm += 0.01; 
                         }
                     },
@@ -2260,7 +2497,7 @@
         }
 
         function toggleSimulatedMotion() {
-            if (activeRoute.type === 'meal') return;
+            if (activeRoute.type !== 'route') return;
             isSimulating = !isSimulating;
             const btn = document.getElementById('simMotionBtn');
             if (isSimulating) {
@@ -2298,6 +2535,10 @@
         function stopTracking() {
             if (activeRoute.type === 'meal') {
                 stopMealBreak();
+                return;
+            }
+            if (activeRoute.type === 'gate') {
+                stopGateRelease();
                 return;
             }
 
@@ -2357,9 +2598,9 @@
                 isPaused = false;
                 tempoInicioPausa = null;
                 totalSegundosPausados = 0;
-                activeRoute = { type: 'route', colaborador: '', fleet: '', kmStart: 0, destination: '', notes: '', startTime: null, elapsedSeconds: 0, totalPausedSeconds: 0, distanceKm: 0, lastCoords: null, gpsPoints: 0 };
+                activeRoute = { type: 'route', colaborador: '', fleet: '', kmStart: 0, destination: '', notes: '', startTime: null, elapsedSeconds: 0, totalPausedSeconds: 0, distanceKm: 0, lastCoords: null, gpsPoints: 0, parentRoute: null };
 
-                configurarModoPainelAtivo(false);
+                configurarModoPainelAtivo('route');
                 document.getElementById('activeSection').classList.add('hidden');
                 document.getElementById('formSection').classList.remove('hidden');
                 document.getElementById('startRouteForm').reset();
@@ -2392,13 +2633,12 @@
                 history.slice().reverse().forEach((item) => {
                     if(item) {
                         const isMeal = isMealRecord(item);
-                        if (!isMeal) destinationsSet.add(item.destination || '');
+                        const isGate = isGateRecord(item);
+                        if (!isMeal && !isGate) destinationsSet.add(item.destination || '');
                         const div = document.createElement('div');
-                        div.className = isMeal
-                            ? "bg-amber-950/20 border border-amber-500/35 p-3 rounded-xl flex justify-between items-center text-xs text-left w-full"
-                            : "bg-slate-900 border border-slate-800 p-3 rounded-xl flex justify-between items-center text-xs text-left w-full";
 
                         if (isMeal) {
+                            div.className = "bg-amber-950/20 border border-amber-500/35 p-3 rounded-xl flex justify-between items-center text-xs text-left w-full";
                             div.innerHTML = `
                                 <div class="flex-1 pr-2 text-left">
                                     <div class="font-bold text-amber-300 text-left"><i class="fa-solid fa-utensils mr-1"></i> Horário de Refeição</div>
@@ -2415,7 +2655,26 @@
                                     </button>
                                 </div>
                             `;
+                        } else if (isGate) {
+                            div.className = "bg-sky-950/20 border border-sky-500/35 p-3 rounded-xl flex justify-between items-center text-xs text-left w-full";
+                            div.innerHTML = `
+                                <div class="flex-1 pr-2 text-left">
+                                    <div class="font-bold text-sky-300 text-left"><i class="fa-solid fa-shield-halved mr-1"></i> Revista e Liberação (Portaria)</div>
+                                    <div class="text-slate-400 mt-0.5 text-left">Data: ${item.data || '--/--/----'} | Revista do veículo e liberação</div>
+                                    <div class="text-slate-300 text-[11px] mt-0.5 text-left">Horário: <strong class="text-sky-300">${item.startTime || '--:--'}</strong> às <strong class="text-sky-300">${item.endTime || '--:--'}</strong> (Duração: ${item.duration || '00:00:00'})</div>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <div class="text-right font-bold text-sky-300 mr-1">0.00 KM</div>
+                                    <button type="button" onclick="abrirModalEditarRota('${escapeJsString(item.id)}')" class="p-2 bg-slate-800 hover:bg-slate-700 text-amber-400 rounded-lg transition cursor-pointer" title="Editar Portaria">
+                                        <i class="fa-solid fa-pen text-xs"></i>
+                                    </button>
+                                    <button type="button" onclick="confirmarExclusaoRota('${escapeJsString(item.id)}')" class="p-2 bg-slate-800 hover:bg-red-950 text-red-400 rounded-lg transition cursor-pointer" title="Excluir Portaria">
+                                        <i class="fa-solid fa-trash text-xs"></i>
+                                    </button>
+                                </div>
+                            `;
                         } else {
+                            div.className = "bg-slate-900 border border-slate-800 p-3 rounded-xl flex justify-between items-center text-xs text-left w-full";
                             div.innerHTML = `
                                 <div class="flex-1 pr-2 text-left">
                                     <div class="font-bold text-white text-left"><i class="fa-solid fa-location-dot text-agro-500 mr-1"></i> ${item.destination || 'Manobra'}</div>
@@ -2465,8 +2724,12 @@
             let csv = 'ID,Tipo,Data,Colaborador,Frota,KM Inicial,KM Final,Manobra,Saida,Chegada,Duracao,Distancia\n';
             history.forEach(i => {
                 if(i) {
-                    const isMeal = isMealRecord(i);
-                    csv += `${i.id || 0},${isMeal ? 'Refeicao' : 'Rota'},${i.data || ''},${i.colaborador || ''},${i.fleet || ''},${isMeal ? 0 : (i.kmStart || 0)},${isMeal ? 0 : (i.kmFinal || 0)},"${isMeal ? 'Horário de Refeição' : (i.destination || '')}",${i.startTime || ''},${i.endTime || ''},${i.duration || ''},${isMeal ? '0.00' : (i.distance || 0)}\n`;
+                    const zeroKm = isZeroKmEvent(i);
+                    const tipoLabel = isMealRecord(i) ? 'Refeicao' : (isGateRecord(i) ? 'Portaria' : 'Rota');
+                    const destinoLabel = isMealRecord(i)
+                        ? 'Horário de Refeição'
+                        : (isGateRecord(i) ? 'Revista e Liberação (Portaria)' : (i.destination || ''));
+                    csv += `${i.id || 0},${tipoLabel},${i.data || ''},${i.colaborador || ''},${i.fleet || ''},${zeroKm ? 0 : (i.kmStart || 0)},${zeroKm ? 0 : (i.kmFinal || 0)},"${destinoLabel}",${i.startTime || ''},${i.endTime || ''},${i.duration || ''},${zeroKm ? '0.00' : (i.distance || 0)}\n`;
                 }
             });
             const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -2483,7 +2746,7 @@
         function popularEstruturaRelatorioVisual(listaRotas, dataTitulo, nomeColaborador) {
             if (!listaRotas || !Array.isArray(listaRotas) || listaRotas.length === 0) return false;
 
-            const rotasReais = listaRotas.filter(r => r && !isMealRecord(r));
+            const rotasReais = listaRotas.filter(r => r && !isZeroKmEvent(r));
             const ultimaRotaComFrota = [...listaRotas].reverse().find(r => r && r.fleet) || {};
 
             document.getElementById('imgReportDate').innerText = dataTitulo || new Date().toLocaleDateString('pt-BR');
@@ -2519,6 +2782,19 @@
                             </div>
                             <div style="padding: 10px 14px; background-color: #fffbeb; display: flex; justify-content: space-between; align-items: center; font-size: 14px; font-weight: 700; color: #451a03;">
                                 <span>SAÍDA: ${r.startTime || '--:--'} | CHEGADA: ${r.endTime || '--:--'}</span>
+                                <span>DURAÇÃO: ${r.duration || '00:00:00'}</span>
+                            </div>
+                        `;
+                    } else if (isGateRecord(r)) {
+                        card.className = 'rep-route-card';
+                        card.style.borderColor = '#7dd3fc';
+                        card.innerHTML = `
+                            <div class="rep-route-head" style="background-color: #0c4a6e; display: flex; justify-content: space-between; align-items: center;">
+                                <span>Revista e Liberação (Portaria)</span>
+                                <span style="color: #bae6fd; font-size: 15px;">0.00 km</span>
+                            </div>
+                            <div style="padding: 10px 14px; background-color: #f0f9ff; display: flex; justify-content: space-between; align-items: center; font-size: 14px; font-weight: 700; color: #082f49;">
+                                <span>INÍCIO: ${r.startTime || '--:--'} | LIBERAÇÃO: ${r.endTime || '--:--'}</span>
                                 <span>DURAÇÃO: ${r.duration || '00:00:00'}</span>
                             </div>
                         `;
@@ -2631,6 +2907,9 @@
                     if (isMealRecord(r)) {
                         texto += `🍽️ *Horário de Refeição*\n`;
                         texto += `⏰ ${r.startTime || '--:--'} às ${r.endTime || '--:--'} (Duração: ${r.duration || '00:00:00'}) | _Sem KM_\n\n`;
+                    } else if (isGateRecord(r)) {
+                        texto += `🛡️ *Revista e Liberação (Portaria)*\n`;
+                        texto += `⏰ ${r.startTime || '--:--'} às ${r.endTime || '--:--'} (Duração: ${r.duration || '00:00:00'}) | _Sem KM_\n\n`;
                     } else {
                         routeNum++;
                         totalKmGeral += parseFloat(r.distance || 0);
@@ -2659,7 +2938,7 @@
                 return;
             }
 
-            if (confirm("Deseja arquivar suas manobras e refeições nas suas pastas privadas?")) {
+            if (confirm("Deseja arquivar suas manobras, portarias e refeições nas suas pastas privadas?")) {
                 let pastas = {};
                 try { pastas = JSON.parse(localStorage.getItem(`agro_archived_folders_${colabAtivo}`) || '{}'); } catch(e){}
                 
@@ -2703,7 +2982,7 @@
                 const listaRotas = Array.isArray(pastas[data]) ? pastas[data] : [];
                 listaRotas.forEach(r => {
                     if (r && !r.id) r.id = `${data}_${Math.random().toString(36).slice(2, 8)}`;
-                    if (r && !isMealRecord(r)) {
+                    if (r && !isZeroKmEvent(r)) {
                         qtdRotasReais++;
                         if (r.distance) totalKmPasta += parseFloat(r.distance || 0);
                     }
@@ -2754,6 +3033,28 @@
                                                     <i class="fa-solid fa-pen text-[10px]"></i> Editar
                                                 </button>
                                                 <button type="button" onclick="confirmarExclusaoRota('${escapeJsString(r.id)}', '${dataEscapada}')" class="px-2.5 py-1 bg-slate-900 hover:bg-red-950 text-red-400 rounded-lg transition cursor-pointer flex items-center gap-1 font-semibold" title="Excluir Refeição">
+                                                    <i class="fa-solid fa-trash text-[10px]"></i> Excluir
+                                                </button>
+                                            </div>
+                                        </div>
+                                    `;
+                                }
+                                if (isGateRecord(r)) {
+                                    return `
+                                        <div class="bg-sky-950/25 p-2.5 rounded-lg border border-sky-500/35 text-[11px] space-y-1.5 text-left">
+                                            <div class="flex justify-between items-center text-sky-300 font-bold gap-2">
+                                                <span><i class="fa-solid fa-shield-halved mr-1"></i> Revista e Liberação (Portaria)</span>
+                                                <span class="shrink-0">0.00 km (Portaria)</span>
+                                            </div>
+                                            <div class="text-slate-300 flex justify-between items-center gap-2">
+                                                <span>Início: ${r.startTime || '--:--'} - Término: ${r.endTime || '--:--'}</span>
+                                                <span class="shrink-0">Duração: ${r.duration || '00:00:00'}</span>
+                                            </div>
+                                            <div class="flex justify-end gap-2 pt-1 border-t border-sky-500/20">
+                                                <button type="button" onclick="abrirModalEditarRota('${escapeJsString(r.id)}', '${dataEscapada}')" class="px-2.5 py-1 bg-slate-900 hover:bg-slate-700 text-amber-400 rounded-lg transition cursor-pointer flex items-center gap-1 font-semibold" title="Editar Portaria">
+                                                    <i class="fa-solid fa-pen text-[10px]"></i> Editar
+                                                </button>
+                                                <button type="button" onclick="confirmarExclusaoRota('${escapeJsString(r.id)}', '${dataEscapada}')" class="px-2.5 py-1 bg-slate-900 hover:bg-red-950 text-red-400 rounded-lg transition cursor-pointer flex items-center gap-1 font-semibold" title="Excluir Portaria">
                                                     <i class="fa-solid fa-trash text-[10px]"></i> Excluir
                                                 </button>
                                             </div>
