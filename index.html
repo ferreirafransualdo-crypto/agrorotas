@@ -39,12 +39,253 @@
         .input-agro:focus { border-color: #22c55e; }
         .btn-agro { background-color: #16a34a; color: white; font-weight: bold; border-radius: 0.75rem; padding: 1rem; width: 100%; text-align: center; display: flex; align-items: center; justify-content: center; gap: 0.5rem; cursor: pointer; border: none; }
         .btn-agro:hover { background-color: #22c55e; }
-        
+
+        /* Preview responsivo no modal */
+        .report-preview-frame {
+            width: 100%;
+            max-width: 440px;
+            overflow-x: auto;
+            border-radius: 14px;
+            border: 2px solid #1e293b;
+            background: #eef3f8;
+        }
+
+        /* Layout fixo 800px para exportação nítida */
         #reportCardToImage {
-            width: 100% !important;
-            max-width: 420px !important;
-            margin: 0 auto;
+            width: 800px;
+            background-color: #eef3f8;
+            color: #0b1622;
+            font-family: 'Inter', sans-serif;
             box-sizing: border-box;
+        }
+
+        .rep-header {
+            background-color: #071320;
+            color: #ffffff;
+            padding: 20px 26px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .rep-header-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .rep-icon-box {
+            width: 48px;
+            height: 48px;
+            background-color: #16a34a;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            font-size: 22px;
+        }
+
+        .rep-title {
+            font-size: 26px;
+            font-weight: 800;
+            letter-spacing: -0.4px;
+            color: #ffffff;
+            line-height: 1.1;
+        }
+
+        .rep-date-label {
+            font-size: 12px;
+            font-weight: 700;
+            color: #cbd5e1;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+        }
+
+        .rep-date-val {
+            font-size: 22px;
+            font-weight: 900;
+            color: #10b981;
+            line-height: 1.15;
+        }
+
+        .rep-info-bar {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            background-color: #f8fafc;
+            border-bottom: 2px solid #cbd5e1;
+            padding: 14px 0;
+        }
+
+        .rep-info-cell {
+            text-align: center;
+            border-right: 1.5px solid #cbd5e1;
+            padding: 0 12px;
+        }
+
+        .rep-info-cell:last-child {
+            border-right: none;
+        }
+
+        .rep-info-lbl {
+            font-size: 12px;
+            font-weight: 800;
+            color: #334155;
+            text-transform: uppercase;
+            display: block;
+            margin-bottom: 3px;
+        }
+
+        .rep-info-val {
+            font-size: 22px;
+            font-weight: 900;
+            color: #0b1622;
+            display: block;
+        }
+
+        .rep-routes-wrap {
+            padding: 14px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            background-color: #eef3f8;
+        }
+
+        .rep-route-card {
+            background-color: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid #dbe4ee;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+        }
+
+        .rep-route-head {
+            background-color: #071320;
+            color: #ffffff;
+            padding: 6px 14px;
+            font-size: 17px;
+            font-weight: 800;
+        }
+
+        .rep-route-grid {
+            display: grid;
+            grid-template-columns: 1.55fr 1.15fr 1.25fr 0.85fr;
+            align-items: center;
+            padding: 11px 14px;
+            background-color: #f8fbff;
+        }
+
+        .rep-col-manobra {
+            padding-right: 12px;
+            text-align: left;
+        }
+
+        .rep-lbl-mini {
+            font-size: 11px;
+            font-weight: 800;
+            color: #1e3a5f;
+            text-transform: uppercase;
+            display: block;
+            margin-bottom: 2px;
+        }
+
+        .rep-manobra-txt {
+            font-size: 19px;
+            font-weight: 800;
+            color: #0b1622;
+            line-height: 1.15;
+            display: block;
+        }
+
+        .rep-col-mid {
+            border-left: 1.5px solid #94a3b8;
+            padding: 2px 14px;
+            font-size: 14px;
+            font-weight: 700;
+            color: #0b1622;
+            line-height: 1.45;
+            text-align: left;
+        }
+
+        .rep-col-tot {
+            border-left: 1.5px solid #94a3b8;
+            padding-left: 12px;
+            text-align: center;
+        }
+
+        .rep-tot-val {
+            font-size: 20px;
+            font-weight: 900;
+            color: #0284c7;
+            display: block;
+        }
+
+        .rep-summary-head {
+            background: linear-gradient(90deg, #16803c 0%, #0f6b32 100%);
+            color: #ffffff;
+            padding: 11px 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .rep-summary-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 19px;
+            font-weight: 900;
+            text-transform: uppercase;
+        }
+
+        .rep-check-circle {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background-color: #ffffff;
+            color: #16803c;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 900;
+        }
+
+        .rep-summary-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            background-color: #f8fafc;
+            padding: 14px 0;
+        }
+
+        .rep-sum-cell {
+            text-align: center;
+            border-right: 1.5px solid #94a3b8;
+            padding: 0 8px;
+        }
+
+        .rep-sum-cell:last-child {
+            border-right: none;
+        }
+
+        .rep-sum-lbl {
+            font-size: 12px;
+            font-weight: 800;
+            color: #1e293b;
+            text-transform: uppercase;
+            display: block;
+            margin-bottom: 3px;
+        }
+
+        .rep-sum-val {
+            font-size: 21px;
+            font-weight: 900;
+            color: #0b1622;
+            display: block;
+        }
+
+        .rep-sum-val.blue {
+            color: #0284c7;
         }
     </style>
 </head>
@@ -551,68 +792,69 @@
             <button type="button" onclick="fecharModalVisual()" class="text-slate-300 hover:text-white bg-slate-800 px-3 py-1.5 rounded-lg text-xs cursor-pointer font-bold"><i class="fa-solid fa-xmark mr-1"></i> Fechar</button>
         </div>
 
-        <div class="w-full max-w-md flex justify-center">
-            <div id="reportCardToImage" style="background-color: #f1f5f9; color: #0f172a; border-radius: 16px; overflow: hidden; font-family: 'Inter', sans-serif; border: 3px solid #0b132b; width: 100%;">
-                
-                <div style="background: #090d16; color: #ffffff; padding: 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 4px solid #16a34a;">
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <div style="background: #16a34a; color: #ffffff; width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 900;">
+        <div class="report-preview-frame">
+            <div id="reportCardToImage">
+                <!-- Cabeçalho -->
+                <div class="rep-header">
+                    <div class="rep-header-left">
+                        <div class="rep-icon-box">
                             <i class="fa-solid fa-truck-ramp-box"></i>
                         </div>
-                        <div>
-                            <div style="font-size: 17px; font-weight: 900; line-height: 1.1; color: #ffffff;">Relatório de Rotas</div>
-                        </div>
+                        <span class="rep-title">Relatório de Rotas</span>
                     </div>
                     <div style="text-align: right;">
-                        <div style="font-size: 8px; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px;">DATA DO RELATÓRIO</div>
-                        <div id="imgReportDate" style="font-size: 13px; font-weight: 900; color: #22c55e; margin-top: 2px;">--/--/----</div>
+                        <span class="rep-date-label">DATA DO RELATÓRIO:</span>
+                        <div id="imgReportDate" class="rep-date-val">--/--/----</div>
                     </div>
                 </div>
 
-                <div style="background: #ffffff; padding: 10px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; text-align: center; border-bottom: 2px solid #cbd5e1;">
-                    <div style="background: #f8fafc; padding: 6px; border-radius: 8px; border: 1px solid #e2e8f0;">
-                        <span style="font-size: 8px; font-weight: 800; color: #64748b; text-transform: uppercase; display: block;">COLABORADOR</span>
-                        <span id="imgReportCollab" style="font-size: 11px; font-weight: 900; color: #0f172a;">---</span>
+                <!-- Barra de Colaborador / Frota / Total de Rotas -->
+                <div class="rep-info-bar">
+                    <div class="rep-info-cell">
+                        <span class="rep-info-lbl">COLABORADOR</span>
+                        <span id="imgReportCollab" class="rep-info-val">---</span>
                     </div>
-                    <div style="background: #f8fafc; padding: 6px; border-radius: 8px; border: 1px solid #e2e8f0;">
-                        <span style="font-size: 8px; font-weight: 800; color: #64748b; text-transform: uppercase; display: block;">FROTA</span>
-                        <span id="imgReportFleet" style="font-size: 11px; font-weight: 900; color: #0f172a;">---</span>
+                    <div class="rep-info-cell">
+                        <span class="rep-info-lbl">FROTA</span>
+                        <span id="imgReportFleet" class="rep-info-val">---</span>
                     </div>
-                    <div style="background: #f8fafc; padding: 6px; border-radius: 8px; border: 1px solid #e2e8f0;">
-                        <span style="font-size: 8px; font-weight: 800; color: #64748b; text-transform: uppercase; display: block;">TOTAL DE ROTAS</span>
-                        <span id="imgReportTotalRoutes" style="font-size: 11px; font-weight: 900; color: #0f172a;">0</span>
-                    </div>
-                </div>
-
-                <div id="imgRoutesContainer" style="background: #f1f5f9; padding: 10px; display: flex; flex-direction: column; gap: 8px;"></div>
-
-                <div style="background: #090d16; margin: 10px; border-radius: 12px; overflow: hidden; border: 1px solid #1e293b;">
-                    <div style="padding: 10px 14px; background: linear-gradient(90deg, #0b132b 0%, #14532d 100%); display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #16a34a;">
-                        <span style="font-weight: 900; font-size: 12px; color: #ffffff; text-transform: uppercase; letter-spacing: 0.5px;">
-                            <i class="fa-solid fa-chart-pie" style="color: #22c55e; margin-right: 6px;"></i> Resumo do Dia
-                        </span>
-                        <div style="width: 16px; height: 3px; background: #22c55e; border-radius: 2px;"></div>
-                    </div>
-                    <div style="background: #ffffff; padding: 10px; display: grid; grid-template-columns: 1fr 1.2fr 1.2fr 1.2fr; gap: 4px; text-align: center;">
-                        <div style="background: #f8fafc; padding: 6px 2px; border-radius: 6px; border: 1px solid #e2e8f0;">
-                            <span style="font-size: 7px; font-weight: 800; color: #64748b; text-transform: uppercase; display: block;">Total Rotas</span>
-                            <span id="summaryTotalRoutes" style="font-size: 11px; font-weight: 900; color: #0f172a;">0</span>
-                        </div>
-                        <div style="background: #f8fafc; padding: 6px 2px; border-radius: 6px; border: 1px solid #e2e8f0;">
-                            <span style="font-size: 7px; font-weight: 800; color: #64748b; text-transform: uppercase; display: block;">Total KM</span>
-                            <span id="summaryTotalKm" style="font-size: 10px; font-weight: 900; color: #2563eb;">0 km</span>
-                        </div>
-                        <div style="background: #f8fafc; padding: 6px 2px; border-radius: 6px; border: 1px solid #e2e8f0;">
-                            <span style="font-size: 7px; font-weight: 800; color: #64748b; text-transform: uppercase; display: block;">1ª Saída</span>
-                            <span id="summaryFirstStart" style="font-size: 10px; font-weight: 900; color: #0f172a;">--:--</span>
-                        </div>
-                        <div style="background: #f8fafc; padding: 6px 2px; border-radius: 6px; border: 1px solid #e2e8f0;">
-                            <span style="font-size: 7px; font-weight: 800; color: #64748b; text-transform: uppercase; display: block;">Últ. Chegada</span>
-                            <span id="summaryLastEnd" style="font-size: 10px; font-weight: 900; color: #0f172a;">--:--</span>
-                        </div>
+                    <div class="rep-info-cell">
+                        <span class="rep-info-lbl">TOTAL DE ROTAS</span>
+                        <span id="imgReportTotalRoutes" class="rep-info-val">0</span>
                     </div>
                 </div>
 
+                <!-- Cards de Rotas -->
+                <div id="imgRoutesContainer" class="rep-routes-wrap"></div>
+
+                <!-- Resumo do Dia -->
+                <div style="margin-top: 4px;">
+                    <div class="rep-summary-head">
+                        <div class="rep-summary-title">
+                            <div class="rep-check-circle"><i class="fa-solid fa-check"></i></div>
+                            <span>RESUMO DO DIA</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-up text-white text-base"></i>
+                    </div>
+                    <div class="rep-summary-grid">
+                        <div class="rep-sum-cell">
+                            <span class="rep-sum-lbl">TOTAL ROTAS</span>
+                            <span id="summaryTotalRoutes" class="rep-sum-val">0</span>
+                        </div>
+                        <div class="rep-sum-cell">
+                            <span class="rep-sum-lbl">TOTAL KM</span>
+                            <span id="summaryTotalKm" class="rep-sum-val blue">0.00 km</span>
+                        </div>
+                        <div class="rep-sum-cell">
+                            <span class="rep-sum-lbl">1ª SAÍDA</span>
+                            <span id="summaryFirstStart" class="rep-sum-val">--:--</span>
+                        </div>
+                        <div class="rep-sum-cell">
+                            <span class="rep-sum-lbl">ÚLT. CHEGADA</span>
+                            <span id="summaryLastEnd" class="rep-sum-val">--:--</span>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -651,7 +893,7 @@
 
     <!-- SCRIPT DA APLICAÇÃO -->
     <script>
-        const APP_VERSION = "9.4"; 
+        const APP_VERSION = "9.5"; 
 
         let timerInterval = null;
         let watchId = null;
@@ -2233,6 +2475,11 @@
             a.href = url; a.download = `Relatorio_${colabAtivo}.csv`; a.click();
         }
 
+        function formatKmComma(val) {
+            const num = parseFloat(String(val ?? 0).replace(',', '.'));
+            return Number.isFinite(num) ? num.toFixed(1).replace('.', ',') : '0,0';
+        }
+
         function popularEstruturaRelatorioVisual(listaRotas, dataTitulo, nomeColaborador) {
             if (!listaRotas || !Array.isArray(listaRotas) || listaRotas.length === 0) return false;
 
@@ -2241,7 +2488,7 @@
 
             document.getElementById('imgReportDate').innerText = dataTitulo || new Date().toLocaleDateString('pt-BR');
             document.getElementById('imgReportCollab').innerText = nomeColaborador;
-            document.getElementById('imgReportFleet').innerText = ultimaRotaComFrota.fleet || 'Fiorino Álcool';
+            document.getElementById('imgReportFleet').innerText = ultimaRotaComFrota.fleet || '336862';
             document.getElementById('imgReportTotalRoutes').innerText = rotasReais.length;
 
             let totalKmGeral = 0;
@@ -2263,48 +2510,39 @@
                 if(r) {
                     const card = document.createElement('div');
                     if (isMealRecord(r)) {
-                        card.style.background = '#fffbeb';
-                        card.style.borderRadius = '12px';
-                        card.style.overflow = 'hidden';
-                        card.style.border = '1px solid #fcd34d';
-                        card.style.boxShadow = '0 2px 4px rgba(0,0,0,0.05)';
+                        card.className = 'rep-route-card';
+                        card.style.borderColor = '#fcd34d';
                         card.innerHTML = `
-                            <div style="background: #78350f; color: #ffffff; padding: 7px 12px; display: flex; justify-content: space-between; align-items: center;">
-                                <span style="font-weight: 900; font-size: 10px; color: #fef3c7;">🍽️ HORÁRIO DE REFEIÇÃO</span>
-                                <span style="font-weight: 800; font-size: 10px; color: #fde68a;">0.00 km</span>
+                            <div class="rep-route-head" style="background-color: #78350f; display: flex; justify-content: space-between; align-items: center;">
+                                <span>Horário de Refeição</span>
+                                <span style="color: #fde68a; font-size: 15px;">0.00 km</span>
                             </div>
-                            <div style="padding: 9px 12px; display: flex; justify-content: space-between; align-items: center; font-size: 10px; color: #451a03; font-weight: 700;">
-                                <span>Início: ${r.startTime || '--:--'} → Término: ${r.endTime || '--:--'}</span>
-                                <span>Duração: ${r.duration || '00:00:00'}</span>
+                            <div style="padding: 10px 14px; background-color: #fffbeb; display: flex; justify-content: space-between; align-items: center; font-size: 14px; font-weight: 700; color: #451a03;">
+                                <span>SAÍDA: ${r.startTime || '--:--'} | CHEGADA: ${r.endTime || '--:--'}</span>
+                                <span>DURAÇÃO: ${r.duration || '00:00:00'}</span>
                             </div>
                         `;
                     } else {
                         routeIdx++;
-                        card.style.background = '#ffffff';
-                        card.style.borderRadius = '12px';
-                        card.style.overflow = 'hidden';
-                        card.style.border = '1px solid #cbd5e1';
-                        card.style.boxShadow = '0 2px 4px rgba(0,0,0,0.05)';
+                        card.className = 'rep-route-card';
                         card.innerHTML = `
-                            <div style="background: #0b132b; color: #ffffff; padding: 8px 12px; display: flex; justify-content: space-between; align-items: center;">
-                                <span style="font-weight: 900; font-size: 11px; color: #ffffff;">Rota #${routeIdx}</span>
-                            </div>
-                            <div style="padding: 10px 12px; display: grid; grid-template-columns: 1.2fr 1fr 1fr 1fr; gap: 4px; align-items: center; border-bottom: 1px solid #e2e8f0; text-align: left;">
-                                <div style="text-align: left;">
-                                    <span style="font-size: 7px; font-weight: 800; color: #64748b; text-transform: uppercase; display: block;">Manobra:</span>
-                                    <span style="font-size: 10px; font-weight: 900; color: #0f172a;">${r.destination || 'Manobra'}</span>
+                            <div class="rep-route-head">Rota #${routeIdx}</div>
+                            <div class="rep-route-grid">
+                                <div class="rep-col-manobra">
+                                    <span class="rep-lbl-mini">MANOBRA</span>
+                                    <span class="rep-manobra-txt">${r.destination || 'Manobra'}</span>
                                 </div>
-                                <div style="text-align: left;">
-                                    <span style="font-size: 7px; font-weight: 800; color: #64748b; text-transform: uppercase; display: block;">Saída: ${r.startTime || '--:--'}</span>
-                                    <span style="font-size: 7px; font-weight: 800; color: #64748b; text-transform: uppercase; display: block;">Chegada: ${r.endTime || '--:--'}</span>
+                                <div class="rep-col-mid">
+                                    <div>SAÍDA: ${r.startTime || '--:--'}</div>
+                                    <div>CHEGADA: ${r.endTime || '--:--'}</div>
                                 </div>
-                                <div style="text-align: left;">
-                                    <span style="font-size: 7px; font-weight: 800; color: #64748b; text-transform: uppercase; display: block;">KM Ini: ${r.kmStart || 0}</span>
-                                    <span style="font-size: 7px; font-weight: 800; color: #64748b; text-transform: uppercase; display: block;">KM Fin: ${r.kmFinal || 0}</span>
+                                <div class="rep-col-mid">
+                                    <div>KM INI: ${formatKmComma(r.kmStart)}</div>
+                                    <div>KM FIN: ${formatKmComma(r.kmFinal)}</div>
                                 </div>
-                                <div style="text-align: right;">
-                                    <span style="font-size: 7px; font-weight: 800; color: #64748b; text-transform: uppercase; display: block;">Total:</span>
-                                    <span style="font-size: 11px; font-weight: 900; color: #2563eb;">${r.distance || '0.00'} km</span>
+                                <div class="rep-col-tot">
+                                    <span class="rep-lbl-mini">TOTAL</span>
+                                    <span class="rep-tot-val">${r.distance || '0.00'} km</span>
                                 </div>
                             </div>
                         `;
@@ -2323,28 +2561,28 @@
         function baixarImagemPronta() {
             const card = document.getElementById('reportCardToImage');
             showAlert('Gerando imagem do relatório...', 'info');
-            card.style.width = '420px';
 
             html2canvas(card, { 
-                scale: 2, 
-                backgroundColor: '#f1f5f9', 
+                scale: 2.5,
+                width: 800,
+                backgroundColor: '#eef3f8', 
                 useCORS: true, 
                 allowTaint: true, 
                 logging: false 
             }).then(canvas => {
-                card.style.width = '100%';
                 canvas.toBlob((blob) => {
                     if (!blob) {
                         showAlert('Erro ao converter imagem.', 'error');
                         return;
                     }
-                    const file = new File([blob], `Relatorio_AgroRota_${new Date().toISOString().slice(0,10)}.png`, { type: 'image/png' });
+                    const colabNome = document.getElementById('imgReportCollab')?.innerText || 'Operador';
+                    const file = new File([blob], `Relatorio_Rotas_${colabNome}_${new Date().toISOString().slice(0,10)}.png`, { type: 'image/png' });
                     
                     if (navigator.canShare && navigator.canShare({ files: [file] })) {
                         navigator.share({ 
                             files: [file], 
-                            title: 'Relatório AgroRota', 
-                            text: 'Segue o relatório de rotas da operação.' 
+                            title: 'Relatório de Rotas', 
+                            text: `Relatório de Rotas - ${colabNome}` 
                         }).then(() => {
                             showAlert('Imagem compartilhada com sucesso!', 'success');
                         }).catch((error) => {
@@ -2357,7 +2595,6 @@
                     }
                 }, 'image/png');
             }).catch(err => {
-                card.style.width = '100%';
                 console.error("Erro html2canvas:", err);
                 showAlert('Falha ao gerar imagem. Use o botão do WhatsApp.', 'error');
             });
