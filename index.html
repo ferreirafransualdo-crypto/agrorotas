@@ -220,6 +220,40 @@
             display: block;
         }
 
+        .rep-gate-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            align-items: center;
+            padding: 11px 14px;
+            background-color: #f0f9ff;
+        }
+
+        .rep-gate-cell {
+            text-align: center;
+            border-right: 1.5px solid #bae6fd;
+            padding: 0 10px;
+        }
+
+        .rep-gate-cell:last-child {
+            border-right: none;
+        }
+
+        .rep-gate-lbl {
+            font-size: 11px;
+            font-weight: 800;
+            color: #0369a1;
+            text-transform: uppercase;
+            display: block;
+            margin-bottom: 2px;
+        }
+
+        .rep-gate-val {
+            font-size: 19px;
+            font-weight: 900;
+            color: #082f49;
+            display: block;
+        }
+
         .rep-summary-head {
             background: linear-gradient(90deg, #16803c 0%, #0f6b32 100%);
             color: #ffffff;
@@ -1388,8 +1422,8 @@
                                                 <span>0.00 KM (Portaria)</span>
                                             </div>
                                             <div class="text-[11px] text-slate-300 flex justify-between">
-                                                <span>Início: ${r.startTime || '--:--'} - Término: ${r.endTime || '--:--'}</span>
-                                                <span>Duração: ${r.duration || '00:00:00'}</span>
+                                                <span>Início: ${r.startTime || '--:--'} - Final: ${r.endTime || '--:--'}</span>
+                                                <span>Tempo na portaria: ${r.duration || '00:00:00'}</span>
                                             </div>
                                         </div>
                                     `;
@@ -2661,7 +2695,7 @@
                                 <div class="flex-1 pr-2 text-left">
                                     <div class="font-bold text-sky-300 text-left"><i class="fa-solid fa-shield-halved mr-1"></i> Revista e Liberação (Portaria)</div>
                                     <div class="text-slate-400 mt-0.5 text-left">Data: ${item.data || '--/--/----'} | Revista do veículo e liberação</div>
-                                    <div class="text-slate-300 text-[11px] mt-0.5 text-left">Horário: <strong class="text-sky-300">${item.startTime || '--:--'}</strong> às <strong class="text-sky-300">${item.endTime || '--:--'}</strong> (Duração: ${item.duration || '00:00:00'})</div>
+                                    <div class="text-slate-300 text-[11px] mt-0.5 text-left">Início: <strong class="text-sky-300">${item.startTime || '--:--'}</strong> • Final: <strong class="text-sky-300">${item.endTime || '--:--'}</strong> • Tempo na portaria: <strong class="text-sky-300">${item.duration || '00:00:00'}</strong></div>
                                 </div>
                                 <div class="flex items-center gap-2">
                                     <div class="text-right font-bold text-sky-300 mr-1">0.00 KM</div>
@@ -2743,11 +2777,29 @@
             return Number.isFinite(num) ? num.toFixed(1).replace('.', ',') : '0,0';
         }
 
+        // Ordena o relatório para colocar Revista e Liberação (Portaria) logo abaixo da 1ª rota/manobra,
+        // mantendo a sequência das demais demandas em seguida.
+        function ordenarItensRelatorioVisual(listaRotas) {
+            const validos = listaRotas.filter(Boolean);
+            const primeiraRotaIndex = validos.findIndex(r => !isZeroKmEvent(r));
+
+            if (primeiraRotaIndex === -1) {
+                return validos;
+            }
+
+            const primeiraRota = validos[primeiraRotaIndex];
+            const liberacoes = validos.filter((r, idx) => idx !== primeiraRotaIndex && isGateRecord(r));
+            const demaisItens = validos.filter((r, idx) => idx !== primeiraRotaIndex && !isGateRecord(r));
+
+            return [primeiraRota, ...liberacoes, ...demaisItens];
+        }
+
         function popularEstruturaRelatorioVisual(listaRotas, dataTitulo, nomeColaborador) {
             if (!listaRotas || !Array.isArray(listaRotas) || listaRotas.length === 0) return false;
 
-            const rotasReais = listaRotas.filter(r => r && !isZeroKmEvent(r));
-            const ultimaRotaComFrota = [...listaRotas].reverse().find(r => r && r.fleet) || {};
+            const itensOrdenados = ordenarItensRelatorioVisual(listaRotas);
+            const rotasReais = itensOrdenados.filter(r => r && !isZeroKmEvent(r));
+            const ultimaRotaComFrota = [...itensOrdenados].reverse().find(r => r && r.fleet) || {};
 
             document.getElementById('imgReportDate').innerText = dataTitulo || new Date().toLocaleDateString('pt-BR');
             document.getElementById('imgReportCollab').innerText = nomeColaborador;
@@ -2769,7 +2821,7 @@
             container.innerHTML = '';
 
             let routeIdx = 0;
-            listaRotas.forEach((r) => {
+            itensOrdenados.forEach((r) => {
                 if(r) {
                     const card = document.createElement('div');
                     if (isMealRecord(r)) {
@@ -2793,9 +2845,19 @@
                                 <span>Revista e Liberação (Portaria)</span>
                                 <span style="color: #bae6fd; font-size: 15px;">0.00 km</span>
                             </div>
-                            <div style="padding: 10px 14px; background-color: #f0f9ff; display: flex; justify-content: space-between; align-items: center; font-size: 14px; font-weight: 700; color: #082f49;">
-                                <span>INÍCIO: ${r.startTime || '--:--'} | LIBERAÇÃO: ${r.endTime || '--:--'}</span>
-                                <span>DURAÇÃO: ${r.duration || '00:00:00'}</span>
+                            <div class="rep-gate-grid">
+                                <div class="rep-gate-cell">
+                                    <span class="rep-gate-lbl">INÍCIO</span>
+                                    <span class="rep-gate-val">${r.startTime || '--:--'}</span>
+                                </div>
+                                <div class="rep-gate-cell">
+                                    <span class="rep-gate-lbl">FINAL</span>
+                                    <span class="rep-gate-val">${r.endTime || '--:--'}</span>
+                                </div>
+                                <div class="rep-gate-cell">
+                                    <span class="rep-gate-lbl">TEMPO GASTO NA PORTARIA</span>
+                                    <span class="rep-gate-val" style="color: #0369a1;">${r.duration || '00:00:00'}</span>
+                                </div>
                             </div>
                         `;
                     } else {
@@ -2909,7 +2971,7 @@
                         texto += `⏰ ${r.startTime || '--:--'} às ${r.endTime || '--:--'} (Duração: ${r.duration || '00:00:00'}) | _Sem KM_\n\n`;
                     } else if (isGateRecord(r)) {
                         texto += `🛡️ *Revista e Liberação (Portaria)*\n`;
-                        texto += `⏰ ${r.startTime || '--:--'} às ${r.endTime || '--:--'} (Duração: ${r.duration || '00:00:00'}) | _Sem KM_\n\n`;
+                        texto += `⏰ Início: ${r.startTime || '--:--'} | Final: ${r.endTime || '--:--'} | Tempo na portaria: *${r.duration || '00:00:00'}* | _Sem KM_\n\n`;
                     } else {
                         routeNum++;
                         totalKmGeral += parseFloat(r.distance || 0);
@@ -3047,8 +3109,8 @@
                                                 <span class="shrink-0">0.00 km (Portaria)</span>
                                             </div>
                                             <div class="text-slate-300 flex justify-between items-center gap-2">
-                                                <span>Início: ${r.startTime || '--:--'} - Término: ${r.endTime || '--:--'}</span>
-                                                <span class="shrink-0">Duração: ${r.duration || '00:00:00'}</span>
+                                                <span>Início: ${r.startTime || '--:--'} • Final: ${r.endTime || '--:--'}</span>
+                                                <span class="shrink-0">Tempo na portaria: ${r.duration || '00:00:00'}</span>
                                             </div>
                                             <div class="flex justify-end gap-2 pt-1 border-t border-sky-500/20">
                                                 <button type="button" onclick="abrirModalEditarRota('${escapeJsString(r.id)}', '${dataEscapada}')" class="px-2.5 py-1 bg-slate-900 hover:bg-slate-700 text-amber-400 rounded-lg transition cursor-pointer flex items-center gap-1 font-semibold" title="Editar Portaria">
