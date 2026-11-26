@@ -540,11 +540,14 @@
                         <i class="fa-solid fa-folder-tree text-amber-400"></i> Pastas dos Colaboradores
                     </h3>
                     <div class="flex gap-2">
-                        <button type="button" onclick="exportarRelatorioGeralCoordenador()" class="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-600 text-xs font-bold rounded-lg text-white transition cursor-pointer flex items-center gap-1.5" title="Baixar Planilha Consolidada">
-                            <i class="fa-solid fa-file-excel"></i> CSV Geral
+                        <button type="button" onclick="exportarConsolidadoExcelCoordenador()" class="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-600 text-xs font-bold rounded-lg text-white transition cursor-pointer flex items-center gap-1.5" title="Baixar Planilha Excel Consolidada em 1 Faixa por Colaborador">
+                            <i class="fa-solid fa-file-excel"></i> Excel (Faixa)
+                        </button>
+                        <button type="button" onclick="exportarRelatorioGeralCoordenador()" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-xs font-semibold rounded-lg text-slate-200 transition cursor-pointer flex items-center gap-1.5" title="Baixar CSV Detalhado">
+                            <i class="fa-solid fa-table"></i> CSV
                         </button>
                         <button type="button" onclick="carregarListaColaboradoresCoordenador()" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-xs font-semibold rounded-lg text-slate-200 transition cursor-pointer">
-                            <i class="fa-solid fa-rotate-right mr-1"></i>
+                            <i class="fa-solid fa-rotate-right"></i>
                         </button>
                     </div>
                 </div>
@@ -588,7 +591,7 @@
                         <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Veículo / Frota *</label>
                         <div class="relative">
                             <i class="fa-solid fa-truck absolute left-3 top-3.5 text-slate-500"></i>
-                            <input type="text" id="inputFleet" required placeholder="Ex: Fiorino Álcool" oninput="carregarKmPorFrota(this.value)" class="input-agro placeholder-slate-500 font-bold">
+                            <input type="text" id="inputFleet" required placeholder="Ex: 336862 ou Fiorino Álcool" oninput="carregarKmPorFrota(this.value)" class="input-agro placeholder-slate-500 font-bold">
                         </div>
                     </div>
 
@@ -605,15 +608,15 @@
                             <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Tipo de Manobra / Destino *</label>
                             <div class="relative">
                                 <i class="fa-solid fa-location-dot absolute left-3 top-3.5 text-slate-500"></i>
-                                <input type="text" id="inputDestination" required placeholder="Ex: Posto de combustivel" list="destinationList" class="input-agro placeholder-slate-500">
+                                <input type="text" id="inputDestination" required placeholder="Ex: Entrega de materiais Plataforma" list="destinationList" class="input-agro placeholder-slate-500">
                                 <datalist id="destinationList"></datalist>
                             </div>
                         </div>
                     </div>
 
                     <div>
-                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Observações (Opcional)</label>
-                        <input type="text" id="inputNotes" placeholder="Ex: Entrega de peças" class="w-full bg-slate-900 border border-slate-700 rounded-xl py-2.5 px-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-agro-500">
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Motivo / Observações (Opcional)</label>
+                        <input type="text" id="inputNotes" placeholder="Ex: ATENDER AUTOMOTIVA" class="w-full bg-slate-900 border border-slate-700 rounded-xl py-2.5 px-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-agro-500">
                     </div>
 
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
@@ -744,8 +747,11 @@
                         <i class="fa-solid fa-clock-rotate-left text-blue-400"></i> Meu Histórico Recente
                     </h3>
                     <div class="flex gap-2">
+                        <button type="button" onclick="exportToExcelConsolidated()" class="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-600 text-xs font-bold rounded-lg text-white transition cursor-pointer flex items-center gap-1" title="Exportar planilha Excel com todas as rotas juntas e KMs somados em uma faixa">
+                            <i class="fa-solid fa-file-excel"></i> Excel
+                        </button>
                         <button type="button" onclick="exportToCSV()" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-xs font-semibold rounded-lg text-slate-200 transition cursor-pointer flex items-center gap-1">
-                            <i class="fa-solid fa-file-excel text-emerald-400"></i> CSV
+                            <i class="fa-solid fa-table text-emerald-400"></i> CSV
                         </button>
                         <button type="button" onclick="clearHistory()" class="px-3 py-1.5 bg-slate-700/60 hover:bg-red-900/40 text-xs font-semibold rounded-lg text-slate-400 hover:text-red-300 transition cursor-pointer">Limpar</button>
                     </div>
@@ -1001,10 +1007,15 @@
                 </button>
             </div>
             <div id="modalPastasContent" class="p-4 overflow-y-auto space-y-3 flex-1 text-left"></div>
-            <div class="p-3 bg-slate-800/80 border-t border-slate-700 text-center flex justify-between items-center">
-                <button type="button" onclick="exportToCSV()" class="px-4 py-2 bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-bold rounded-xl cursor-pointer">
-                    <i class="fa-solid fa-download"></i> Baixar CSV
-                </button>
+            <div class="p-3 bg-slate-800/80 border-t border-slate-700 text-center flex flex-wrap justify-between items-center gap-2">
+                <div class="flex gap-2">
+                    <button type="button" onclick="exportToExcelConsolidated()" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl cursor-pointer flex items-center gap-1.5">
+                        <i class="fa-solid fa-file-excel"></i> Baixar Excel (Faixa)
+                    </button>
+                    <button type="button" onclick="exportToCSV()" class="px-3.5 py-2 bg-slate-700 hover:bg-slate-600 text-white text-xs font-bold rounded-xl cursor-pointer flex items-center gap-1.5">
+                        <i class="fa-solid fa-download"></i> CSV
+                    </button>
+                </div>
                 <button type="button" onclick="toggleModalPastas(false)" class="px-5 py-2 bg-slate-700 hover:bg-slate-600 text-white text-xs font-bold rounded-xl cursor-pointer">
                     Fechar
                 </button>
@@ -1014,7 +1025,7 @@
 
     <!-- SCRIPT DA APLICAÇÃO -->
     <script>
-        const APP_VERSION = "9.8"; 
+        const APP_VERSION = "10.0"; 
 
         let timerInterval = null;
         let watchId = null;
@@ -1069,6 +1080,22 @@
             return `${hrs}:${mins}:${secs}`;
         }
 
+        function formatHhMmFromSeconds(totalSecs) {
+            const safeSecs = Math.max(0, Math.floor(Number(totalSecs) || 0));
+            const hrs = String(Math.floor(safeSecs / 3600)).padStart(2, '0');
+            const mins = String(Math.floor((safeSecs % 3600) / 60)).padStart(2, '0');
+            return `${hrs}:${mins}`;
+        }
+
+        function durationStringToSeconds(durStr) {
+            if (!durStr || typeof durStr !== 'string' || !durStr.includes(':')) return 0;
+            const parts = durStr.trim().split(':').map(Number);
+            if (parts.some(n => Number.isNaN(n))) return 0;
+            if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
+            if (parts.length === 2) return parts[0] * 3600 + parts[1] * 60;
+            return 0;
+        }
+
         function calcularDuracaoEntreHorarios(inicioStr, fimStr) {
             if (!inicioStr || !fimStr || !inicioStr.includes(':') || !fimStr.includes(':')) {
                 return null;
@@ -1095,6 +1122,310 @@
             const [h, m] = horaStr.trim().split(':').map(Number);
             if (Number.isNaN(h) || Number.isNaN(m)) return null;
             return h * 60 + m;
+        }
+
+        function escapeHtmlCell(val) {
+            return String(val ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+        }
+
+        function obterTurnoPorHora(horaStr) {
+            const mins = horaParaMinutos(horaStr);
+            if (mins === null) return 'A';
+            if (mins >= 300 && mins < 840) return 'A';
+            if (mins >= 840 && mins < 1320) return 'B';
+            return 'C';
+        }
+
+        /**
+         * Junta todas as manobras de um mesmo colaborador (por Data + Turno + Frota + Colaborador)
+         * em uma única faixa consolidada, somando os KMs rodados e o tempo gasto.
+         */
+        function consolidarFaixasRotas(registrosComColab) {
+            const grupos = new Map();
+            let somaKmGeral = 0;
+
+            registrosComColab.forEach(({ colaborador, registro }) => {
+                if (!registro || isZeroKmEvent(registro)) return;
+                const dataVal = registro.data || new Date().toLocaleDateString('pt-BR');
+                const frotaVal = registro.fleet || '336862';
+                const colabVal = registro.colaborador || colaborador || 'Operador';
+                const turnoVal = registro.turno || obterTurnoPorHora(registro.startTime);
+                const chave = `${dataVal}||${turnoVal}||${frotaVal}||${colabVal}`;
+
+                const distNum = parseFloat(String(registro.distance || 0).replace(',', '.')) || 0;
+                const durSecs = durationStringToSeconds(registro.duration) || (() => {
+                    const calc = calcularDuracaoEntreHorarios(registro.startTime, registro.endTime);
+                    return calc ? durationStringToSeconds(calc) : 0;
+                })();
+
+                if (!grupos.has(chave)) {
+                    grupos.set(chave, {
+                        turno: turnoVal,
+                        data: dataVal,
+                        frota: frotaVal,
+                        colaborador: colabVal,
+                        horaSaida: registro.startTime || '--:--',
+                        horaChegada: registro.endTime || '--:--',
+                        minSaida: horaParaMinutos(registro.startTime),
+                        maxChegada: horaParaMinutos(registro.endTime),
+                        tempoSegundos: durSecs,
+                        kmsRodados: distNum,
+                        tipoEntrega: registro.tipoEntrega || 'SPOT',
+                        destinos: registro.destination ? [registro.destination.trim()] : [],
+                        motivo: (registro.notes && registro.notes.trim()) ? registro.notes.trim() : 'ATENDER AUTOMOTIVA'
+                    });
+                } else {
+                    const g = grupos.get(chave);
+                    g.kmsRodados += distNum;
+                    g.tempoSegundos += durSecs;
+
+                    const mIni = horaParaMinutos(registro.startTime);
+                    if (mIni !== null && (g.minSaida === null || mIni < g.minSaida)) {
+                        g.minSaida = mIni;
+                        g.horaSaida = registro.startTime;
+                    }
+
+                    const mFim = horaParaMinutos(registro.endTime);
+                    if (mFim !== null && (g.maxChegada === null || mFim > g.maxChegada)) {
+                        g.maxChegada = mFim;
+                        g.horaChegada = registro.endTime;
+                    }
+
+                    if (registro.destination && !g.destinos.includes(registro.destination.trim())) {
+                        g.destinos.push(registro.destination.trim());
+                    }
+
+                    if (registro.notes && registro.notes.trim() && g.motivo === 'ATENDER AUTOMOTIVA') {
+                        g.motivo = registro.notes.trim();
+                    }
+                }
+            });
+
+            const faixas = Array.from(grupos.values()).map(g => {
+                somaKmGeral += g.kmsRodados;
+                return {
+                    turno: g.turno,
+                    data: g.data,
+                    frota: g.frota,
+                    colaborador: g.colaborador,
+                    horaSaida: g.horaSaida,
+                    horaChegada: g.horaChegada,
+                    tempoGasto: formatHhMmFromSeconds(g.tempoSegundos),
+                    kmsRodados: Number.isInteger(g.kmsRodados) ? String(g.kmsRodados) : g.kmsRodados.toFixed(2).replace('.', ','),
+                    kmsRodadosNum: g.kmsRodados,
+                    tipoEntrega: g.tipoEntrega,
+                    destino: g.destinos.join(' / '),
+                    motivo: g.motivo
+                };
+            });
+
+            return { faixas, somaKmGeral };
+        }
+
+        /**
+         * Gera arquivo Excel (.xls) estilizado exatamente no padrão da planilha modelo:
+         * cabeçalho verde escuro, subcabeçalho verde claro, coluna TURNO mesclada,
+         * 1 faixa consolidada por colaborador e linha TOTAL somando todos os KMs.
+         */
+        function baixarPlanilhaConsolidadaExcel(registrosComColab, tituloData, nomeArquivo) {
+            const { faixas, somaKmGeral } = consolidarFaixasRotas(registrosComColab);
+            if (faixas.length === 0) {
+                showAlert('Sem manobras para consolidar no Excel.', 'error');
+                return;
+            }
+
+            const dataRef = tituloData || faixas[0].data || new Date().toLocaleDateString('pt-BR');
+            const totalFormatado = Number.isInteger(somaKmGeral)
+                ? String(somaKmGeral)
+                : somaKmGeral.toFixed(2).replace('.', ',');
+
+            const rowspanTurno = faixas.length;
+
+            const linhasHtml = faixas.map((f, idx) => {
+                const celulaTurno = idx === 0
+                    ? `<td rowspan="${rowspanTurno}" style="background-color:#d9ead3; font-weight:bold; text-align:center; vertical-align:middle; border:1px solid #000000; font-size:12pt;">${escapeHtmlCell(f.turno)}</td>`
+                    : '';
+                return `
+                    <tr style="height:24px;">
+                        ${celulaTurno}
+                        <td style="text-align:center; vertical-align:middle; border:1px solid #000000; font-weight:bold;">${escapeHtmlCell(f.data)}</td>
+                        <td style="text-align:center; vertical-align:middle; border:1px solid #000000; font-weight:bold;">${escapeHtmlCell(f.frota)}</td>
+                        <td style="text-align:center; vertical-align:middle; border:1px solid #000000; font-weight:bold;">${escapeHtmlCell(f.colaborador)}</td>
+                        <td style="text-align:center; vertical-align:middle; border:1px solid #000000; font-weight:bold;">${escapeHtmlCell(f.horaSaida)}</td>
+                        <td style="text-align:center; vertical-align:middle; border:1px solid #000000; font-weight:bold;">${escapeHtmlCell(f.horaChegada)}</td>
+                        <td style="text-align:center; vertical-align:middle; border:1px solid #000000; font-weight:bold;">${escapeHtmlCell(f.tempoGasto)}</td>
+                        <td style="text-align:center; vertical-align:middle; border:1px solid #000000; font-weight:bold;">${escapeHtmlCell(f.kmsRodados)}</td>
+                        <td style="text-align:center; vertical-align:middle; border:1px solid #000000; font-weight:bold;">${escapeHtmlCell(f.tipoEntrega)}</td>
+                        <td style="text-align:center; vertical-align:middle; border:1px solid #000000; font-weight:bold; padding:4px 8px;">${escapeHtmlCell(f.destino)}</td>
+                        <td style="text-align:center; vertical-align:middle; border:1px solid #000000; font-weight:bold;">${escapeHtmlCell(f.motivo)}</td>
+                    </tr>
+                `;
+            }).join('');
+
+            const htmlExcel = `
+                <html xmlns:o="urn:schemas-microsoft-com:office:office"
+                      xmlns:x="urn:schemas-microsoft-com:office:excel"
+                      xmlns="http://www.w3.org/TR/REC-html40">
+                <head>
+                    <meta charset="UTF-8">
+                    <!--[if gte mso 9]>
+                    <xml>
+                        <x:ExcelWorkbook>
+                            <x:ExcelWorksheets>
+                                <x:ExcelWorksheet>
+                                    <x:Name>Entregas em Campo</x:Name>
+                                    <x:WorksheetOptions>
+                                        <x:DisplayGridlines/>
+                                    </x:WorksheetOptions>
+                                </x:ExcelWorksheet>
+                            </x:ExcelWorksheets>
+                        </x:ExcelWorkbook>
+                    </xml>
+                    <![endif]-->
+                    <style>
+                        table { border-collapse: collapse; font-family: Arial, Calibri, sans-serif; font-size: 10pt; }
+                        th, td { border: 1px solid #000000; }
+                    </style>
+                </head>
+                <body>
+                    <table>
+                        <thead>
+                            <tr style="height:28px;">
+                                <th colspan="11" style="background-color:#385723; color:#ffffff; font-weight:bold; font-size:11pt; text-align:center; vertical-align:middle; border:1px solid #000000;">
+                                    CONTROLE DE ENTREGAS DE PEÇAS EM CAMPO - ${escapeHtmlCell(dataRef)} -
+                                </th>
+                            </tr>
+                            <tr style="height:24px; background-color:#d9ead3; color:#000000; font-weight:bold; text-align:center; vertical-align:middle;">
+                                <th style="background-color:#d9ead3; border:1px solid #000000; padding:4px 8px;">TURNO</th>
+                                <th style="background-color:#d9ead3; border:1px solid #000000; padding:4px 10px;">DATA</th>
+                                <th style="background-color:#d9ead3; border:1px solid #000000; padding:4px 10px;">FROTA</th>
+                                <th style="background-color:#d9ead3; border:1px solid #000000; padding:4px 16px;">COLABORADOR</th>
+                                <th style="background-color:#d9ead3; border:1px solid #000000; padding:4px 10px;">HORA SAIDA</th>
+                                <th style="background-color:#d9ead3; border:1px solid #000000; padding:4px 10px;">HORA CHEGADA</th>
+                                <th style="background-color:#d9ead3; border:1px solid #000000; padding:4px 10px;">TEMPO GASTO</th>
+                                <th style="background-color:#d9ead3; border:1px solid #000000; padding:4px 10px;">KMs RODADOS</th>
+                                <th style="background-color:#d9ead3; border:1px solid #000000; padding:4px 12px;">TIPO DE ENTREGA</th>
+                                <th style="background-color:#d9ead3; border:1px solid #000000; padding:4px 24px;">DESTINO</th>
+                                <th style="background-color:#d9ead3; border:1px solid #000000; padding:4px 16px;">MOTIVO</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${linhasHtml}
+                            <tr style="height:24px; background-color:#f2f2f2; font-weight:bold;">
+                                <td style="border:1px solid #000000;"></td>
+                                <td style="border:1px solid #000000;"></td>
+                                <td style="border:1px solid #000000;"></td>
+                                <td style="border:1px solid #000000;"></td>
+                                <td style="border:1px solid #000000;"></td>
+                                <td style="border:1px solid #000000;"></td>
+                                <td style="text-align:center; vertical-align:middle; border:1px solid #000000; font-weight:bold;">TOTAL</td>
+                                <td style="text-align:center; vertical-align:middle; border:1px solid #000000; font-weight:bold;">${escapeHtmlCell(totalFormatado)}</td>
+                                <td style="border:1px solid #000000;"></td>
+                                <td style="border:1px solid #000000;"></td>
+                                <td style="border:1px solid #000000;"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </body>
+                </html>
+            `;
+
+            const blob = new Blob(['\uFEFF' + htmlExcel], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = nomeArquivo.endsWith('.xls') ? nomeArquivo : `${nomeArquivo}.xls`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showAlert('Planilha Excel (1 faixa consolidada com todos os KMs) gerada com sucesso!', 'success');
+        }
+
+        function exportToExcelConsolidated(dataEspecifica = '') {
+            const colabAtivo = localStorage.getItem('agro_fixed_colaborador') || 'Operador';
+            let history = [];
+            try { history = JSON.parse(localStorage.getItem(`agro_routes_history_${colabAtivo}`) || '[]'); } catch(e){}
+
+            let pastas = {};
+            try { pastas = JSON.parse(localStorage.getItem(`agro_archived_folders_${colabAtivo}`) || '{}'); } catch(e){}
+
+            const combinados = [];
+
+            if (dataEspecifica) {
+                const listaPasta = Array.isArray(pastas[dataEspecifica]) ? pastas[dataEspecifica] : [];
+                listaPasta.forEach(r => combinados.push({ colaborador: colabAtivo, registro: { ...r, data: r.data || dataEspecifica } }));
+                history.forEach(r => {
+                    if (r && r.data === dataEspecifica && !combinados.some(item => item.registro && item.registro.id && r.id && item.registro.id === r.id)) {
+                        combinados.push({ colaborador: colabAtivo, registro: r });
+                    }
+                });
+            } else {
+                history.forEach(r => combinados.push({ colaborador: colabAtivo, registro: r }));
+                if (combinados.length === 0) {
+                    Object.entries(pastas).forEach(([dataKey, lista]) => {
+                        if (Array.isArray(lista)) {
+                            lista.forEach(r => combinados.push({ colaborador: colabAtivo, registro: { ...r, data: r.data || dataKey } }));
+                        }
+                    });
+                }
+            }
+
+            if (combinados.length === 0) {
+                showAlert('Sem rotas para exportar no Excel.', 'error');
+                return;
+            }
+
+            const dataTitulo = dataEspecifica || combinados[0]?.registro?.data || new Date().toLocaleDateString('pt-BR');
+            const dataArquivo = dataTitulo.replace(/\//g, '-');
+            baixarPlanilhaConsolidadaExcel(
+                combinados,
+                dataTitulo,
+                `Controle_Entregas_${colabAtivo}_${dataArquivo}.xls`
+            );
+        }
+
+        function exportarConsolidadoExcelCoordenador() {
+            const periodFilter = document.getElementById('coordPeriodFilter')?.value || 'todos';
+            const combinados = [];
+
+            LISTA_COLABORADORES.forEach(nome => {
+                let history = [];
+                try { history = JSON.parse(localStorage.getItem(`agro_routes_history_${nome}`) || '[]'); } catch(e){}
+
+                let pastas = {};
+                try { pastas = JSON.parse(localStorage.getItem(`agro_archived_folders_${nome}`) || '{}'); } catch(e){}
+
+                history.forEach(r => {
+                    if (r && filtrarDataPorPeriodo(r.data, periodFilter)) {
+                        combinados.push({ colaborador: nome, registro: r });
+                    }
+                });
+
+                Object.entries(pastas).forEach(([dataKey, lista]) => {
+                    if (filtrarDataPorPeriodo(dataKey, periodFilter) && Array.isArray(lista)) {
+                        lista.forEach(r => {
+                            if (r && !combinados.some(item => item.registro && item.registro.id && r.id && item.registro.id === r.id)) {
+                                combinados.push({ colaborador: nome, registro: { ...r, data: r.data || dataKey } });
+                            }
+                        });
+                    }
+                });
+            });
+
+            if (combinados.length === 0) {
+                showAlert('Sem manobras no período selecionado para exportar.', 'error');
+                return;
+            }
+
+            const dataHoje = new Date().toLocaleDateString('pt-BR');
+            baixarPlanilhaConsolidadaExcel(
+                combinados,
+                dataHoje,
+                `Controle_Entregas_Consolidado_${dataHoje.replace(/\//g, '-')}.xls`
+            );
         }
 
         window.onload = function() {
@@ -1583,9 +1914,12 @@
                 }
 
                 htmlPasta += `
-                        <div class="pt-2 flex justify-start text-left">
+                        <div class="pt-2 flex flex-wrap gap-2 justify-start text-left">
                             <button type="button" onclick="coordenadorVerRelatorioColaborador('${nome}')" class="px-3 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-lg transition cursor-pointer flex items-center gap-1.5">
-                                <i class="fa-solid fa-image"></i> Ver Relatório em Imagem deste Colaborador 📸
+                                <i class="fa-solid fa-image"></i> Ver Relatório em Imagem 📸
+                            </button>
+                            <button type="button" onclick="coordenadorExportarExcelColaborador('${nome}')" class="px-3 py-2 bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-bold rounded-lg transition cursor-pointer flex items-center gap-1.5">
+                                <i class="fa-solid fa-file-excel"></i> Excel (1 Faixa)
                             </button>
                         </div>
                     </div>
@@ -1622,6 +1956,43 @@
                 `;
                 rankingContainer.appendChild(rankRow);
             });
+        }
+
+        function coordenadorExportarExcelColaborador(nomeColaborador) {
+            const periodFilter = document.getElementById('coordPeriodFilter')?.value || 'todos';
+            let history = [];
+            try { history = JSON.parse(localStorage.getItem(`agro_routes_history_${nomeColaborador}`) || '[]'); } catch(e){}
+
+            let pastas = {};
+            try { pastas = JSON.parse(localStorage.getItem(`agro_archived_folders_${nomeColaborador}`) || '{}'); } catch(e){}
+
+            const combinados = [];
+            history.forEach(r => {
+                if (r && filtrarDataPorPeriodo(r.data, periodFilter)) {
+                    combinados.push({ colaborador: nomeColaborador, registro: r });
+                }
+            });
+            Object.entries(pastas).forEach(([dataKey, lista]) => {
+                if (filtrarDataPorPeriodo(dataKey, periodFilter) && Array.isArray(lista)) {
+                    lista.forEach(r => {
+                        if (r && !combinados.some(item => item.registro && item.registro.id && r.id && item.registro.id === r.id)) {
+                            combinados.push({ colaborador: nomeColaborador, registro: { ...r, data: r.data || dataKey } });
+                        }
+                    });
+                }
+            });
+
+            if (combinados.length === 0) {
+                showAlert(`Sem manobras de ${nomeColaborador} no período selecionado.`, 'error');
+                return;
+            }
+
+            const dataRef = combinados[0]?.registro?.data || new Date().toLocaleDateString('pt-BR');
+            baixarPlanilhaConsolidadaExcel(
+                combinados,
+                dataRef,
+                `Controle_Entregas_${nomeColaborador}_${dataRef.replace(/\//g, '-')}.xls`
+            );
         }
 
         function alternarAcordeaoPastaGestao(contentId, iconId) {
@@ -1703,7 +2074,7 @@
             a.href = url;
             a.download = `Relatorio_Geral_Fiorino_${new Date().toISOString().slice(0,10)}.csv`;
             a.click();
-            showAlert('Planilha consolidada gerada!', 'success');
+            showAlert('Planilha CSV detalhada gerada!', 'success');
         }
 
         function coordenadorVerRelatorioColaborador(nomeColaborador) {
@@ -1792,7 +2163,7 @@
                     document.getElementById('inputFleet').value = ultimaFrotaSalva;
                     carregarKmPorFrota(ultimaFrotaSalva);
                 } else {
-                    document.getElementById('inputFleet').value = 'Fiorino Álcool';
+                    document.getElementById('inputFleet').value = '336862';
                     document.getElementById('inputKmStart').value = '1000.0';
                 }
             } catch(e) { console.error(e); }
@@ -1989,7 +2360,7 @@
             activeRoute = {
                 type: 'meal',
                 colaborador: colab,
-                fleet: fleetInput || localStorage.getItem(`agro_last_fleet_${colab}`) || 'Fiorino Álcool',
+                fleet: fleetInput || localStorage.getItem(`agro_last_fleet_${colab}`) || '336862',
                 kmStart: kmBase,
                 destination: 'Horário de Refeição',
                 notes: 'Intervalo de refeição (sem marcação de KM)',
@@ -2035,7 +2406,7 @@
                     type: 'meal',
                     data: dataHoje,
                     colaborador: colabAtivo,
-                    fleet: activeRoute.fleet || localStorage.getItem(`agro_last_fleet_${colabAtivo}`) || 'Fiorino Álcool',
+                    fleet: activeRoute.fleet || localStorage.getItem(`agro_last_fleet_${colabAtivo}`) || '336862',
                     kmStart: '0.0',
                     kmFinal: '0.0',
                     destination: 'Horário de Refeição',
@@ -2104,7 +2475,7 @@
             } else {
                 const fleetInput = document.getElementById('inputFleet')?.value.trim();
                 const kmStartInput = parseFloat(document.getElementById('inputKmStart')?.value);
-                frotaAtual = fleetInput || localStorage.getItem(`agro_last_fleet_${colab}`) || 'Fiorino Álcool';
+                frotaAtual = fleetInput || localStorage.getItem(`agro_last_fleet_${colab}`) || '336862';
                 kmBase = !Number.isNaN(kmStartInput)
                     ? kmStartInput
                     : (parseFloat(localStorage.getItem(`agro_last_km_${colab}`)) || 0);
@@ -2168,7 +2539,7 @@
                     type: 'fuel',
                     data: dataHoje,
                     colaborador: colabAtivo,
-                    fleet: activeRoute.fleet || localStorage.getItem(`agro_last_fleet_${colabAtivo}`) || 'Fiorino Álcool',
+                    fleet: activeRoute.fleet || localStorage.getItem(`agro_last_fleet_${colabAtivo}`) || '336862',
                     kmStart: '0.0',
                     kmFinal: '0.0',
                     destination: 'Abastecimento',
@@ -2308,7 +2679,7 @@
                     type: 'gate',
                     data: dataHoje,
                     colaborador: colabAtivo,
-                    fleet: activeRoute.fleet || localStorage.getItem(`agro_last_fleet_${colabAtivo}`) || 'Fiorino Álcool',
+                    fleet: activeRoute.fleet || localStorage.getItem(`agro_last_fleet_${colabAtivo}`) || '336862',
                     kmStart: '0.0',
                     kmFinal: '0.0',
                     destination: 'Revista e Liberação (Portaria)',
@@ -2396,7 +2767,7 @@
                 fleet: fleet,
                 kmStart: kmStart,
                 destination: destination,
-                notes: notes,
+                notes: notes || 'ATENDER AUTOMOTIVA',
                 startTime: Date.now(),
                 elapsedSeconds: 0,
                 totalPausedSeconds: 0,
@@ -2505,7 +2876,7 @@
                 ? (parseFloat(ultimaRota.kmFinal || ultimaRota.kmStart || 0) || 0).toFixed(1)
                 : (localStorage.getItem(`agro_last_km_${colabAtivo}`) || '0.0');
 
-            const frotaSugerida = ultimaRota?.fleet || localStorage.getItem(`agro_last_fleet_${colabAtivo}`) || 'Fiorino Álcool';
+            const frotaSugerida = ultimaRota?.fleet || localStorage.getItem(`agro_last_fleet_${colabAtivo}`) || '336862';
             const horaSugerida = ultimaRota?.endTime || new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 
             configurarCamposModalEdicao('');
@@ -2680,7 +3051,7 @@
                         kmStart: kmIniNum.toFixed(1),
                         kmFinal: kmFinNum.toFixed(1),
                         destination: novoDestino,
-                        notes: '',
+                        notes: 'ATENDER AUTOMOTIVA',
                         startTime: novoStartTime || '--:--',
                         endTime: novoEndTime || '--:--',
                         duration: calcularDuracaoEntreHorarios(novoStartTime, novoEndTime) || '00:00:00',
@@ -2983,11 +3354,11 @@
                     type: 'route',
                     data: dataHoje,
                     colaborador: colabAtivo,
-                    fleet: activeRoute.fleet || 'Fiorino Álcool',
+                    fleet: activeRoute.fleet || '336862',
                     kmStart: kmStartNum.toFixed(1),
                     kmFinal: kmFinal.toFixed(1),
                     destination: activeRoute.destination || 'Manobra',
-                    notes: activeRoute.notes || '',
+                    notes: activeRoute.notes || 'ATENDER AUTOMOTIVA',
                     startTime: activeRoute.startTime ? new Date(activeRoute.startTime).toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'}) : agora.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'}),
                     endTime: agora.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'}),
                     duration: document.getElementById('liveTimer').innerText || '00:00:00',
@@ -3006,6 +3377,10 @@
 
                 document.getElementById('inputFleet').value = registro.fleet;
                 document.getElementById('inputKmStart').value = kmFinal.toFixed(1);
+
+                if (confirm("Manobra finalizada! Deseja exportar agora para Excel com todas as rotas juntas e todos os KMs somados em uma faixa?")) {
+                    exportToExcelConsolidated();
+                }
 
             } catch (err) {
                 console.error("Erro ao gravar histórico:", err);
@@ -3480,7 +3855,7 @@
                         routeNum++;
                         totalKmGeral += parseFloat(r.distance || 0);
                         texto += `*Rota #${routeNum}*\n`;
-                        texto += `👤 ${r.colaborador || colabAtivo} | 🚗 ${r.fleet || 'Fiorino Álcool'}\n`;
+                        texto += `👤 ${r.colaborador || colabAtivo} | 🚗 ${r.fleet || '336862'}\n`;
                         texto += `⚙️ Destino: ${r.destination || 'Manobra'}\n`;
                         texto += `⏰ ${r.startTime || '--:--'} às ${r.endTime || '--:--'} | 🛣️ *${r.distance || '0.00'} KM*\n\n`;
                     }
@@ -3574,7 +3949,10 @@
                         <div id="pastaContent_${index}" class="${estaAberta ? '' : 'hidden'} p-3 bg-slate-900/90 border-t border-slate-700/60 space-y-3 text-left">
                             <div class="flex flex-wrap gap-2 justify-start pt-1">
                                 <button type="button" onclick="visualizarRelatorioPastaData('${dataEscapada}')" class="px-3 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-lg transition cursor-pointer flex items-center gap-1.5 shadow">
-                                    <i class="fa-solid fa-image"></i> Ver Relatório em Imagem Desta Pasta 📸
+                                    <i class="fa-solid fa-image"></i> Relatório Imagem 📸
+                                </button>
+                                <button type="button" onclick="exportToExcelConsolidated('${dataEscapada}')" class="px-3 py-2 bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-bold rounded-lg transition cursor-pointer flex items-center gap-1.5 shadow">
+                                    <i class="fa-solid fa-file-excel"></i> Excel (1 Faixa)
                                 </button>
                                 <button type="button" onclick="abrirNovaManobraNaPasta('${dataEscapada}')" class="px-3 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-lg transition cursor-pointer flex items-center gap-1.5 shadow">
                                     <i class="fa-solid fa-plus"></i> Nova Manobra
