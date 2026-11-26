@@ -1025,7 +1025,7 @@
 
     <!-- SCRIPT DA APLICAÇÃO -->
     <script>
-        const APP_VERSION = "10.0"; 
+        const APP_VERSION = "10.1"; 
 
         let timerInterval = null;
         let watchId = null;
@@ -1140,10 +1140,6 @@
             return 'C';
         }
 
-        /**
-         * Junta todas as manobras de um mesmo colaborador (por Data + Turno + Frota + Colaborador)
-         * em uma única faixa consolidada, somando os KMs rodados e o tempo gasto.
-         */
         function consolidarFaixasRotas(registrosComColab) {
             const grupos = new Map();
             let somaKmGeral = 0;
@@ -1226,122 +1222,123 @@
             return { faixas, somaKmGeral };
         }
 
-        /**
-         * Gera arquivo Excel (.xls) estilizado exatamente no padrão da planilha modelo:
-         * cabeçalho verde escuro, subcabeçalho verde claro, coluna TURNO mesclada,
-         * 1 faixa consolidada por colaborador e linha TOTAL somando todos os KMs.
-         */
         function baixarPlanilhaConsolidadaExcel(registrosComColab, tituloData, nomeArquivo) {
-            const { faixas, somaKmGeral } = consolidarFaixasRotas(registrosComColab);
-            if (faixas.length === 0) {
-                showAlert('Sem manobras para consolidar no Excel.', 'error');
-                return;
-            }
+            try {
+                const { faixas, somaKmGeral } = consolidarFaixasRotas(registrosComColab);
+                if (!faixas || faixas.length === 0) {
+                    showAlert('Nenhuma manobra com KM encontrada para exportar ao Excel.', 'error');
+                    return;
+                }
 
-            const dataRef = tituloData || faixas[0].data || new Date().toLocaleDateString('pt-BR');
-            const totalFormatado = Number.isInteger(somaKmGeral)
-                ? String(somaKmGeral)
-                : somaKmGeral.toFixed(2).replace('.', ',');
+                const dataRef = tituloData || faixas[0].data || new Date().toLocaleDateString('pt-BR');
+                const totalFormatado = Number.isInteger(somaKmGeral)
+                    ? String(somaKmGeral)
+                    : somaKmGeral.toFixed(2).replace('.', ',');
 
-            const rowspanTurno = faixas.length;
+                const rowspanTurno = faixas.length;
 
-            const linhasHtml = faixas.map((f, idx) => {
-                const celulaTurno = idx === 0
-                    ? `<td rowspan="${rowspanTurno}" style="background-color:#d9ead3; font-weight:bold; text-align:center; vertical-align:middle; border:1px solid #000000; font-size:12pt;">${escapeHtmlCell(f.turno)}</td>`
-                    : '';
-                return `
-                    <tr style="height:24px;">
-                        ${celulaTurno}
-                        <td style="text-align:center; vertical-align:middle; border:1px solid #000000; font-weight:bold;">${escapeHtmlCell(f.data)}</td>
-                        <td style="text-align:center; vertical-align:middle; border:1px solid #000000; font-weight:bold;">${escapeHtmlCell(f.frota)}</td>
-                        <td style="text-align:center; vertical-align:middle; border:1px solid #000000; font-weight:bold;">${escapeHtmlCell(f.colaborador)}</td>
-                        <td style="text-align:center; vertical-align:middle; border:1px solid #000000; font-weight:bold;">${escapeHtmlCell(f.horaSaida)}</td>
-                        <td style="text-align:center; vertical-align:middle; border:1px solid #000000; font-weight:bold;">${escapeHtmlCell(f.horaChegada)}</td>
-                        <td style="text-align:center; vertical-align:middle; border:1px solid #000000; font-weight:bold;">${escapeHtmlCell(f.tempoGasto)}</td>
-                        <td style="text-align:center; vertical-align:middle; border:1px solid #000000; font-weight:bold;">${escapeHtmlCell(f.kmsRodados)}</td>
-                        <td style="text-align:center; vertical-align:middle; border:1px solid #000000; font-weight:bold;">${escapeHtmlCell(f.tipoEntrega)}</td>
-                        <td style="text-align:center; vertical-align:middle; border:1px solid #000000; font-weight:bold; padding:4px 8px;">${escapeHtmlCell(f.destino)}</td>
-                        <td style="text-align:center; vertical-align:middle; border:1px solid #000000; font-weight:bold;">${escapeHtmlCell(f.motivo)}</td>
-                    </tr>
+                const linhasHtml = faixas.map((f, idx) => {
+                    const celulaTurno = idx === 0
+                        ? `<td rowspan="${rowspanTurno}" style="background-color:#d9ead3; font-weight:bold; text-align:center; vertical-align:middle; border:1px solid #000000; font-size:12pt;">${escapeHtmlCell(f.turno)}</td>`
+                        : '';
+                    return `
+                        <tr style="height:24px;">
+                            ${celulaTurno}
+                            <td style="text-align:center; vertical-align:middle; border:1px solid #000000; font-weight:bold;">${escapeHtmlCell(f.data)}</td>
+                            <td style="text-align:center; vertical-align:middle; border:1px solid #000000; font-weight:bold;">${escapeHtmlCell(f.frota)}</td>
+                            <td style="text-align:center; vertical-align:middle; border:1px solid #000000; font-weight:bold;">${escapeHtmlCell(f.colaborador)}</td>
+                            <td style="text-align:center; vertical-align:middle; border:1px solid #000000; font-weight:bold;">${escapeHtmlCell(f.horaSaida)}</td>
+                            <td style="text-align:center; vertical-align:middle; border:1px solid #000000; font-weight:bold;">${escapeHtmlCell(f.horaChegada)}</td>
+                            <td style="text-align:center; vertical-align:middle; border:1px solid #000000; font-weight:bold;">${escapeHtmlCell(f.tempoGasto)}</td>
+                            <td style="text-align:center; vertical-align:middle; border:1px solid #000000; font-weight:bold;">${escapeHtmlCell(f.kmsRodados)}</td>
+                            <td style="text-align:center; vertical-align:middle; border:1px solid #000000; font-weight:bold;">${escapeHtmlCell(f.tipoEntrega)}</td>
+                            <td style="text-align:center; vertical-align:middle; border:1px solid #000000; font-weight:bold; padding:4px 8px;">${escapeHtmlCell(f.destino)}</td>
+                            <td style="text-align:center; vertical-align:middle; border:1px solid #000000; font-weight:bold;">${escapeHtmlCell(f.motivo)}</td>
+                        </tr>
+                    `;
+                }).join('');
+
+                const htmlExcel = `
+                    <html xmlns:o="urn:schemas-microsoft-com:office:office"
+                          xmlns:x="urn:schemas-microsoft-com:office:excel"
+                          xmlns="http://www.w3.org/TR/REC-html40">
+                    <head>
+                        <meta charset="UTF-8">
+                        <style>
+                            table { border-collapse: collapse; font-family: Arial, Calibri, sans-serif; font-size: 10pt; }
+                            th, td { border: 1px solid #000000; }
+                        </style>
+                    </head>
+                    <body>
+                        <table>
+                            <thead>
+                                <tr style="height:28px;">
+                                    <th colspan="11" style="background-color:#385723; color:#ffffff; font-weight:bold; font-size:11pt; text-align:center; vertical-align:middle; border:1px solid #000000;">
+                                        CONTROLE DE ENTREGAS DE PEÇAS EM CAMPO - ${escapeHtmlCell(dataRef)} -
+                                    </th>
+                                </tr>
+                                <tr style="height:24px; background-color:#d9ead3; color:#000000; font-weight:bold; text-align:center; vertical-align:middle;">
+                                    <th style="background-color:#d9ead3; border:1px solid #000000; padding:4px 8px;">TURNO</th>
+                                    <th style="background-color:#d9ead3; border:1px solid #000000; padding:4px 10px;">DATA</th>
+                                    <th style="background-color:#d9ead3; border:1px solid #000000; padding:4px 10px;">FROTA</th>
+                                    <th style="background-color:#d9ead3; border:1px solid #000000; padding:4px 16px;">COLABORADOR</th>
+                                    <th style="background-color:#d9ead3; border:1px solid #000000; padding:4px 10px;">HORA SAIDA</th>
+                                    <th style="background-color:#d9ead3; border:1px solid #000000; padding:4px 10px;">HORA CHEGADA</th>
+                                    <th style="background-color:#d9ead3; border:1px solid #000000; padding:4px 10px;">TEMPO GASTO</th>
+                                    <th style="background-color:#d9ead3; border:1px solid #000000; padding:4px 10px;">KMs RODADOS</th>
+                                    <th style="background-color:#d9ead3; border:1px solid #000000; padding:4px 12px;">TIPO DE ENTREGA</th>
+                                    <th style="background-color:#d9ead3; border:1px solid #000000; padding:4px 24px;">DESTINO</th>
+                                    <th style="background-color:#d9ead3; border:1px solid #000000; padding:4px 16px;">MOTIVO</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${linhasHtml}
+                                <tr style="height:24px; background-color:#f2f2f2; font-weight:bold;">
+                                    <td style="border:1px solid #000000;"></td>
+                                    <td style="border:1px solid #000000;"></td>
+                                    <td style="border:1px solid #000000;"></td>
+                                    <td style="border:1px solid #000000;"></td>
+                                    <td style="border:1px solid #000000;"></td>
+                                    <td style="border:1px solid #000000;"></td>
+                                    <td style="text-align:center; vertical-align:middle; border:1px solid #000000; font-weight:bold;">TOTAL</td>
+                                    <td style="text-align:center; vertical-align:middle; border:1px solid #000000; font-weight:bold;">${escapeHtmlCell(totalFormatado)}</td>
+                                    <td style="border:1px solid #000000;"></td>
+                                    <td style="border:1px solid #000000;"></td>
+                                    <td style="border:1px solid #000000;"></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </body>
+                    </html>
                 `;
-            }).join('');
 
-            const htmlExcel = `
-                <html xmlns:o="urn:schemas-microsoft-com:office:office"
-                      xmlns:x="urn:schemas-microsoft-com:office:excel"
-                      xmlns="http://www.w3.org/TR/REC-html40">
-                <head>
-                    <meta charset="UTF-8">
-                    <!--[if gte mso 9]>
-                    <xml>
-                        <x:ExcelWorkbook>
-                            <x:ExcelWorksheets>
-                                <x:ExcelWorksheet>
-                                    <x:Name>Entregas em Campo</x:Name>
-                                    <x:WorksheetOptions>
-                                        <x:DisplayGridlines/>
-                                    </x:WorksheetOptions>
-                                </x:ExcelWorksheet>
-                            </x:ExcelWorksheets>
-                        </x:ExcelWorkbook>
-                    </xml>
-                    <![endif]-->
-                    <style>
-                        table { border-collapse: collapse; font-family: Arial, Calibri, sans-serif; font-size: 10pt; }
-                        th, td { border: 1px solid #000000; }
-                    </style>
-                </head>
-                <body>
-                    <table>
-                        <thead>
-                            <tr style="height:28px;">
-                                <th colspan="11" style="background-color:#385723; color:#ffffff; font-weight:bold; font-size:11pt; text-align:center; vertical-align:middle; border:1px solid #000000;">
-                                    CONTROLE DE ENTREGAS DE PEÇAS EM CAMPO - ${escapeHtmlCell(dataRef)} -
-                                </th>
-                            </tr>
-                            <tr style="height:24px; background-color:#d9ead3; color:#000000; font-weight:bold; text-align:center; vertical-align:middle;">
-                                <th style="background-color:#d9ead3; border:1px solid #000000; padding:4px 8px;">TURNO</th>
-                                <th style="background-color:#d9ead3; border:1px solid #000000; padding:4px 10px;">DATA</th>
-                                <th style="background-color:#d9ead3; border:1px solid #000000; padding:4px 10px;">FROTA</th>
-                                <th style="background-color:#d9ead3; border:1px solid #000000; padding:4px 16px;">COLABORADOR</th>
-                                <th style="background-color:#d9ead3; border:1px solid #000000; padding:4px 10px;">HORA SAIDA</th>
-                                <th style="background-color:#d9ead3; border:1px solid #000000; padding:4px 10px;">HORA CHEGADA</th>
-                                <th style="background-color:#d9ead3; border:1px solid #000000; padding:4px 10px;">TEMPO GASTO</th>
-                                <th style="background-color:#d9ead3; border:1px solid #000000; padding:4px 10px;">KMs RODADOS</th>
-                                <th style="background-color:#d9ead3; border:1px solid #000000; padding:4px 12px;">TIPO DE ENTREGA</th>
-                                <th style="background-color:#d9ead3; border:1px solid #000000; padding:4px 24px;">DESTINO</th>
-                                <th style="background-color:#d9ead3; border:1px solid #000000; padding:4px 16px;">MOTIVO</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${linhasHtml}
-                            <tr style="height:24px; background-color:#f2f2f2; font-weight:bold;">
-                                <td style="border:1px solid #000000;"></td>
-                                <td style="border:1px solid #000000;"></td>
-                                <td style="border:1px solid #000000;"></td>
-                                <td style="border:1px solid #000000;"></td>
-                                <td style="border:1px solid #000000;"></td>
-                                <td style="border:1px solid #000000;"></td>
-                                <td style="text-align:center; vertical-align:middle; border:1px solid #000000; font-weight:bold;">TOTAL</td>
-                                <td style="text-align:center; vertical-align:middle; border:1px solid #000000; font-weight:bold;">${escapeHtmlCell(totalFormatado)}</td>
-                                <td style="border:1px solid #000000;"></td>
-                                <td style="border:1px solid #000000;"></td>
-                                <td style="border:1px solid #000000;"></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </body>
-                </html>
-            `;
+                const nomeFinal = nomeArquivo.endsWith('.xls') ? nomeArquivo : `${nomeArquivo}.xls`;
+                const blob = new Blob(['\uFEFF' + htmlExcel], { type: 'application/vnd.ms-excel;charset=utf-8;' });
 
-            const blob = new Blob(['\uFEFF' + htmlExcel], { type: 'application/vnd.ms-excel;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = nomeArquivo.endsWith('.xls') ? nomeArquivo : `${nomeArquivo}.xls`;
-            a.click();
-            URL.revokeObjectURL(url);
-            showAlert('Planilha Excel (1 faixa consolidada com todos os KMs) gerada com sucesso!', 'success');
+                if (window.navigator && window.navigator.msSaveOrOpenBlob) {
+                    window.navigator.msSaveOrOpenBlob(blob, nomeFinal);
+                    showAlert('Planilha Excel (1 faixa consolidada com todos os KMs) gerada com sucesso!', 'success');
+                    return;
+                }
+
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = nomeFinal;
+                a.style.display = 'none';
+                document.body.appendChild(a);
+                a.click();
+
+                setTimeout(() => {
+                    if (a.parentNode) document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                }, 1000);
+
+                showAlert('Planilha Excel (1 faixa consolidada com todos os KMs) gerada com sucesso!', 'success');
+            } catch (err) {
+                console.error('Erro ao exportar Excel:', err);
+                showAlert('Falha ao exportar Excel. Verifique o Console (F12).', 'error');
+            }
         }
 
         function exportToExcelConsolidated(dataEspecifica = '') {
@@ -2073,7 +2070,13 @@
             const a = document.createElement('a');
             a.href = url;
             a.download = `Relatorio_Geral_Fiorino_${new Date().toISOString().slice(0,10)}.csv`;
+            a.style.display = 'none';
+            document.body.appendChild(a);
             a.click();
+            setTimeout(() => {
+                if (a.parentNode) document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }, 1000);
             showAlert('Planilha CSV detalhada gerada!', 'success');
         }
 
@@ -3378,9 +3381,7 @@
                 document.getElementById('inputFleet').value = registro.fleet;
                 document.getElementById('inputKmStart').value = kmFinal.toFixed(1);
 
-                if (confirm("Manobra finalizada! Deseja exportar agora para Excel com todas as rotas juntas e todos os KMs somados em uma faixa?")) {
-                    exportToExcelConsolidated();
-                }
+                exportToExcelConsolidated();
 
             } catch (err) {
                 console.error("Erro ao gravar histórico:", err);
@@ -3556,7 +3557,15 @@
             const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
-            a.href = url; a.download = `Relatorio_${colabAtivo}.csv`; a.click();
+            a.href = url;
+            a.download = `Relatorio_${colabAtivo}.csv`;
+            a.style.display = 'none';
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(() => {
+                if (a.parentNode) document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }, 1000);
         }
 
         function formatKmComma(val) {
@@ -3812,7 +3821,12 @@
             const link = document.createElement('a');
             link.download = `Relatorio_AgroRota_${new Date().toISOString().slice(0,10)}.png`;
             link.href = canvas.toDataURL('image/png');
+            link.style.display = 'none';
+            document.body.appendChild(link);
             link.click();
+            setTimeout(() => {
+                if (link.parentNode) document.body.removeChild(link);
+            }, 1000);
             showAlert('Imagem baixada com sucesso!', 'success');
         }
 
@@ -4106,7 +4120,13 @@
             const a = document.createElement('a');
             a.href = url;
             a.download = `Backup_AgroRota_${colabAtivo}_${new Date().toISOString().slice(0,10)}.json`;
+            a.style.display = 'none';
+            document.body.appendChild(a);
             a.click();
+            setTimeout(() => {
+                if (a.parentNode) document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }, 1000);
             showAlert('Backup gerado com sucesso!', 'success');
         }
 
