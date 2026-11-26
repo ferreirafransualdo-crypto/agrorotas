@@ -1025,7 +1025,7 @@
 
     <!-- SCRIPT DA APLICAÇÃO -->
     <script>
-        const APP_VERSION = "10.1"; 
+        const APP_VERSION = "10.2"; 
 
         let timerInterval = null;
         let watchId = null;
@@ -1130,6 +1130,53 @@
                 .replace(/</g, '&lt;')
                 .replace(/>/g, '&gt;')
                 .replace(/"/g, '&quot;');
+        }
+
+        function dispararDownloadSeguro(conteudoComBom, mimeType, nomeArquivo, avisoSucesso) {
+            const blob = new Blob([conteudoComBom], { type: mimeType });
+
+            if (window.navigator && window.navigator.msSaveOrOpenBlob) {
+                window.navigator.msSaveOrOpenBlob(blob, nomeArquivo);
+                showAlert(avisoSucesso, 'success');
+                return true;
+            }
+
+            if (typeof URL !== 'undefined' && typeof URL.createObjectURL === 'function') {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = nomeArquivo;
+                a.target = '_blank';
+                a.rel = 'noopener';
+                a.style.display = 'none';
+                document.body.appendChild(a);
+                a.click();
+
+                setTimeout(() => {
+                    if (a.parentNode) document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                }, 1500);
+
+                showAlert(avisoSucesso, 'success');
+                return true;
+            }
+
+            const dataUrl = `data:${mimeType},${encodeURIComponent(conteudoComBom)}`;
+            const linkDireto = document.createElement('a');
+            linkDireto.href = dataUrl;
+            linkDireto.download = nomeArquivo;
+            linkDireto.target = '_blank';
+            linkDireto.rel = 'noopener';
+            linkDireto.style.display = 'none';
+            document.body.appendChild(linkDireto);
+            linkDireto.click();
+
+            setTimeout(() => {
+                if (linkDireto.parentNode) document.body.removeChild(linkDireto);
+            }, 1500);
+
+            showAlert(avisoSucesso, 'success');
+            return true;
         }
 
         function obterTurnoPorHora(horaStr) {
@@ -1313,31 +1360,17 @@
                 `;
 
                 const nomeFinal = nomeArquivo.endsWith('.xls') ? nomeArquivo : `${nomeArquivo}.xls`;
-                const blob = new Blob(['\uFEFF' + htmlExcel], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+                const conteudoComBom = '\uFEFF' + htmlExcel;
 
-                if (window.navigator && window.navigator.msSaveOrOpenBlob) {
-                    window.navigator.msSaveOrOpenBlob(blob, nomeFinal);
-                    showAlert('Planilha Excel (1 faixa consolidada com todos os KMs) gerada com sucesso!', 'success');
-                    return;
-                }
-
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = nomeFinal;
-                a.style.display = 'none';
-                document.body.appendChild(a);
-                a.click();
-
-                setTimeout(() => {
-                    if (a.parentNode) document.body.removeChild(a);
-                    URL.revokeObjectURL(url);
-                }, 1000);
-
-                showAlert('Planilha Excel (1 faixa consolidada com todos os KMs) gerada com sucesso!', 'success');
+                dispararDownloadSeguro(
+                    conteudoComBom,
+                    'application/vnd.ms-excel;charset=utf-8;',
+                    nomeFinal,
+                    `Planilha ${nomeFinal} enviada para download.`
+                );
             } catch (err) {
                 console.error('Erro ao exportar Excel:', err);
-                showAlert('Falha ao exportar Excel. Verifique o Console (F12).', 'error');
+                showAlert('Erro ao gerar Excel: ' + (err && err.message ? err.message : 'verifique o código'), 'error');
             }
         }
 
@@ -2065,19 +2098,12 @@
                 });
             });
 
-            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `Relatorio_Geral_Fiorino_${new Date().toISOString().slice(0,10)}.csv`;
-            a.style.display = 'none';
-            document.body.appendChild(a);
-            a.click();
-            setTimeout(() => {
-                if (a.parentNode) document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-            }, 1000);
-            showAlert('Planilha CSV detalhada gerada!', 'success');
+            dispararDownloadSeguro(
+                '\uFEFF' + csv,
+                'text/csv;charset=utf-8;',
+                `Relatorio_Geral_Fiorino_${new Date().toISOString().slice(0,10)}.csv`,
+                'Planilha CSV detalhada enviada para download!'
+            );
         }
 
         function coordenadorVerRelatorioColaborador(nomeColaborador) {
@@ -3536,36 +3562,38 @@
         }
 
         function exportToCSV() {
-            const colabAtivo = localStorage.getItem('agro_fixed_colaborador');
-            let history = [];
-            try { history = JSON.parse(localStorage.getItem(`agro_routes_history_${colabAtivo}`) || '[]'); } catch(e){}
-            if (history.length === 0) { showAlert('Sem dados para exportar.', 'error'); return; }
-            let csv = 'ID,Tipo,Data,Colaborador,Frota,KM Inicial,KM Final,Manobra,Saida,Chegada,Duracao,Distancia\n';
-            history.forEach(i => {
-                if(i) {
-                    const zeroKm = isZeroKmEvent(i);
-                    const tipoLabel = isMealRecord(i) ? 'Refeicao' : (isGateRecord(i) ? 'Portaria' : (isFuelRecord(i) ? 'Abastecimento' : 'Rota'));
-                    const duracaoStr = isMealRecord(i) || isFuelRecord(i)
-                        ? (i.duration || calcularDuracaoEntreHorarios(i.startTime, i.endTime) || '00:00:00')
-                        : (i.duration || '');
-                    const destinoLabel = isMealRecord(i)
-                        ? 'Horário de Refeição'
-                        : (isGateRecord(i) ? 'Revista e Liberação (Portaria)' : (isFuelRecord(i) ? 'Abastecimento' : (i.destination || '')));
-                    csv += `${i.id || 0},${tipoLabel},${i.data || ''},${i.colaborador || ''},${i.fleet || ''},${zeroKm ? 0 : (i.kmStart || 0)},${zeroKm ? 0 : (i.kmFinal || 0)},"${destinoLabel}",${i.startTime || ''},${i.endTime || ''},${duracaoStr},${zeroKm ? '0.00' : (i.distance || 0)}\n`;
-                }
-            });
-            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `Relatorio_${colabAtivo}.csv`;
-            a.style.display = 'none';
-            document.body.appendChild(a);
-            a.click();
-            setTimeout(() => {
-                if (a.parentNode) document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-            }, 1000);
+            try {
+                const colabAtivo = localStorage.getItem('agro_fixed_colaborador') || 'Operador';
+                let history = [];
+                try { history = JSON.parse(localStorage.getItem(`agro_routes_history_${colabAtivo}`) || '[]'); } catch(e){}
+                if (history.length === 0) { showAlert('Sem dados para exportar.', 'error'); return; }
+
+                let csv = 'ID,Tipo,Data,Colaborador,Frota,KM Inicial,KM Final,Manobra,Saida,Chegada,Duracao,Distancia\n';
+                history.forEach(i => {
+                    if(i) {
+                        const zeroKm = isZeroKmEvent(i);
+                        const tipoLabel = isMealRecord(i) ? 'Refeicao' : (isGateRecord(i) ? 'Portaria' : (isFuelRecord(i) ? 'Abastecimento' : 'Rota'));
+                        const duracaoStr = isMealRecord(i) || isFuelRecord(i)
+                            ? (i.duration || calcularDuracaoEntreHorarios(i.startTime, i.endTime) || '00:00:00')
+                            : (i.duration || '');
+                        const destinoLabel = isMealRecord(i)
+                            ? 'Horário de Refeição'
+                            : (isGateRecord(i) ? 'Revista e Liberação (Portaria)' : (isFuelRecord(i) ? 'Abastecimento' : (i.destination || '')));
+                        csv += `${i.id || 0},${tipoLabel},${i.data || ''},${i.colaborador || ''},${i.fleet || ''},${zeroKm ? 0 : (i.kmStart || 0)},${zeroKm ? 0 : (i.kmFinal || 0)},"${destinoLabel}",${i.startTime || ''},${i.endTime || ''},${duracaoStr},${zeroKm ? '0.00' : (i.distance || 0)}\n`;
+                    }
+                });
+
+                const nomeArquivo = `Relatorio_${colabAtivo}.csv`;
+                dispararDownloadSeguro(
+                    '\uFEFF' + csv,
+                    'text/csv;charset=utf-8;',
+                    nomeArquivo,
+                    `CSV ${nomeArquivo} enviado para download.`
+                );
+            } catch (err) {
+                console.error('Erro ao exportar CSV:', err);
+                showAlert('Falha ao exportar CSV no telemóvel.', 'error');
+            }
         }
 
         function formatKmComma(val) {
@@ -4115,19 +4143,12 @@
                 dataExportacao: new Date().toISOString()
             };
 
-            const blob = new Blob([JSON.stringify(dadosBackup, null, 2)], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `Backup_AgroRota_${colabAtivo}_${new Date().toISOString().slice(0,10)}.json`;
-            a.style.display = 'none';
-            document.body.appendChild(a);
-            a.click();
-            setTimeout(() => {
-                if (a.parentNode) document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-            }, 1000);
-            showAlert('Backup gerado com sucesso!', 'success');
+            dispararDownloadSeguro(
+                JSON.stringify(dadosBackup, null, 2),
+                'application/json',
+                `Backup_AgroRota_${colabAtivo}_${new Date().toISOString().slice(0,10)}.json`,
+                'Backup gerado e enviado para download!'
+            );
         }
 
         function restaurarBackupDados(event) {
