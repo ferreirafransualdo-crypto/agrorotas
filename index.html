@@ -788,14 +788,14 @@
                         <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Horário Início *</label>
                         <div class="relative">
                             <i class="fa-solid fa-clock absolute left-3 top-3.5 text-slate-500"></i>
-                            <input type="text" id="editStartTime" required placeholder="Ex: 12:00" class="input-agro font-semibold text-slate-200">
+                            <input type="text" id="editStartTime" required placeholder="Ex: 13:45" class="input-agro font-semibold text-slate-200">
                         </div>
                     </div>
                     <div>
                         <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Horário Término *</label>
                         <div class="relative">
                             <i class="fa-solid fa-regular fa-clock absolute left-3 top-3.5 text-slate-500"></i>
-                            <input type="text" id="editEndTime" required placeholder="Ex: 12:30" class="input-agro font-semibold text-slate-200">
+                            <input type="text" id="editEndTime" required placeholder="Ex: 14:15" class="input-agro font-semibold text-slate-200">
                         </div>
                     </div>
                 </div>
@@ -946,7 +946,7 @@
 
     <!-- SCRIPT DA APLICAÇÃO -->
     <script>
-        const APP_VERSION = "9.6"; 
+        const APP_VERSION = "9.7"; 
 
         let timerInterval = null;
         let watchId = null;
@@ -995,6 +995,35 @@
             const mins = String(Math.floor((safeSecs % 3600) / 60)).padStart(2, '0');
             const secs = String(safeSecs % 60).padStart(2, '0');
             return `${hrs}:${mins}:${secs}`;
+        }
+
+        // Calcula duração em HH:MM:SS a partir de dois horários ("HH:MM" ou "HH:MM:SS")
+        function calcularDuracaoEntreHorarios(inicioStr, fimStr) {
+            if (!inicioStr || !fimStr || !inicioStr.includes(':') || !fimStr.includes(':')) {
+                return null;
+            }
+            const [hIni, mIni, sIni = 0] = inicioStr.trim().split(':').map(Number);
+            const [hFim, mFim, sFim = 0] = fimStr.trim().split(':').map(Number);
+
+            if ([hIni, mIni, sIni, hFim, mFim, sFim].some(n => Number.isNaN(n))) {
+                return null;
+            }
+
+            const segIni = hIni * 3600 + mIni * 60 + sIni;
+            let segFim = hFim * 3600 + mFim * 60 + sFim;
+
+            if (segFim < segIni) {
+                segFim += 24 * 3600;
+            }
+
+            return formatDurationFromSeconds(segFim - segIni);
+        }
+
+        function horaParaMinutos(horaStr) {
+            if (!horaStr || !horaStr.includes(':')) return null;
+            const [h, m] = horaStr.trim().split(':').map(Number);
+            if (Number.isNaN(h) || Number.isNaN(m)) return null;
+            return h * 60 + m;
         }
 
         window.onload = function() {
@@ -1348,7 +1377,7 @@
                     } else if (isActiveGate) {
                         statusTitle = '🛡️ Revista e Liberação (Portaria)';
                         statusKm = '0.00 KM (Portaria)';
-                        statusDesc = 'Revista do veículo e liberação na portaria';
+                        statusDesc = `Saiu da manobra: ${rotaEmAndamento.parentRoute?.destination || 'Rota'}`;
                     }
                     htmlPasta += `
                         <div class="bg-amber-950/40 border border-amber-500/50 p-2.5 rounded-lg space-y-1 animate-pulse text-left">
@@ -1402,6 +1431,7 @@
                         lista.forEach((r) => {
                             if(r) {
                                 if (isMealRecord(r)) {
+                                    const duracaoReal = r.duration || calcularDuracaoEntreHorarios(r.startTime, r.endTime) || '00:00:00';
                                     htmlPasta += `
                                         <div class="bg-amber-950/25 p-2.5 rounded-lg border border-amber-500/30 text-xs space-y-1 text-left">
                                             <div class="flex justify-between items-center font-bold text-amber-300">
@@ -1410,15 +1440,16 @@
                                             </div>
                                             <div class="text-[11px] text-slate-300 flex justify-between">
                                                 <span>Início: ${r.startTime || '--:--'} - Término: ${r.endTime || '--:--'}</span>
-                                                <span>Duração: ${r.duration || '00:00:00'}</span>
+                                                <span>Duração: ${duracaoReal}</span>
                                             </div>
                                         </div>
                                     `;
                                 } else if (isGateRecord(r)) {
+                                    const origemTxt = r.parentDestination ? ` • Manobra: ${r.parentDestination}` : '';
                                     htmlPasta += `
                                         <div class="bg-sky-950/25 p-2.5 rounded-lg border border-sky-500/30 text-xs space-y-1 text-left">
                                             <div class="flex justify-between items-center font-bold text-sky-300">
-                                                <span><i class="fa-solid fa-shield-halved mr-1"></i> Revista e Liberação (Portaria)</span>
+                                                <span><i class="fa-solid fa-shield-halved mr-1"></i> Revista e Liberação (Portaria)${origemTxt}</span>
                                                 <span>0.00 KM (Portaria)</span>
                                             </div>
                                             <div class="text-[11px] text-slate-300 flex justify-between">
@@ -1537,10 +1568,13 @@
                 const lit = kmL > 0 ? (dist / kmL) : 0;
                 const cust = lit * priceL;
                 const tipoLabel = isMealRecord(r) ? 'Refeicao' : (isGateRecord(r) ? 'Portaria' : 'Rota');
+                const duracaoStr = isMealRecord(r)
+                    ? (r.duration || calcularDuracaoEntreHorarios(r.startTime, r.endTime) || '00:00:00')
+                    : (r.duration || '');
                 const destinoLabel = isMealRecord(r)
                     ? 'Horário de Refeição'
                     : (isGateRecord(r) ? 'Revista e Liberação (Portaria)' : (r.destination || ''));
-                csv += `${nome},${tipoLabel},${r.data || ''},${r.fleet || ''},${zeroKm ? 0 : (r.kmStart || 0)},${zeroKm ? 0 : (r.kmFinal || 0)},"${destinoLabel}",${r.startTime || ''},${r.endTime || ''},${r.duration || ''},${dist.toFixed(2)},${lit.toFixed(2)},${cust.toFixed(2)}\n`;
+                csv += `${nome},${tipoLabel},${r.data || ''},${r.fleet || ''},${zeroKm ? 0 : (r.kmStart || 0)},${zeroKm ? 0 : (r.kmFinal || 0)},"${destinoLabel}",${r.startTime || ''},${r.endTime || ''},${duracaoStr},${dist.toFixed(2)},${lit.toFixed(2)},${cust.toFixed(2)}\n`;
             };
 
             LISTA_COLABORADORES.forEach(nome => {
@@ -1810,6 +1844,7 @@
             isPaused = false;
             isSimulating = false;
 
+            const agoraMs = Date.now();
             activeRoute = {
                 type: 'meal',
                 colaborador: colab,
@@ -1817,7 +1852,7 @@
                 kmStart: kmBase,
                 destination: 'Horário de Refeição',
                 notes: 'Intervalo de refeição (sem marcação de KM)',
-                startTime: Date.now(),
+                startTime: agoraMs,
                 elapsedSeconds: 0,
                 totalPausedSeconds: 0,
                 distanceKm: 0,
@@ -1846,10 +1881,13 @@
             try {
                 const agora = new Date();
                 const dataHoje = agora.toLocaleDateString('pt-BR');
-                const inicioDate = activeRoute.startTime ? new Date(activeRoute.startTime) : agora;
-                const segundosDecorridos = activeRoute.startTime
-                    ? Math.max(1, Math.floor((Date.now() - activeRoute.startTime) / 1000))
-                    : (activeRoute.elapsedSeconds || 0);
+                const inicioMs = activeRoute.startTime ? Number(activeRoute.startTime) : agora.getTime();
+                const inicioDate = new Date(inicioMs);
+                const segundosDecorridos = Math.max(0, Math.floor((agora.getTime() - inicioMs) / 1000));
+                const horaInicioStr = inicioDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                const horaFimStr = agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+
+                const duracaoCalculada = calcularDuracaoEntreHorarios(horaInicioStr, horaFimStr) || formatDurationFromSeconds(segundosDecorridos);
 
                 const registroRefeicao = {
                     id: Date.now() + Math.floor(Math.random() * 1000),
@@ -1861,9 +1899,9 @@
                     kmFinal: '0.0',
                     destination: 'Horário de Refeição',
                     notes: 'Refeição (sem KM)',
-                    startTime: inicioDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
-                    endTime: agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
-                    duration: formatDurationFromSeconds(segundosDecorridos),
+                    startTime: horaInicioStr,
+                    endTime: horaFimStr,
+                    duration: duracaoCalculada,
                     distance: '0.00'
                 };
 
@@ -1953,6 +1991,12 @@
                     ? Math.max(1, Math.floor((Date.now() - activeRoute.startTime) / 1000))
                     : (activeRoute.elapsedSeconds || 0);
 
+                const horaInicioPortaria = inicioDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                const horaFimPortaria = agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                const horaSaidaRota = rotaRetorno?.startTime
+                    ? new Date(rotaRetorno.startTime).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+                    : '';
+
                 const registroPortaria = {
                     id: Date.now() + Math.floor(Math.random() * 1000),
                     type: 'gate',
@@ -1962,9 +2006,11 @@
                     kmStart: '0.0',
                     kmFinal: '0.0',
                     destination: 'Revista e Liberação (Portaria)',
+                    parentDestination: rotaRetorno?.destination || '',
+                    parentStartTime: horaSaidaRota,
                     notes: rotaRetorno?.destination ? `Portaria na rota: ${rotaRetorno.destination}` : 'Revista e liberação na portaria',
-                    startTime: inicioDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
-                    endTime: agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+                    startTime: horaInicioPortaria,
+                    endTime: horaFimPortaria,
                     duration: formatDurationFromSeconds(segundosDecorridos),
                     distance: '0.00'
                 };
@@ -2264,6 +2310,10 @@
                 const destinoPadrao = specialType === 'gate'
                     ? 'Revista e Liberação (Portaria)'
                     : 'Horário de Refeição';
+                const startFinal = novoStartTime || alvo.lista[index].startTime || '--:--';
+                const endFinal = novoEndTime || alvo.lista[index].endTime || '--:--';
+                const duracaoRecalculada = calcularDuracaoEntreHorarios(startFinal, endFinal) || alvo.lista[index].duration || '00:00:00';
+
                 alvo.lista[index] = {
                     ...alvo.lista[index],
                     type: specialType,
@@ -2271,8 +2321,9 @@
                     kmStart: '0.0',
                     kmFinal: '0.0',
                     distance: '0.00',
-                    startTime: novoStartTime || alvo.lista[index].startTime || '--:--',
-                    endTime: novoEndTime || alvo.lista[index].endTime || '--:--'
+                    startTime: startFinal,
+                    endTime: endFinal,
+                    duration: duracaoRecalculada
                 };
             } else {
                 const novoDestino = document.getElementById('editDestination').value.trim();
@@ -2308,7 +2359,7 @@
                         notes: '',
                         startTime: novoStartTime || '--:--',
                         endTime: novoEndTime || '--:--',
-                        duration: '00:00:00',
+                        duration: calcularDuracaoEntreHorarios(novoStartTime, novoEndTime) || '00:00:00',
                         distance: distanciaCalculada
                     };
                     alvo.lista.push(novaRota);
@@ -2319,6 +2370,9 @@
                         return;
                     }
 
+                    const startFinal = novoStartTime || alvo.lista[index].startTime || '--:--';
+                    const endFinal = novoEndTime || alvo.lista[index].endTime || '--:--';
+
                     alvo.lista[index] = {
                         ...alvo.lista[index],
                         type: 'route',
@@ -2327,8 +2381,9 @@
                         kmStart: kmIniNum.toFixed(1),
                         kmFinal: kmFinNum.toFixed(1),
                         distance: distanciaCalculada,
-                        startTime: novoStartTime || alvo.lista[index].startTime || '--:--',
-                        endTime: novoEndTime || alvo.lista[index].endTime || '--:--'
+                        startTime: startFinal,
+                        endTime: endFinal,
+                        duration: calcularDuracaoEntreHorarios(startFinal, endFinal) || alvo.lista[index].duration || '00:00:00'
                     };
                 }
             }
@@ -2672,12 +2727,13 @@
                         const div = document.createElement('div');
 
                         if (isMeal) {
+                            const duracaoReal = item.duration || calcularDuracaoEntreHorarios(item.startTime, item.endTime) || '00:00:00';
                             div.className = "bg-amber-950/20 border border-amber-500/35 p-3 rounded-xl flex justify-between items-center text-xs text-left w-full";
                             div.innerHTML = `
                                 <div class="flex-1 pr-2 text-left">
                                     <div class="font-bold text-amber-300 text-left"><i class="fa-solid fa-utensils mr-1"></i> Horário de Refeição</div>
                                     <div class="text-slate-400 mt-0.5 text-left">Data: ${item.data || '--/--/----'} | Sem marcação de KM</div>
-                                    <div class="text-slate-300 text-[11px] mt-0.5 text-left">Horário: <strong class="text-amber-300">${item.startTime || '--:--'}</strong> às <strong class="text-amber-300">${item.endTime || '--:--'}</strong> (Duração: ${item.duration || '00:00:00'})</div>
+                                    <div class="text-slate-300 text-[11px] mt-0.5 text-left">Horário: <strong class="text-amber-300">${item.startTime || '--:--'}</strong> às <strong class="text-amber-300">${item.endTime || '--:--'}</strong> (Duração: ${duracaoReal})</div>
                                 </div>
                                 <div class="flex items-center gap-2">
                                     <div class="text-right font-bold text-amber-300 mr-1">0.00 KM</div>
@@ -2690,10 +2746,11 @@
                                 </div>
                             `;
                         } else if (isGate) {
+                            const origemTxt = item.parentDestination ? ` • Manobra: ${item.parentDestination}` : '';
                             div.className = "bg-sky-950/20 border border-sky-500/35 p-3 rounded-xl flex justify-between items-center text-xs text-left w-full";
                             div.innerHTML = `
                                 <div class="flex-1 pr-2 text-left">
-                                    <div class="font-bold text-sky-300 text-left"><i class="fa-solid fa-shield-halved mr-1"></i> Revista e Liberação (Portaria)</div>
+                                    <div class="font-bold text-sky-300 text-left"><i class="fa-solid fa-shield-halved mr-1"></i> Revista e Liberação (Portaria)${origemTxt}</div>
                                     <div class="text-slate-400 mt-0.5 text-left">Data: ${item.data || '--/--/----'} | Revista do veículo e liberação</div>
                                     <div class="text-slate-300 text-[11px] mt-0.5 text-left">Início: <strong class="text-sky-300">${item.startTime || '--:--'}</strong> • Final: <strong class="text-sky-300">${item.endTime || '--:--'}</strong> • Tempo na portaria: <strong class="text-sky-300">${item.duration || '00:00:00'}</strong></div>
                                 </div>
@@ -2760,10 +2817,13 @@
                 if(i) {
                     const zeroKm = isZeroKmEvent(i);
                     const tipoLabel = isMealRecord(i) ? 'Refeicao' : (isGateRecord(i) ? 'Portaria' : 'Rota');
+                    const duracaoStr = isMealRecord(i)
+                        ? (i.duration || calcularDuracaoEntreHorarios(i.startTime, i.endTime) || '00:00:00')
+                        : (i.duration || '');
                     const destinoLabel = isMealRecord(i)
                         ? 'Horário de Refeição'
                         : (isGateRecord(i) ? 'Revista e Liberação (Portaria)' : (i.destination || ''));
-                    csv += `${i.id || 0},${tipoLabel},${i.data || ''},${i.colaborador || ''},${i.fleet || ''},${zeroKm ? 0 : (i.kmStart || 0)},${zeroKm ? 0 : (i.kmFinal || 0)},"${destinoLabel}",${i.startTime || ''},${i.endTime || ''},${i.duration || ''},${zeroKm ? '0.00' : (i.distance || 0)}\n`;
+                    csv += `${i.id || 0},${tipoLabel},${i.data || ''},${i.colaborador || ''},${i.fleet || ''},${zeroKm ? 0 : (i.kmStart || 0)},${zeroKm ? 0 : (i.kmFinal || 0)},"${destinoLabel}",${i.startTime || ''},${i.endTime || ''},${duracaoStr},${zeroKm ? '0.00' : (i.distance || 0)}\n`;
                 }
             });
             const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -2777,21 +2837,80 @@
             return Number.isFinite(num) ? num.toFixed(1).replace('.', ',') : '0,0';
         }
 
-        // Ordena o relatório para colocar Revista e Liberação (Portaria) logo abaixo da 1ª rota/manobra,
-        // mantendo a sequência das demais demandas em seguida.
+        // Vincula cada Revista e Liberação (Portaria) à manobra/rota da qual saiu
+        // para que fique logo abaixo dela no relatório, e não todas agrupadas.
         function ordenarItensRelatorioVisual(listaRotas) {
             const validos = listaRotas.filter(Boolean);
-            const primeiraRotaIndex = validos.findIndex(r => !isZeroKmEvent(r));
+            const rotasReais = validos.filter(r => !isZeroKmEvent(r));
+            const portarias = validos.filter(r => isGateRecord(r));
+            const refeicoes = validos.filter(r => isMealRecord(r));
 
-            if (primeiraRotaIndex === -1) {
+            if (rotasReais.length === 0) {
                 return validos;
             }
 
-            const primeiraRota = validos[primeiraRotaIndex];
-            const liberacoes = validos.filter((r, idx) => idx !== primeiraRotaIndex && isGateRecord(r));
-            const demaisItens = validos.filter((r, idx) => idx !== primeiraRotaIndex && !isGateRecord(r));
+            const portariasPorRota = new Map();
+            rotasReais.forEach((_, idx) => portariasPorRota.set(idx, []));
+            const portariasSemVinculo = [];
 
-            return [primeiraRota, ...liberacoes, ...demaisItens];
+            portarias.forEach((gate) => {
+                let idxAlvo = -1;
+
+                // 1. Vínculo explícito pelo nome da manobra/rota de onde saiu
+                if (gate.parentDestination) {
+                    const origemNorm = String(gate.parentDestination).trim().toLowerCase();
+                    if (gate.parentStartTime) {
+                        idxAlvo = rotasReais.findIndex(r =>
+                            String(r.destination || '').trim().toLowerCase() === origemNorm &&
+                            String(r.startTime || '').trim() === String(gate.parentStartTime).trim()
+                        );
+                    }
+                    if (idxAlvo === -1) {
+                        idxAlvo = rotasReais.findIndex(r =>
+                            String(r.destination || '').trim().toLowerCase() === origemNorm
+                        );
+                    }
+                }
+
+                // 2. Fallback por janela de horário da manobra
+                if (idxAlvo === -1) {
+                    const minGate = horaParaMinutos(gate.startTime);
+                    if (minGate !== null) {
+                        for (let i = 0; i < rotasReais.length; i++) {
+                            const r = rotasReais[i];
+                            const minSaida = horaParaMinutos(r.startTime);
+                            const minChegada = horaParaMinutos(r.endTime);
+                            const proximaSaida = rotasReais[i + 1] ? horaParaMinutos(rotasReais[i + 1].startTime) : Infinity;
+
+                            if (minSaida !== null && minGate >= minSaida && (proximaSaida === null || minGate < proximaSaida)) {
+                                idxAlvo = i;
+                                if (minChegada !== null && minGate > minChegada && rotasReais[i + 1]) {
+                                    continue;
+                                }
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                if (idxAlvo !== -1) {
+                    portariasPorRota.get(idxAlvo).push(gate);
+                } else {
+                    portariasSemVinculo.push(gate);
+                }
+            });
+
+            const resultado = [];
+            rotasReais.forEach((rota, idx) => {
+                resultado.push(rota);
+                const gatesDaRota = portariasPorRota.get(idx) || [];
+                resultado.push(...gatesDaRota);
+            });
+
+            resultado.push(...portariasSemVinculo);
+            resultado.push(...refeicoes);
+
+            return resultado;
         }
 
         function popularEstruturaRelatorioVisual(listaRotas, dataTitulo, nomeColaborador) {
@@ -2825,6 +2944,7 @@
                 if(r) {
                     const card = document.createElement('div');
                     if (isMealRecord(r)) {
+                        const duracaoReal = r.duration || calcularDuracaoEntreHorarios(r.startTime, r.endTime) || '00:00:00';
                         card.className = 'rep-route-card';
                         card.style.borderColor = '#fcd34d';
                         card.innerHTML = `
@@ -2834,7 +2954,7 @@
                             </div>
                             <div style="padding: 10px 14px; background-color: #fffbeb; display: flex; justify-content: space-between; align-items: center; font-size: 14px; font-weight: 700; color: #451a03;">
                                 <span>SAÍDA: ${r.startTime || '--:--'} | CHEGADA: ${r.endTime || '--:--'}</span>
-                                <span>DURAÇÃO: ${r.duration || '00:00:00'}</span>
+                                <span>DURAÇÃO: ${duracaoReal}</span>
                             </div>
                         `;
                     } else if (isGateRecord(r)) {
@@ -2960,15 +3080,17 @@
                 return;
             }
 
+            const itensOrdenados = ordenarItensRelatorioVisual(history);
             let totalKmGeral = 0;
             let routeNum = 0;
             let texto = `*📊 RELATÓRIO DE ROTAS - AGROROTA GPS* 🚜\n\n`;
 
-            history.forEach((r) => {
+            itensOrdenados.forEach((r) => {
                 if(r) {
                     if (isMealRecord(r)) {
+                        const duracaoReal = r.duration || calcularDuracaoEntreHorarios(r.startTime, r.endTime) || '00:00:00';
                         texto += `🍽️ *Horário de Refeição*\n`;
-                        texto += `⏰ ${r.startTime || '--:--'} às ${r.endTime || '--:--'} (Duração: ${r.duration || '00:00:00'}) | _Sem KM_\n\n`;
+                        texto += `⏰ ${r.startTime || '--:--'} às ${r.endTime || '--:--'} (Duração: ${duracaoReal}) | _Sem KM_\n\n`;
                     } else if (isGateRecord(r)) {
                         texto += `🛡️ *Revista e Liberação (Portaria)*\n`;
                         texto += `⏰ Início: ${r.startTime || '--:--'} | Final: ${r.endTime || '--:--'} | Tempo na portaria: *${r.duration || '00:00:00'}* | _Sem KM_\n\n`;
@@ -3080,6 +3202,7 @@
                             ${listaRotas.map((r) => {
                                 if (!r) return '';
                                 if (isMealRecord(r)) {
+                                    const duracaoReal = r.duration || calcularDuracaoEntreHorarios(r.startTime, r.endTime) || '00:00:00';
                                     return `
                                         <div class="bg-amber-950/25 p-2.5 rounded-lg border border-amber-500/35 text-[11px] space-y-1.5 text-left">
                                             <div class="flex justify-between items-center text-amber-300 font-bold gap-2">
@@ -3088,7 +3211,7 @@
                                             </div>
                                             <div class="text-slate-300 flex justify-between items-center gap-2">
                                                 <span>Início: ${r.startTime || '--:--'} - Término: ${r.endTime || '--:--'}</span>
-                                                <span class="shrink-0">Duração: ${r.duration || '00:00:00'}</span>
+                                                <span class="shrink-0">Duração: ${duracaoReal}</span>
                                             </div>
                                             <div class="flex justify-end gap-2 pt-1 border-t border-amber-500/20">
                                                 <button type="button" onclick="abrirModalEditarRota('${escapeJsString(r.id)}', '${dataEscapada}')" class="px-2.5 py-1 bg-slate-900 hover:bg-slate-700 text-amber-400 rounded-lg transition cursor-pointer flex items-center gap-1 font-semibold" title="Editar Horário de Refeição">
@@ -3102,10 +3225,11 @@
                                     `;
                                 }
                                 if (isGateRecord(r)) {
+                                    const origemTxt = r.parentDestination ? ` • Manobra: ${r.parentDestination}` : '';
                                     return `
                                         <div class="bg-sky-950/25 p-2.5 rounded-lg border border-sky-500/35 text-[11px] space-y-1.5 text-left">
                                             <div class="flex justify-between items-center text-sky-300 font-bold gap-2">
-                                                <span><i class="fa-solid fa-shield-halved mr-1"></i> Revista e Liberação (Portaria)</span>
+                                                <span><i class="fa-solid fa-shield-halved mr-1"></i> Revista e Liberação (Portaria)${origemTxt}</span>
                                                 <span class="shrink-0">0.00 km (Portaria)</span>
                                             </div>
                                             <div class="text-slate-300 flex justify-between items-center gap-2">
