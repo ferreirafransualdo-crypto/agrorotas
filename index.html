@@ -254,6 +254,40 @@
             display: block;
         }
 
+        .rep-fuel-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            align-items: center;
+            padding: 11px 14px;
+            background-color: #ecfdf5;
+        }
+
+        .rep-fuel-cell {
+            text-align: center;
+            border-right: 1.5px solid #a7f3d0;
+            padding: 0 10px;
+        }
+
+        .rep-fuel-cell:last-child {
+            border-right: none;
+        }
+
+        .rep-fuel-lbl {
+            font-size: 11px;
+            font-weight: 800;
+            color: #047857;
+            text-transform: uppercase;
+            display: block;
+            margin-bottom: 2px;
+        }
+
+        .rep-fuel-val {
+            font-size: 19px;
+            font-weight: 900;
+            color: #064e3b;
+            display: block;
+        }
+
         .rep-summary-head {
             background: linear-gradient(90deg, #16803c 0%, #0f6b32 100%);
             color: #ffffff;
@@ -582,11 +616,14 @@
                         <input type="text" id="inputNotes" placeholder="Ex: Entrega de peças" class="w-full bg-slate-900 border border-slate-700 rounded-xl py-2.5 px-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-agro-500">
                     </div>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                    <div class="grid grid-cols-1 sm:grid-cols-4 gap-2.5">
                         <button type="submit" class="sm:col-span-2 btn-agro shadow-lg text-base">
                             <i class="fa-solid fa-location-arrow"></i> INICIAR RASTREAMENTO GPS
                         </button>
-                        <button type="button" onclick="startMealBreak()" class="py-3.5 px-4 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-xl text-sm shadow-lg transition flex items-center justify-center gap-2 cursor-pointer">
+                        <button type="button" onclick="startFuelBreak()" class="py-3.5 px-3 bg-emerald-700 hover:bg-emerald-600 text-white font-bold rounded-xl text-sm shadow-lg transition flex items-center justify-center gap-2 cursor-pointer" title="Iniciar parada no posto pausada e contar tempo de abastecimento">
+                            <i class="fa-solid fa-gas-pump"></i> Abastecimento
+                        </button>
+                        <button type="button" onclick="startMealBreak()" class="py-3.5 px-3 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-xl text-sm shadow-lg transition flex items-center justify-center gap-2 cursor-pointer">
                             <i class="fa-solid fa-utensils"></i> Horário de Refeição
                         </button>
                     </div>
@@ -615,9 +652,14 @@
 
                     <!-- Controles da Rota em Andamento -->
                     <div id="routeControlsRow" class="space-y-2 pt-2 border-t border-slate-700/60">
-                        <button type="button" onclick="startGateRelease()" class="w-full py-2.5 bg-sky-700 hover:bg-sky-600 text-white font-bold rounded-xl text-xs transition flex items-center justify-center gap-2 cursor-pointer shadow">
-                            <i class="fa-solid fa-shield-halved"></i> REVISTA E LIBERAÇÃO (PORTARIA)
-                        </button>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            <button type="button" onclick="startGateRelease()" class="w-full py-2.5 bg-sky-700 hover:bg-sky-600 text-white font-bold rounded-xl text-xs transition flex items-center justify-center gap-2 cursor-pointer shadow">
+                                <i class="fa-solid fa-shield-halved"></i> REVISTA E LIBERAÇÃO (PORTARIA)
+                            </button>
+                            <button type="button" onclick="startFuelBreak()" class="w-full py-2.5 bg-emerald-700 hover:bg-emerald-600 text-white font-bold rounded-xl text-xs transition flex items-center justify-center gap-2 cursor-pointer shadow">
+                                <i class="fa-solid fa-gas-pump"></i> ABASTECIMENTO (PAUSAR ROTA)
+                            </button>
+                        </div>
                         <div class="grid grid-cols-2 gap-2">
                             <button type="button" id="pauseBtn" onclick="togglePauseTracking()" class="py-2.5 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-xl text-xs transition flex items-center justify-center gap-2 cursor-pointer">
                                 <i class="fa-solid fa-pause"></i> PAUSAR ROTA
@@ -639,6 +681,13 @@
                     <div id="gateControlsRow" class="hidden pt-2 border-t border-slate-700/60">
                         <button type="button" onclick="stopGateRelease()" class="w-full py-3 bg-sky-600 hover:bg-sky-500 text-white font-bold rounded-xl text-xs transition flex items-center justify-center gap-2 cursor-pointer shadow-lg">
                             <i class="fa-solid fa-check-double"></i> CONCLUIR REVISTA E LIBERAÇÃO (PORTARIA)
+                        </button>
+                    </div>
+
+                    <!-- Controle quando em Abastecimento (Pausado) -->
+                    <div id="fuelControlsRow" class="hidden pt-2 border-t border-slate-700/60">
+                        <button type="button" onclick="stopFuelBreak()" class="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs transition flex items-center justify-center gap-2 cursor-pointer shadow-lg">
+                            <i class="fa-solid fa-gas-pump"></i> CONCLUIR ABASTECIMENTO (0 KM)
                         </button>
                     </div>
                 </div>
@@ -676,6 +725,11 @@
                 <div id="gateInfoBanner" class="hidden card-agro border-sky-500/40 bg-sky-950/25 py-3 px-4 flex justify-between items-center text-xs text-sky-200">
                     <span><i class="fa-solid fa-shield-halved text-sky-400 mr-1.5"></i> Revista e Liberação (Portaria): <strong>Deslocamento pausado (0.00 KM)</strong></span>
                     <span id="liveGateStartClock" class="font-mono font-bold text-sky-300">Início: --:--</span>
+                </div>
+
+                <div id="fuelInfoBanner" class="hidden card-agro border-emerald-500/40 bg-emerald-950/25 py-3 px-4 flex justify-between items-center text-xs text-emerald-200">
+                    <span><i class="fa-solid fa-gas-pump text-emerald-400 mr-1.5"></i> Abastecimento no posto: <strong>Pausado (0.00 KM) — Contando tempo no posto</strong></span>
+                    <span id="liveFuelStartClock" class="font-mono font-bold text-emerald-300">Início: --:--</span>
                 </div>
 
                 <div id="gpsFooterCard" class="card-agro py-3 flex justify-between items-center text-xs text-slate-400">
@@ -732,7 +786,7 @@
 
     </main>
 
-    <!-- MODAL: EDITAR / CRIAR ROTA, REFEIÇÃO OU PORTARIA -->
+    <!-- MODAL: EDITAR / CRIAR ROTA, REFEIÇÃO, PORTARIA OU ABASTECIMENTO -->
     <div id="modalEditarRota" class="fixed inset-0 bg-slate-950/85 backdrop-blur-sm z-[60] hidden flex items-center justify-center p-3 overflow-y-auto">
         <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-5 shadow-2xl space-y-4 text-left">
             <div class="flex justify-between items-center border-b border-slate-800 pb-3">
@@ -779,6 +833,23 @@
                         <div class="relative">
                             <i class="fa-solid fa-flag-checkered absolute left-3 top-3.5 text-slate-500"></i>
                             <input type="number" step="0.1" id="editKmFinal" required oninput="recalcularKmEdicao()" class="input-agro font-semibold text-amber-400">
+                        </div>
+                    </div>
+                </div>
+
+                <div id="editFuelGroup" class="hidden grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Litros (L)</label>
+                        <div class="relative">
+                            <i class="fa-solid fa-gas-pump absolute left-3 top-3.5 text-slate-500"></i>
+                            <input type="number" step="0.01" id="editFuelLiters" placeholder="Ex: 25.00" class="input-agro font-semibold text-emerald-400">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Valor Total (R$)</label>
+                        <div class="relative">
+                            <i class="fa-solid fa-dollar-sign absolute left-3 top-3.5 text-slate-500"></i>
+                            <input type="number" step="0.01" id="editFuelValue" placeholder="Ex: 98.00" class="input-agro font-semibold text-amber-400">
                         </div>
                     </div>
                 </div>
@@ -946,7 +1017,7 @@
 
     <!-- SCRIPT DA APLICAÇÃO -->
     <script>
-        const APP_VERSION = "9.7"; 
+        const APP_VERSION = "9.8"; 
 
         let timerInterval = null;
         let watchId = null;
@@ -985,8 +1056,12 @@
             return Boolean(item && item.type === 'gate');
         }
 
+        function isFuelRecord(item) {
+            return Boolean(item && item.type === 'fuel');
+        }
+
         function isZeroKmEvent(item) {
-            return isMealRecord(item) || isGateRecord(item);
+            return isMealRecord(item) || isGateRecord(item) || isFuelRecord(item);
         }
 
         function formatDurationFromSeconds(totalSecs) {
@@ -997,7 +1072,6 @@
             return `${hrs}:${mins}:${secs}`;
         }
 
-        // Calcula duração em HH:MM:SS a partir de dois horários ("HH:MM" ou "HH:MM:SS")
         function calcularDuracaoEntreHorarios(inicioStr, fimStr) {
             if (!inicioStr || !fimStr || !inicioStr.includes(':') || !fimStr.includes(':')) {
                 return null;
@@ -1367,6 +1441,7 @@
                 if (rotaEmAndamento) {
                     const isActiveMeal = rotaEmAndamento.type === 'meal';
                     const isActiveGate = rotaEmAndamento.type === 'gate';
+                    const isActiveFuel = rotaEmAndamento.type === 'fuel';
                     let statusTitle = '🟡 Manobra Ativa no Momento';
                     let statusKm = `${(rotaEmAndamento.distanceKm || 0).toFixed(2)} KM`;
                     let statusDesc = `Destino: ${rotaEmAndamento.destination || '---'}`;
@@ -1378,6 +1453,12 @@
                         statusTitle = '🛡️ Revista e Liberação (Portaria)';
                         statusKm = '0.00 KM (Portaria)';
                         statusDesc = `Saiu da manobra: ${rotaEmAndamento.parentRoute?.destination || 'Rota'}`;
+                    } else if (isActiveFuel) {
+                        statusTitle = '⛽ Abastecimento em Andamento (Pausado)';
+                        statusKm = '0.00 KM (Abastecimento)';
+                        statusDesc = rotaEmAndamento.parentRoute?.destination
+                            ? `Pausado da manobra: ${rotaEmAndamento.parentRoute.destination}`
+                            : 'Parado no posto (contando tempo)';
                     }
                     htmlPasta += `
                         <div class="bg-amber-950/40 border border-amber-500/50 p-2.5 rounded-lg space-y-1 animate-pulse text-left">
@@ -1400,12 +1481,15 @@
                         let qtdRotasReais = 0;
                         let qtdRefeicoes = 0;
                         let qtdPortarias = 0;
+                        let qtdAbastecimentos = 0;
                         lista.forEach(r => {
                             if(r) {
                                 if (isMealRecord(r)) {
                                     qtdRefeicoes++;
                                 } else if (isGateRecord(r)) {
                                     qtdPortarias++;
+                                } else if (isFuelRecord(r)) {
+                                    qtdAbastecimentos++;
                                 } else {
                                     qtdRotasReais++;
                                     totalKmData += parseFloat(r.distance || 0);
@@ -1415,7 +1499,8 @@
                         const finData = calcularFinanceiroKm(totalKmData);
                         const extrasLabel = [
                             qtdRefeicoes > 0 ? `${qtdRefeicoes} refeição(ões)` : '',
-                            qtdPortarias > 0 ? `${qtdPortarias} portaria(s)` : ''
+                            qtdPortarias > 0 ? `${qtdPortarias} portaria(s)` : '',
+                            qtdAbastecimentos > 0 ? `${qtdAbastecimentos} abastecimento(s)` : ''
                         ].filter(Boolean).join(' • ');
 
                         htmlPasta += `
@@ -1455,6 +1540,24 @@
                                             <div class="text-[11px] text-slate-300 flex justify-between">
                                                 <span>Início: ${r.startTime || '--:--'} - Final: ${r.endTime || '--:--'}</span>
                                                 <span>Tempo na portaria: ${r.duration || '00:00:00'}</span>
+                                            </div>
+                                        </div>
+                                    `;
+                                } else if (isFuelRecord(r)) {
+                                    const origemTxt = r.parentDestination ? ` • Manobra: ${r.parentDestination}` : '';
+                                    const detalheComb = [
+                                        r.liters ? `${r.liters} L` : '',
+                                        r.totalValue ? `R$ ${parseFloat(r.totalValue).toFixed(2).replace('.', ',')}` : ''
+                                    ].filter(Boolean).join(' • ');
+                                    htmlPasta += `
+                                        <div class="bg-emerald-950/25 p-2.5 rounded-lg border border-emerald-500/30 text-xs space-y-1 text-left">
+                                            <div class="flex justify-between items-center font-bold text-emerald-300">
+                                                <span><i class="fa-solid fa-gas-pump mr-1"></i> Abastecimento${origemTxt}</span>
+                                                <span>0.00 KM (Abastecimento)</span>
+                                            </div>
+                                            <div class="text-[11px] text-slate-300 flex justify-between">
+                                                <span>Início: ${r.startTime || '--:--'} - Final: ${r.endTime || '--:--'}${detalheComb ? ` (${detalheComb})` : ''}</span>
+                                                <span>Tempo no posto: ${r.duration || '00:00:00'}</span>
                                             </div>
                                         </div>
                                     `;
@@ -1565,15 +1668,19 @@
                 if (!r) return;
                 const zeroKm = isZeroKmEvent(r);
                 const dist = zeroKm ? 0 : parseFloat(r.distance || 0);
-                const lit = kmL > 0 ? (dist / kmL) : 0;
-                const cust = lit * priceL;
-                const tipoLabel = isMealRecord(r) ? 'Refeicao' : (isGateRecord(r) ? 'Portaria' : 'Rota');
-                const duracaoStr = isMealRecord(r)
+                const lit = isFuelRecord(r)
+                    ? (parseFloat(r.liters || 0) || 0)
+                    : (kmL > 0 ? (dist / kmL) : 0);
+                const cust = isFuelRecord(r) && r.totalValue !== undefined && r.totalValue !== ''
+                    ? (parseFloat(r.totalValue || 0) || 0)
+                    : (lit * priceL);
+                const tipoLabel = isMealRecord(r) ? 'Refeicao' : (isGateRecord(r) ? 'Portaria' : (isFuelRecord(r) ? 'Abastecimento' : 'Rota'));
+                const duracaoStr = isMealRecord(r) || isFuelRecord(r)
                     ? (r.duration || calcularDuracaoEntreHorarios(r.startTime, r.endTime) || '00:00:00')
                     : (r.duration || '');
                 const destinoLabel = isMealRecord(r)
                     ? 'Horário de Refeição'
-                    : (isGateRecord(r) ? 'Revista e Liberação (Portaria)' : (r.destination || ''));
+                    : (isGateRecord(r) ? 'Revista e Liberação (Portaria)' : (isFuelRecord(r) ? 'Abastecimento' : (r.destination || '')));
                 csv += `${nome},${tipoLabel},${r.data || ''},${r.fleet || ''},${zeroKm ? 0 : (r.kmStart || 0)},${zeroKm ? 0 : (r.kmFinal || 0)},"${destinoLabel}",${r.startTime || ''},${r.endTime || ''},${duracaoStr},${dist.toFixed(2)},${lit.toFixed(2)},${cust.toFixed(2)}\n`;
             };
 
@@ -1711,6 +1818,7 @@
         function configurarModoPainelAtivo(modeType) {
             const isMeal = modeType === 'meal';
             const isGate = modeType === 'gate';
+            const isFuel = modeType === 'fuel';
 
             const statusLabel = document.getElementById('liveStatusLabel');
             const destEl = document.getElementById('liveDestination');
@@ -1718,12 +1826,15 @@
             const routeControls = document.getElementById('routeControlsRow');
             const mealControls = document.getElementById('mealControlsRow');
             const gateControls = document.getElementById('gateControlsRow');
+            const fuelControls = document.getElementById('fuelControlsRow');
             const telemetryGrid = document.getElementById('routeTelemetryGrid');
             const mealBanner = document.getElementById('mealInfoBanner');
             const gateBanner = document.getElementById('gateInfoBanner');
+            const fuelBanner = document.getElementById('fuelInfoBanner');
             const gpsFooter = document.getElementById('gpsFooterCard');
             const mealStartClock = document.getElementById('liveMealStartClock');
             const gateStartClock = document.getElementById('liveGateStartClock');
+            const fuelStartClock = document.getElementById('liveFuelStartClock');
 
             if (isMeal) {
                 if (statusLabel) statusLabel.innerText = 'Horário de Refeição em Andamento (Sem KM)';
@@ -1735,9 +1846,11 @@
                 if (routeControls) routeControls.classList.add('hidden');
                 if (mealControls) mealControls.classList.remove('hidden');
                 if (gateControls) gateControls.classList.add('hidden');
+                if (fuelControls) fuelControls.classList.add('hidden');
                 if (telemetryGrid) telemetryGrid.classList.add('hidden');
                 if (mealBanner) mealBanner.classList.remove('hidden');
                 if (gateBanner) gateBanner.classList.add('hidden');
+                if (fuelBanner) fuelBanner.classList.add('hidden');
                 if (gpsFooter) gpsFooter.classList.add('hidden');
                 if (mealStartClock) {
                     const horaInicio = activeRoute.startTime
@@ -1755,15 +1868,39 @@
                 if (routeControls) routeControls.classList.add('hidden');
                 if (mealControls) mealControls.classList.add('hidden');
                 if (gateControls) gateControls.classList.remove('hidden');
+                if (fuelControls) fuelControls.classList.add('hidden');
                 if (telemetryGrid) telemetryGrid.classList.add('hidden');
                 if (mealBanner) mealBanner.classList.add('hidden');
                 if (gateBanner) gateBanner.classList.remove('hidden');
+                if (fuelBanner) fuelBanner.classList.add('hidden');
                 if (gpsFooter) gpsFooter.classList.add('hidden');
                 if (gateStartClock) {
                     const horaInicio = activeRoute.startTime
                         ? new Date(activeRoute.startTime).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
                         : '--:--';
                     gateStartClock.innerText = `Início: ${horaInicio}`;
+                }
+            } else if (isFuel) {
+                if (statusLabel) statusLabel.innerText = 'Abastecimento em Andamento • Pausado (Sem KM)';
+                if (destEl) {
+                    destEl.className = 'text-xl font-bold text-emerald-400';
+                    destEl.innerText = '⛽ Abastecimento (Pausado)';
+                }
+                if (btnRename) btnRename.classList.add('hidden');
+                if (routeControls) routeControls.classList.add('hidden');
+                if (mealControls) mealControls.classList.add('hidden');
+                if (gateControls) gateControls.classList.add('hidden');
+                if (fuelControls) fuelControls.classList.remove('hidden');
+                if (telemetryGrid) telemetryGrid.classList.add('hidden');
+                if (mealBanner) mealBanner.classList.add('hidden');
+                if (gateBanner) gateBanner.classList.add('hidden');
+                if (fuelBanner) fuelBanner.classList.remove('hidden');
+                if (gpsFooter) gpsFooter.classList.add('hidden');
+                if (fuelStartClock) {
+                    const horaInicio = activeRoute.startTime
+                        ? new Date(activeRoute.startTime).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+                        : '--:--';
+                    fuelStartClock.innerText = `Início: ${horaInicio}`;
                 }
             } else {
                 if (statusLabel) statusLabel.innerText = 'Manobra em Andamento';
@@ -1775,9 +1912,11 @@
                 if (routeControls) routeControls.classList.remove('hidden');
                 if (mealControls) mealControls.classList.add('hidden');
                 if (gateControls) gateControls.classList.add('hidden');
+                if (fuelControls) fuelControls.classList.add('hidden');
                 if (telemetryGrid) telemetryGrid.classList.remove('hidden');
                 if (mealBanner) mealBanner.classList.add('hidden');
                 if (gateBanner) gateBanner.classList.add('hidden');
+                if (fuelBanner) fuelBanner.classList.add('hidden');
                 if (gpsFooter) gpsFooter.classList.remove('hidden');
             }
         }
@@ -1791,7 +1930,7 @@
                 try {
                     activeRoute = JSON.parse(salva);
                     const modeType = activeRoute?.type || 'route';
-                    const isZeroKm = modeType === 'meal' || modeType === 'gate';
+                    const isZeroKm = modeType === 'meal' || modeType === 'gate' || modeType === 'fuel';
 
                     if (!activeRoute || (!isZeroKm && (!activeRoute.destination || !activeRoute.fleet))) {
                         localStorage.removeItem(`agro_active_route_${colab}`);
@@ -1809,6 +1948,11 @@
                     } else if (modeType === 'gate') {
                         const destinoRota = activeRoute.parentRoute?.destination || 'Rota';
                         document.getElementById('liveFleet').innerHTML = `<i class="fa-solid fa-shield-halved text-sky-400 mr-1"></i> Frota: ${activeRoute.fleet || '---'} • Em pausa da rota: ${destinoRota}`;
+                    } else if (modeType === 'fuel') {
+                        const detalheRota = activeRoute.parentRoute?.destination
+                            ? ` • Pausado da rota: ${activeRoute.parentRoute.destination}`
+                            : ' • Parado no posto (0 KM)';
+                        document.getElementById('liveFleet').innerHTML = `<i class="fa-solid fa-gas-pump text-emerald-400 mr-1"></i> Frota: ${activeRoute.fleet || '---'}${detalheRota}`;
                     } else {
                         document.getElementById('liveFleet').innerHTML = `<i class="fa-solid fa-truck mr-1"></i> Frota: ${activeRoute.fleet}`;
                         document.getElementById('liveKmStart').innerText = Number(activeRoute.kmStart).toFixed(1);
@@ -1927,6 +2071,171 @@
                 carregarDadosSessaoColaborador(colabAtivo);
                 loadHistory();
                 showAlert('Horário de refeição salvo sem contabilizar KM!', 'success');
+            }
+        }
+
+        function startFuelBreak() {
+            const colab = localStorage.getItem('agro_fixed_colaborador');
+            if (!colab) return;
+
+            if (simInterval) { clearInterval(simInterval); simInterval = null; }
+            pararTodosOsTimers();
+            liberarWakeLock();
+            isSimulating = false;
+
+            let snapshotRota = null;
+            let frotaAtual = '';
+            let kmBase = 0;
+
+            if (activeRoute.type === 'route') {
+                snapshotRota = {
+                    type: 'route',
+                    colaborador: activeRoute.colaborador || colab,
+                    fleet: activeRoute.fleet,
+                    kmStart: activeRoute.kmStart,
+                    destination: activeRoute.destination,
+                    notes: activeRoute.notes,
+                    startTime: activeRoute.startTime,
+                    elapsedSeconds: activeRoute.elapsedSeconds,
+                    totalPausedSeconds: totalSegundosPausados,
+                    distanceKm: activeRoute.distanceKm,
+                    lastCoords: activeRoute.lastCoords,
+                    gpsPoints: activeRoute.gpsPoints
+                };
+                frotaAtual = snapshotRota.fleet;
+                kmBase = (parseFloat(snapshotRota.kmStart) || 0) + (parseFloat(snapshotRota.distanceKm) || 0);
+            } else {
+                const fleetInput = document.getElementById('inputFleet')?.value.trim();
+                const kmStartInput = parseFloat(document.getElementById('inputKmStart')?.value);
+                frotaAtual = fleetInput || localStorage.getItem(`agro_last_fleet_${colab}`) || 'Fiorino Álcool';
+                kmBase = !Number.isNaN(kmStartInput)
+                    ? kmStartInput
+                    : (parseFloat(localStorage.getItem(`agro_last_km_${colab}`)) || 0);
+            }
+
+            totalSegundosPausados = 0;
+            tempoInicioPausa = null;
+            isPaused = false;
+
+            activeRoute = {
+                type: 'fuel',
+                colaborador: colab,
+                fleet: frotaAtual,
+                kmStart: kmBase,
+                destination: 'Abastecimento',
+                notes: snapshotRota?.destination ? `Abastecimento na rota: ${snapshotRota.destination}` : 'Parada no posto para abastecimento',
+                startTime: Date.now(),
+                elapsedSeconds: 0,
+                totalPausedSeconds: 0,
+                distanceKm: 0,
+                lastCoords: null,
+                gpsPoints: 0,
+                parentRoute: snapshotRota
+            };
+
+            localStorage.setItem(`agro_active_route_${colab}`, JSON.stringify(activeRoute));
+            document.getElementById('formSection').classList.add('hidden');
+            document.getElementById('activeSection').classList.remove('hidden');
+
+            const origemInfo = snapshotRota?.destination
+                ? ` • Rota pausada: ${snapshotRota.destination}`
+                : ' • Parado no posto (0 KM)';
+            document.getElementById('liveFleet').innerHTML = `<i class="fa-solid fa-gas-pump text-emerald-400 mr-1"></i> Frota: ${frotaAtual || '---'}${origemInfo}`;
+
+            configurarModoPainelAtivo('fuel');
+            iniciarTimerUI();
+            showAlert('Abastecimento iniciado! Rota pausada e tempo no posto sendo contado.', 'info');
+        }
+
+        function stopFuelBreak() {
+            if (!confirm("Deseja encerrar o abastecimento?")) return;
+
+            pararTodosOsTimers();
+            const colabAtivo = localStorage.getItem('agro_fixed_colaborador');
+            const rotaRetorno = activeRoute.parentRoute ? { ...activeRoute.parentRoute } : null;
+
+            try {
+                const agora = new Date();
+                const dataHoje = agora.toLocaleDateString('pt-BR');
+                const inicioMs = activeRoute.startTime ? Number(activeRoute.startTime) : agora.getTime();
+                const inicioDate = new Date(inicioMs);
+                const segundosNoPosto = Math.max(1, Math.floor((agora.getTime() - inicioMs) / 1000));
+                const horaInicioFuel = inicioDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                const horaFimFuel = agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                const horaSaidaRota = rotaRetorno?.startTime
+                    ? new Date(rotaRetorno.startTime).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+                    : '';
+
+                const registroAbastecimento = {
+                    id: Date.now() + Math.floor(Math.random() * 1000),
+                    type: 'fuel',
+                    data: dataHoje,
+                    colaborador: colabAtivo,
+                    fleet: activeRoute.fleet || localStorage.getItem(`agro_last_fleet_${colabAtivo}`) || 'Fiorino Álcool',
+                    kmStart: '0.0',
+                    kmFinal: '0.0',
+                    destination: 'Abastecimento',
+                    parentDestination: rotaRetorno?.destination || '',
+                    parentStartTime: horaSaidaRota,
+                    notes: rotaRetorno?.destination ? `Abastecimento na rota: ${rotaRetorno.destination}` : 'Abastecimento no posto',
+                    startTime: horaInicioFuel,
+                    endTime: horaFimFuel,
+                    duration: formatDurationFromSeconds(segundosNoPosto),
+                    distance: '0.00',
+                    liters: '',
+                    totalValue: ''
+                };
+
+                let historyKey = `agro_routes_history_${colabAtivo}`;
+                let history = [];
+                try { history = JSON.parse(localStorage.getItem(historyKey) || '[]'); } catch(e){}
+                history.push(registroAbastecimento);
+                localStorage.setItem(historyKey, JSON.stringify(history));
+            } catch (err) {
+                console.error("Erro ao salvar abastecimento:", err);
+            }
+
+            if (rotaRetorno) {
+                const duracaoFuelSegs = activeRoute.startTime
+                    ? Math.max(0, Math.floor((Date.now() - activeRoute.startTime) / 1000))
+                    : 0;
+                totalSegundosPausados = (rotaRetorno.totalPausedSeconds || 0) + duracaoFuelSegs;
+                tempoInicioPausa = null;
+                isPaused = false;
+                isSimulating = false;
+
+                activeRoute = {
+                    ...rotaRetorno,
+                    type: 'route',
+                    totalPausedSeconds: totalSegundosPausados,
+                    parentRoute: null
+                };
+
+                localStorage.setItem(`agro_active_route_${colabAtivo}`, JSON.stringify(activeRoute));
+                document.getElementById('liveFleet').innerHTML = `<i class="fa-solid fa-truck mr-1"></i> Frota: ${activeRoute.fleet}`;
+                document.getElementById('liveKmStart').innerText = Number(activeRoute.kmStart).toFixed(1);
+                document.getElementById('liveDistance').innerText = Number(activeRoute.distanceKm).toFixed(2);
+                document.getElementById('gpsPointsCount').innerText = activeRoute.gpsPoints;
+
+                configurarModoPainelAtivo('route');
+                iniciarTimerUI();
+                iniciarGPSContinuo();
+                solicitarWakeLock();
+                loadHistory();
+                showAlert('Abastecimento registrado! Rota retomada.', 'success');
+            } else {
+                localStorage.removeItem(`agro_active_route_${colabAtivo}`);
+                isSimulating = false;
+                isPaused = false;
+                tempoInicioPausa = null;
+                totalSegundosPausados = 0;
+                activeRoute = { type: 'route', colaborador: '', fleet: '', kmStart: 0, destination: '', notes: '', startTime: null, elapsedSeconds: 0, totalPausedSeconds: 0, distanceKm: 0, lastCoords: null, gpsPoints: 0, parentRoute: null };
+                configurarModoPainelAtivo('route');
+                document.getElementById('activeSection').classList.add('hidden');
+                document.getElementById('formSection').classList.remove('hidden');
+                carregarDadosSessaoColaborador(colabAtivo);
+                loadHistory();
+                showAlert('Tempo de abastecimento salvo sem contabilizar KM!', 'success');
             }
         }
 
@@ -2150,10 +2459,11 @@
         }
 
         function configurarCamposModalEdicao(specialType) {
-            const isZeroKm = specialType === 'meal' || specialType === 'gate';
+            const isZeroKm = specialType === 'meal' || specialType === 'gate' || specialType === 'fuel';
             const destGroup = document.getElementById('editDestinationGroup');
             const fleetGroup = document.getElementById('editFleetGroup');
             const kmGroup = document.getElementById('editKmGroup');
+            const fuelGroup = document.getElementById('editFuelGroup');
             const distBox = document.getElementById('editDistancePreviewBox');
             const destInput = document.getElementById('editDestination');
             const fleetInput = document.getElementById('editFleet');
@@ -2167,6 +2477,10 @@
                 if (fleetGroup) fleetGroup.classList.add('hidden');
                 if (kmGroup) kmGroup.classList.add('hidden');
                 if (distBox) distBox.classList.add('hidden');
+                if (fuelGroup) {
+                    if (specialType === 'fuel') fuelGroup.classList.remove('hidden');
+                    else fuelGroup.classList.add('hidden');
+                }
                 if (destInput) destInput.required = false;
                 if (fleetInput) fleetInput.required = false;
                 if (kmStartInput) kmStartInput.required = false;
@@ -2176,6 +2490,7 @@
                 if (fleetGroup) fleetGroup.classList.remove('hidden');
                 if (kmGroup) kmGroup.classList.remove('hidden');
                 if (distBox) distBox.classList.remove('hidden');
+                if (fuelGroup) fuelGroup.classList.add('hidden');
                 if (destInput) destInput.required = true;
                 if (fleetInput) fleetInput.required = true;
                 if (kmStartInput) kmStartInput.required = true;
@@ -2214,6 +2529,8 @@
             document.getElementById('editFleet').value = frotaSugerida;
             document.getElementById('editKmStart').value = kmSugerido;
             document.getElementById('editKmFinal').value = kmSugerido;
+            document.getElementById('editFuelLiters').value = '';
+            document.getElementById('editFuelValue').value = '';
             document.getElementById('editStartTime').value = horaSugerida;
             document.getElementById('editEndTime').value = horaSugerida;
             document.getElementById('editPreviewDistance').innerText = '0.00 KM';
@@ -2234,7 +2551,8 @@
 
             const isMeal = isMealRecord(rota);
             const isGate = isGateRecord(rota);
-            const specialType = isMeal ? 'meal' : (isGate ? 'gate' : '');
+            const isFuel = isFuelRecord(rota);
+            const specialType = isMeal ? 'meal' : (isGate ? 'gate' : (isFuel ? 'fuel' : ''));
             configurarCamposModalEdicao(specialType);
 
             const tituloModal = document.getElementById('modalEditarTitulo');
@@ -2247,6 +2565,10 @@
                     tituloModal.innerHTML = dataFolder
                         ? `<i class="fa-solid fa-shield-halved text-sky-400"></i> Editar Revista e Liberação (${dataFolder})`
                         : `<i class="fa-solid fa-shield-halved text-sky-400"></i> Editar Revista e Liberação (Portaria)`;
+                } else if (isFuel) {
+                    tituloModal.innerHTML = dataFolder
+                        ? `<i class="fa-solid fa-gas-pump text-emerald-400"></i> Editar Abastecimento (${dataFolder})`
+                        : `<i class="fa-solid fa-gas-pump text-emerald-400"></i> Editar Abastecimento`;
                 } else {
                     tituloModal.innerHTML = dataFolder
                         ? `<i class="fa-solid fa-pen-to-square text-amber-400"></i> Editar Manobra Arquivada (${dataFolder})`
@@ -2269,6 +2591,8 @@
             document.getElementById('editFleet').value = rota.fleet || '';
             document.getElementById('editKmStart').value = kmIniVal;
             document.getElementById('editKmFinal').value = kmFinVal;
+            document.getElementById('editFuelLiters').value = rota.liters || '';
+            document.getElementById('editFuelValue').value = rota.totalValue || '';
             document.getElementById('editStartTime').value = rota.startTime || '00:00';
             document.getElementById('editEndTime').value = rota.endTime || '00:00';
             recalcularKmEdicao();
@@ -2301,7 +2625,7 @@
             const colabAtivo = localStorage.getItem('agro_fixed_colaborador');
             const alvo = obterListaRotasAlvo(colabAtivo, dataFolder);
 
-            if (specialType === 'meal' || specialType === 'gate') {
+            if (specialType === 'meal' || specialType === 'gate' || specialType === 'fuel') {
                 const index = alvo.lista.findIndex(r => r && String(r.id) === String(idRota));
                 if (index === -1) {
                     showAlert('Erro ao encontrar registro para salvar.', 'error');
@@ -2309,10 +2633,12 @@
                 }
                 const destinoPadrao = specialType === 'gate'
                     ? 'Revista e Liberação (Portaria)'
-                    : 'Horário de Refeição';
+                    : (specialType === 'fuel' ? 'Abastecimento' : 'Horário de Refeição');
                 const startFinal = novoStartTime || alvo.lista[index].startTime || '--:--';
                 const endFinal = novoEndTime || alvo.lista[index].endTime || '--:--';
                 const duracaoRecalculada = calcularDuracaoEntreHorarios(startFinal, endFinal) || alvo.lista[index].duration || '00:00:00';
+                const litrosVal = document.getElementById('editFuelLiters')?.value.trim() ?? '';
+                const valorVal = document.getElementById('editFuelValue')?.value.trim() ?? '';
 
                 alvo.lista[index] = {
                     ...alvo.lista[index],
@@ -2323,7 +2649,8 @@
                     distance: '0.00',
                     startTime: startFinal,
                     endTime: endFinal,
-                    duration: duracaoRecalculada
+                    duration: duracaoRecalculada,
+                    ...(specialType === 'fuel' ? { liters: litrosVal, totalValue: valorVal } : {})
                 };
             } else {
                 const novoDestino = document.getElementById('editDestination').value.trim();
@@ -2453,7 +2780,7 @@
 
         function iniciarTimerUI() {
             pararTodosOsTimers();
-            const isZeroKm = activeRoute.type === 'meal' || activeRoute.type === 'gate';
+            const isZeroKm = activeRoute.type === 'meal' || activeRoute.type === 'gate' || activeRoute.type === 'fuel';
 
             timerInterval = setInterval(() => {
                 if (isZeroKm) {
@@ -2630,6 +2957,10 @@
                 stopGateRelease();
                 return;
             }
+            if (activeRoute.type === 'fuel') {
+                stopFuelBreak();
+                return;
+            }
 
             if (!confirm("Deseja encerrar e salvar esta rota permanentemente?")) return;
             
@@ -2723,7 +3054,8 @@
                     if(item) {
                         const isMeal = isMealRecord(item);
                         const isGate = isGateRecord(item);
-                        if (!isMeal && !isGate) destinationsSet.add(item.destination || '');
+                        const isFuel = isFuelRecord(item);
+                        if (!isMeal && !isGate && !isFuel) destinationsSet.add(item.destination || '');
                         const div = document.createElement('div');
 
                         if (isMeal) {
@@ -2760,6 +3092,29 @@
                                         <i class="fa-solid fa-pen text-xs"></i>
                                     </button>
                                     <button type="button" onclick="confirmarExclusaoRota('${escapeJsString(item.id)}')" class="p-2 bg-slate-800 hover:bg-red-950 text-red-400 rounded-lg transition cursor-pointer" title="Excluir Portaria">
+                                        <i class="fa-solid fa-trash text-xs"></i>
+                                    </button>
+                                </div>
+                            `;
+                        } else if (isFuel) {
+                            const origemTxt = item.parentDestination ? ` • Manobra: ${item.parentDestination}` : '';
+                            const extraComb = [
+                                item.liters ? `${item.liters} L` : '',
+                                item.totalValue ? `R$ ${parseFloat(item.totalValue).toFixed(2).replace('.', ',')}` : ''
+                            ].filter(Boolean).join(' • ');
+                            div.className = "bg-emerald-950/20 border border-emerald-500/35 p-3 rounded-xl flex justify-between items-center text-xs text-left w-full";
+                            div.innerHTML = `
+                                <div class="flex-1 pr-2 text-left">
+                                    <div class="font-bold text-emerald-300 text-left"><i class="fa-solid fa-gas-pump mr-1"></i> Abastecimento${origemTxt}</div>
+                                    <div class="text-slate-400 mt-0.5 text-left">Data: ${item.data || '--/--/----'} | Pausado no posto${extraComb ? ` (${extraComb})` : ''}</div>
+                                    <div class="text-slate-300 text-[11px] mt-0.5 text-left">Início: <strong class="text-emerald-300">${item.startTime || '--:--'}</strong> • Final: <strong class="text-emerald-300">${item.endTime || '--:--'}</strong> • Tempo no posto: <strong class="text-emerald-300">${item.duration || '00:00:00'}</strong></div>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <div class="text-right font-bold text-emerald-300 mr-1">0.00 KM</div>
+                                    <button type="button" onclick="abrirModalEditarRota('${escapeJsString(item.id)}')" class="p-2 bg-slate-800 hover:bg-slate-700 text-amber-400 rounded-lg transition cursor-pointer" title="Editar Abastecimento">
+                                        <i class="fa-solid fa-pen text-xs"></i>
+                                    </button>
+                                    <button type="button" onclick="confirmarExclusaoRota('${escapeJsString(item.id)}')" class="p-2 bg-slate-800 hover:bg-red-950 text-red-400 rounded-lg transition cursor-pointer" title="Excluir Abastecimento">
                                         <i class="fa-solid fa-trash text-xs"></i>
                                     </button>
                                 </div>
@@ -2816,13 +3171,13 @@
             history.forEach(i => {
                 if(i) {
                     const zeroKm = isZeroKmEvent(i);
-                    const tipoLabel = isMealRecord(i) ? 'Refeicao' : (isGateRecord(i) ? 'Portaria' : 'Rota');
-                    const duracaoStr = isMealRecord(i)
+                    const tipoLabel = isMealRecord(i) ? 'Refeicao' : (isGateRecord(i) ? 'Portaria' : (isFuelRecord(i) ? 'Abastecimento' : 'Rota'));
+                    const duracaoStr = isMealRecord(i) || isFuelRecord(i)
                         ? (i.duration || calcularDuracaoEntreHorarios(i.startTime, i.endTime) || '00:00:00')
                         : (i.duration || '');
                     const destinoLabel = isMealRecord(i)
                         ? 'Horário de Refeição'
-                        : (isGateRecord(i) ? 'Revista e Liberação (Portaria)' : (i.destination || ''));
+                        : (isGateRecord(i) ? 'Revista e Liberação (Portaria)' : (isFuelRecord(i) ? 'Abastecimento' : (i.destination || '')));
                     csv += `${i.id || 0},${tipoLabel},${i.data || ''},${i.colaborador || ''},${i.fleet || ''},${zeroKm ? 0 : (i.kmStart || 0)},${zeroKm ? 0 : (i.kmFinal || 0)},"${destinoLabel}",${i.startTime || ''},${i.endTime || ''},${duracaoStr},${zeroKm ? '0.00' : (i.distance || 0)}\n`;
                 }
             });
@@ -2837,32 +3192,29 @@
             return Number.isFinite(num) ? num.toFixed(1).replace('.', ',') : '0,0';
         }
 
-        // Vincula cada Revista e Liberação (Portaria) à manobra/rota da qual saiu
-        // para que fique logo abaixo dela no relatório, e não todas agrupadas.
         function ordenarItensRelatorioVisual(listaRotas) {
             const validos = listaRotas.filter(Boolean);
             const rotasReais = validos.filter(r => !isZeroKmEvent(r));
-            const portarias = validos.filter(r => isGateRecord(r));
+            const paradasPausadas = validos.filter(r => isGateRecord(r) || isFuelRecord(r));
             const refeicoes = validos.filter(r => isMealRecord(r));
 
             if (rotasReais.length === 0) {
                 return validos;
             }
 
-            const portariasPorRota = new Map();
-            rotasReais.forEach((_, idx) => portariasPorRota.set(idx, []));
-            const portariasSemVinculo = [];
+            const paradasPorRota = new Map();
+            rotasReais.forEach((_, idx) => paradasPorRota.set(idx, []));
+            const paradasSemVinculo = [];
 
-            portarias.forEach((gate) => {
+            paradasPausadas.forEach((parada) => {
                 let idxAlvo = -1;
 
-                // 1. Vínculo explícito pelo nome da manobra/rota de onde saiu
-                if (gate.parentDestination) {
-                    const origemNorm = String(gate.parentDestination).trim().toLowerCase();
-                    if (gate.parentStartTime) {
+                if (parada.parentDestination) {
+                    const origemNorm = String(parada.parentDestination).trim().toLowerCase();
+                    if (parada.parentStartTime) {
                         idxAlvo = rotasReais.findIndex(r =>
                             String(r.destination || '').trim().toLowerCase() === origemNorm &&
-                            String(r.startTime || '').trim() === String(gate.parentStartTime).trim()
+                            String(r.startTime || '').trim() === String(parada.parentStartTime).trim()
                         );
                     }
                     if (idxAlvo === -1) {
@@ -2872,19 +3224,18 @@
                     }
                 }
 
-                // 2. Fallback por janela de horário da manobra
                 if (idxAlvo === -1) {
-                    const minGate = horaParaMinutos(gate.startTime);
-                    if (minGate !== null) {
+                    const minParada = horaParaMinutos(parada.startTime);
+                    if (minParada !== null) {
                         for (let i = 0; i < rotasReais.length; i++) {
                             const r = rotasReais[i];
                             const minSaida = horaParaMinutos(r.startTime);
                             const minChegada = horaParaMinutos(r.endTime);
                             const proximaSaida = rotasReais[i + 1] ? horaParaMinutos(rotasReais[i + 1].startTime) : Infinity;
 
-                            if (minSaida !== null && minGate >= minSaida && (proximaSaida === null || minGate < proximaSaida)) {
+                            if (minSaida !== null && minParada >= minSaida && (proximaSaida === null || minParada < proximaSaida)) {
                                 idxAlvo = i;
-                                if (minChegada !== null && minGate > minChegada && rotasReais[i + 1]) {
+                                if (minChegada !== null && minParada > minChegada && rotasReais[i + 1]) {
                                     continue;
                                 }
                                 break;
@@ -2894,20 +3245,20 @@
                 }
 
                 if (idxAlvo !== -1) {
-                    portariasPorRota.get(idxAlvo).push(gate);
+                    paradasPorRota.get(idxAlvo).push(parada);
                 } else {
-                    portariasSemVinculo.push(gate);
+                    paradasSemVinculo.push(parada);
                 }
             });
 
             const resultado = [];
             rotasReais.forEach((rota, idx) => {
                 resultado.push(rota);
-                const gatesDaRota = portariasPorRota.get(idx) || [];
-                resultado.push(...gatesDaRota);
+                const itensDaRota = paradasPorRota.get(idx) || [];
+                resultado.push(...itensDaRota);
             });
 
-            resultado.push(...portariasSemVinculo);
+            resultado.push(...paradasSemVinculo);
             resultado.push(...refeicoes);
 
             return resultado;
@@ -2977,6 +3328,33 @@
                                 <div class="rep-gate-cell">
                                     <span class="rep-gate-lbl">TEMPO GASTO NA PORTARIA</span>
                                     <span class="rep-gate-val" style="color: #0369a1;">${r.duration || '00:00:00'}</span>
+                                </div>
+                            </div>
+                        `;
+                    } else if (isFuelRecord(r)) {
+                        const detalheExtra = [
+                            r.liters ? `${r.liters} L` : '',
+                            r.totalValue ? `R$ ${parseFloat(r.totalValue).toFixed(2).replace('.', ',')}` : ''
+                        ].filter(Boolean).join(' • ');
+                        card.className = 'rep-route-card';
+                        card.style.borderColor = '#6ee7b7';
+                        card.innerHTML = `
+                            <div class="rep-route-head" style="background-color: #065f46; display: flex; justify-content: space-between; align-items: center;">
+                                <span>Abastecimento (Pausado)${detalheExtra ? ` • ${detalheExtra}` : ''}</span>
+                                <span style="color: #a7f3d0; font-size: 15px;">0.00 km</span>
+                            </div>
+                            <div class="rep-fuel-grid">
+                                <div class="rep-fuel-cell">
+                                    <span class="rep-fuel-lbl">INÍCIO</span>
+                                    <span class="rep-fuel-val">${r.startTime || '--:--'}</span>
+                                </div>
+                                <div class="rep-fuel-cell">
+                                    <span class="rep-fuel-lbl">FINAL</span>
+                                    <span class="rep-fuel-val">${r.endTime || '--:--'}</span>
+                                </div>
+                                <div class="rep-fuel-cell">
+                                    <span class="rep-fuel-lbl">TEMPO NO POSTO</span>
+                                    <span class="rep-fuel-val" style="color: #047857;">${r.duration || '00:00:00'}</span>
                                 </div>
                             </div>
                         `;
@@ -3094,6 +3472,13 @@
                     } else if (isGateRecord(r)) {
                         texto += `🛡️ *Revista e Liberação (Portaria)*\n`;
                         texto += `⏰ Início: ${r.startTime || '--:--'} | Final: ${r.endTime || '--:--'} | Tempo na portaria: *${r.duration || '00:00:00'}* | _Sem KM_\n\n`;
+                    } else if (isFuelRecord(r)) {
+                        const extraComb = [
+                            r.liters ? `${r.liters} L` : '',
+                            r.totalValue ? `R$ ${parseFloat(r.totalValue).toFixed(2).replace('.', ',')}` : ''
+                        ].filter(Boolean).join(' • ');
+                        texto += `⛽ *Abastecimento (Pausado)*${extraComb ? ` • ${extraComb}` : ''}\n`;
+                        texto += `⏰ Início: ${r.startTime || '--:--'} | Final: ${r.endTime || '--:--'} | Tempo no posto: *${r.duration || '00:00:00'}* | _Sem KM_\n\n`;
                     } else {
                         routeNum++;
                         totalKmGeral += parseFloat(r.distance || 0);
@@ -3122,7 +3507,7 @@
                 return;
             }
 
-            if (confirm("Deseja arquivar suas manobras, portarias e refeições nas suas pastas privadas?")) {
+            if (confirm("Deseja arquivar suas manobras, portarias, abastecimentos e refeições nas suas pastas privadas?")) {
                 let pastas = {};
                 try { pastas = JSON.parse(localStorage.getItem(`agro_archived_folders_${colabAtivo}`) || '{}'); } catch(e){}
                 
@@ -3241,6 +3626,33 @@
                                                     <i class="fa-solid fa-pen text-[10px]"></i> Editar
                                                 </button>
                                                 <button type="button" onclick="confirmarExclusaoRota('${escapeJsString(r.id)}', '${dataEscapada}')" class="px-2.5 py-1 bg-slate-900 hover:bg-red-950 text-red-400 rounded-lg transition cursor-pointer flex items-center gap-1 font-semibold" title="Excluir Portaria">
+                                                    <i class="fa-solid fa-trash text-[10px]"></i> Excluir
+                                                </button>
+                                            </div>
+                                        </div>
+                                    `;
+                                }
+                                if (isFuelRecord(r)) {
+                                    const origemTxt = r.parentDestination ? ` • Manobra: ${r.parentDestination}` : '';
+                                    const extraComb = [
+                                        r.liters ? `${r.liters} L` : '',
+                                        r.totalValue ? `R$ ${parseFloat(r.totalValue).toFixed(2).replace('.', ',')}` : ''
+                                    ].filter(Boolean).join(' • ');
+                                    return `
+                                        <div class="bg-emerald-950/25 p-2.5 rounded-lg border border-emerald-500/35 text-[11px] space-y-1.5 text-left">
+                                            <div class="flex justify-between items-center text-emerald-300 font-bold gap-2">
+                                                <span><i class="fa-solid fa-gas-pump mr-1"></i> Abastecimento${origemTxt}</span>
+                                                <span class="shrink-0">0.00 km (Abastecimento)</span>
+                                            </div>
+                                            <div class="text-slate-300 flex justify-between items-center gap-2">
+                                                <span>Início: ${r.startTime || '--:--'} • Final: ${r.endTime || '--:--'}${extraComb ? ` (${extraComb})` : ''}</span>
+                                                <span class="shrink-0">Tempo no posto: ${r.duration || '00:00:00'}</span>
+                                            </div>
+                                            <div class="flex justify-end gap-2 pt-1 border-t border-emerald-500/20">
+                                                <button type="button" onclick="abrirModalEditarRota('${escapeJsString(r.id)}', '${dataEscapada}')" class="px-2.5 py-1 bg-slate-900 hover:bg-slate-700 text-amber-400 rounded-lg transition cursor-pointer flex items-center gap-1 font-semibold" title="Editar Abastecimento">
+                                                    <i class="fa-solid fa-pen text-[10px]"></i> Editar
+                                                </button>
+                                                <button type="button" onclick="confirmarExclusaoRota('${escapeJsString(r.id)}', '${dataEscapada}')" class="px-2.5 py-1 bg-slate-900 hover:bg-red-950 text-red-400 rounded-lg transition cursor-pointer flex items-center gap-1 font-semibold" title="Excluir Abastecimento">
                                                     <i class="fa-solid fa-trash text-[10px]"></i> Excluir
                                                 </button>
                                             </div>
