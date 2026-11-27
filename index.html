@@ -1025,7 +1025,7 @@
 
     <!-- SCRIPT DA APLICAÇÃO -->
     <script>
-        const APP_VERSION = "10.2"; 
+        const APP_VERSION = "10.3"; 
 
         let timerInterval = null;
         let watchId = null;
@@ -3407,8 +3407,6 @@
                 document.getElementById('inputFleet').value = registro.fleet;
                 document.getElementById('inputKmStart').value = kmFinal.toFixed(1);
 
-                exportToExcelConsolidated();
-
             } catch (err) {
                 console.error("Erro ao gravar histórico:", err);
             } finally {
@@ -3427,7 +3425,7 @@
                 carregarDadosSessaoColaborador(colabAtivo);
                 loadHistory();
 
-                showAlert('Rota salva e enviada ao painel da gestão!', 'success');
+                showAlert('Rota salva com sucesso!', 'success');
             }
         }
 
